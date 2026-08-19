@@ -4,6 +4,7 @@
   "rewrites": [
     { "source": "/servicos/:slug", "destination": "/servico.html" },
     { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/admin/login", "destination": "/admin/login.html" },
     { "source": "/login", "destination": "/admin/login.html" },
     { "source": "/proposta/:id", "destination": "/proposta.html" }
   ],
