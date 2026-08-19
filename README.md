@@ -7,6 +7,8 @@ Aplicação proprietária da CALI para captar briefings, calcular escopos e gera
 - `index.html`: central pública dos serviços.
 - `servico.html`: questionário dinâmico dos sete serviços.
 - `admin/`: painel privado, restrito à Patricia.
+- `admin/access.html`: primeiro acesso e recuperação por link seguro.
+- `admin/reset.html`: definição de uma nova senha pelo Supabase Auth.
 - `proposta.html`: composição e impressão da proposta em PDF.
 - `supabase/schema.sql`: banco, segurança por linha, preços internos e storage privado.
 - `supabase/functions/`: confirmação do lead e envio da proposta via Resend.

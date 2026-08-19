@@ -1,5 +1,7 @@
 import { SERVICES } from "/js/services.js";
 
+if (location.hash.includes("type=recovery")) location.replace(`/redefinir-senha${location.hash}`);
+
 const iconPaths = {
   "assessoria-estrategica": '<path d="M5 19V9l7-4 7 4v10M9 19v-6h6v6M4 19h16"/><path d="m9 8 3 2 3-2"/>',
   "mentoria-rh": '<circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4.4 3.1-6.5 7-6.5s6.2 2.1 7 6.5M18 5l1 1 2-2"/>',

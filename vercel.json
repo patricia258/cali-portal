@@ -6,6 +6,8 @@
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/login", "destination": "/admin/login.html" },
     { "source": "/login", "destination": "/admin/login.html" },
+    { "source": "/acesso", "destination": "/admin/access.html" },
+    { "source": "/redefinir-senha", "destination": "/admin/reset.html" },
     { "source": "/proposta/:id", "destination": "/proposta.html" }
   ],
   "headers": [

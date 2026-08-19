@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5A1E2D">
+  <title>Definir nova senha · CALI</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-body">
+  <main class="auth-stage">
+    <section class="auth-card">
+      <div class="auth-story">
+        <a class="auth-story-logo" href="/" aria-label="Voltar ao Portal CALI"><img data-asset="logoLight" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="CALI — HR for Business"></a>
+        <div class="auth-story-copy"><div class="eyebrow eyebrow-light">Nova credencial</div><h1>Uma nova senha.<br>O mesmo acesso seguro.</h1><p>Escolha uma senha exclusiva para proteger os briefings e as propostas da CALI.</p></div>
+        <div class="auth-orbits" aria-hidden="true"></div>
+      </div>
+      <div class="auth-panel">
+        <form class="auth-form" id="reset-form">
+          <div class="eyebrow">Acesso administrativo</div><h2>Definir nova senha</h2><p>Use no mínimo 8 caracteres. Quanto mais exclusiva, melhor.</p>
+          <div class="field"><label for="password">Nova senha</label><div class="password-control"><input class="control" id="password" name="password" type="password" minlength="8" required autocomplete="new-password"><button class="password-toggle" type="button" aria-label="Mostrar senha" data-password-toggle>Ver</button></div></div>
+          <div class="field"><label for="confirm-password">Confirmar nova senha</label><div class="password-control"><input class="control" id="confirm-password" name="confirmPassword" type="password" minlength="8" required autocomplete="new-password"><button class="password-toggle" type="button" aria-label="Mostrar senha" data-password-toggle>Ver</button></div></div>
+          <div class="password-meter"><span id="password-meter"></span></div><div class="password-hint" id="password-hint">Use pelo menos 8 caracteres.</div>
+          <div class="auth-feedback" id="feedback" role="status"></div>
+          <button class="btn btn-primary auth-submit" type="submit">Salvar nova senha</button>
+          <div class="auth-security"><span aria-hidden="true">◇</span> A nova senha é gravada diretamente no Supabase Auth e não fica armazenada neste site.</div>
+        </form>
+        <section class="auth-success hidden" id="reset-success"><div class="auth-success-mark">✓</div><div class="eyebrow">Senha atualizada</div><h2>Seu acesso está pronto.</h2><p>Agora você já pode entrar no painel da CALI usando a nova senha.</p><a class="btn btn-primary auth-submit" href="/login">Entrar no painel</a></section>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/assets-init.js"></script><script type="module" src="/js/reset.js"></script>
+</body>
+</html>

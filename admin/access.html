@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5A1E2D">
+  <title>Recuperar acesso · CALI</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-body">
+  <main class="auth-stage">
+    <section class="auth-card">
+      <div class="auth-story">
+        <a class="auth-story-logo" href="/" aria-label="Voltar ao Portal CALI"><img data-asset="logoLight" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="CALI — HR for Business"></a>
+        <div class="auth-story-copy"><div class="eyebrow eyebrow-light">Acesso protegido</div><h1 id="story-title">Recupere seu acesso,<br>com segurança.</h1><p id="story-copy">O link é pessoal, temporário e enviado somente ao e-mail administrativo autorizado.</p></div>
+        <div class="auth-orbits" aria-hidden="true"></div>
+      </div>
+      <div class="auth-panel">
+        <form class="auth-form" id="access-form">
+          <a class="auth-back" href="/login">← Voltar para o login</a>
+          <div class="eyebrow" id="access-kicker">Recuperação de senha</div><h2 id="access-title">Esqueci minha senha</h2><p id="access-copy">Enviarei um link seguro para você cadastrar uma nova senha.</p>
+          <div class="field"><label for="email">E-mail autorizado</label><input class="control" id="email" name="email" type="email" value="patricia@calirh.com" readonly required autocomplete="email"></div>
+          <div class="auth-feedback" id="feedback" role="status"></div>
+          <button class="btn btn-primary auth-submit" type="submit">Enviar link seguro</button>
+          <div class="auth-security"><span aria-hidden="true">◇</span> Por segurança, o link expira e só pode ser usado para definir uma nova senha.</div>
+        </form>
+        <section class="auth-success hidden" id="access-success"><div class="auth-success-mark">✓</div><div class="eyebrow">E-mail enviado</div><h2>Confira sua caixa de entrada.</h2><p>Enviei as instruções para <strong>patricia@calirh.com</strong>. Confira também as pastas de spam e promoções.</p><a class="btn btn-primary auth-submit" href="/login">Voltar ao login</a></section>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/assets-init.js"></script><script type="module" src="/js/access.js"></script>
+</body>
+</html>
