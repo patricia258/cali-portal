@@ -43,7 +43,7 @@ function fieldHtml(field) {
 stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Etapa ${index + 1} de ${service.sections.length}</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 stepList.innerHTML = service.sections.map((section, index) => `<li data-step-item="${index}"><span class="step-dot">${index + 1}</span><span>${escapeHtml(section.title)}</span></li>`).join("");
 
-function showStep(index) {
+function showStep(index, shouldScroll = true) {
   current = Math.max(0, Math.min(index, service.sections.length - 1));
   document.querySelectorAll(".form-step").forEach((element, i) => element.classList.toggle("active", i === current));
   document.querySelectorAll("[data-step-item]").forEach((element, i) => {
@@ -58,7 +58,9 @@ function showStep(index) {
   submitButton.classList.toggle("hidden", !finalStep);
   document.getElementById("consent-wrap").classList.toggle("hidden", !finalStep);
   feedback.textContent = "";
-  window.scrollTo({ top: Math.max(0, document.querySelector(".form-layout").offsetTop - 110), behavior: "smooth" });
+  if (shouldScroll) {
+    window.scrollTo({ top: Math.max(0, document.querySelector(".form-layout").offsetTop - 110), behavior: "smooth" });
+  }
 }
 
 function valueFor(field) {
@@ -116,4 +118,4 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-showStep(0);
+showStep(0, false);
