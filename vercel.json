@@ -1,0 +1,18 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/servicos/:slug", "destination": "/servico.html" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/login", "destination": "/admin/login.html" },
+    { "source": "/proposta/:id", "destination": "/proposta.html" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+      { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+    ]}
+  ]
+}
