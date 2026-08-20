@@ -13,19 +13,23 @@ export const STATUS = [
 ];
 
 export const COMMON_CONTACT = [
-  { id: "nome", label: "Seu nome", type: "text", required: true, span: 6 },
-  { id: "cargo", label: "Cargo", type: "text", required: true, span: 6 },
-  { id: "email", label: "E-mail profissional", type: "email", required: true, span: 6 },
-  { id: "whatsapp", label: "WhatsApp", type: "tel", required: true, span: 6 },
+  { id: "nome", label: "Seu nome", type: "text", required: true, span: 6, lettersOnly: true, maxlength: 120, autocomplete: "name" },
+  { id: "cargo", label: "Cargo", type: "text", required: true, span: 6, lettersOnly: true, maxlength: 120, autocomplete: "organization-title" },
+  { id: "email", label: "E-mail profissional", type: "email", required: true, span: 6, maxlength: 254, autocomplete: "email", inputmode: "email" },
+  { id: "whatsapp", label: "WhatsApp", type: "tel", required: true, span: 6, phone: true, maxlength: 20, autocomplete: "tel", inputmode: "tel", placeholder: "(41) 98779-1933" },
   { id: "preferencia_contato", label: "Como prefere receber nosso retorno?", type: "radio", required: true, options: [option("email", "E-mail"), option("whatsapp", "WhatsApp"), option("ambos", "Tanto faz")] },
+  { id: "contexto_profissional", label: "Se quiser, conte um pouco sobre seu papel e o que motivou este contato", type: "textarea", maxlength: 1200, placeholder: "Este campo é opcional." },
 ];
 
 export const COMMON_COMPANY = [
-  { id: "empresa", label: "Empresa", type: "text", required: true, span: 6 },
-  { id: "segmento", label: "Segmento", type: "text", required: true, span: 6 },
-  { id: "colaboradores", label: "Número aproximado de colaboradores", type: "number", min: 1, required: true, span: 4 },
-  { id: "unidades", label: "Unidades ou filiais", type: "number", min: 1, value: 1, required: true, span: 4 },
-  { id: "localidade", label: "Cidade e estado", type: "text", required: true, span: 4 },
+  { id: "empresa", label: "Empresa", type: "text", required: true, span: 6, maxlength: 180, autocomplete: "organization" },
+  { id: "segmento", label: "Segmento", type: "select", required: true, span: 6, options: [option("tecnologia", "Tecnologia e software"), option("servicos", "Serviços profissionais"), option("industria", "Indústria"), option("varejo", "Varejo e e-commerce"), option("saude", "Saúde"), option("educacao", "Educação"), option("financeiro", "Financeiro e seguros"), option("logistica", "Logística e transportes"), option("construcao", "Construção e mercado imobiliário"), option("agro", "Agronegócio"), option("hospitalidade", "Hospitalidade e alimentação"), option("terceiro_setor", "Terceiro setor"), option("publico", "Setor público"), option("outro", "Outro")] },
+  { id: "segmento_outro", label: "Qual é o segmento?", type: "text", required: true, span: 6, maxlength: 120, showWhen: { field: "segmento", equals: "outro" } },
+  { id: "colaboradores", label: "Número aproximado de colaboradores", type: "number", min: 1, max: 1000000, required: true, span: 4 },
+  { id: "unidades", label: "Número de unidades ou filiais", type: "number", min: 1, max: 10000, value: 1, required: true, span: 4 },
+  { id: "localidade", label: "Cidade e estado da matriz", type: "text", required: true, span: 4, maxlength: 160 },
+  { id: "filiais_outro_estado", label: "A empresa possui unidades ou filiais em outros estados", type: "checkbox" },
+  { id: "estados_filiais", label: "Em quais outros estados?", type: "text", required: true, maxlength: 300, showWhen: { field: "filiais_outro_estado", equals: true }, placeholder: "Ex.: São Paulo, Santa Catarina e Rio de Janeiro" },
   { id: "modelo_trabalho", label: "Modelo de trabalho predominante", type: "select", required: true, span: 6, options: [option("presencial", "Presencial"), option("hibrido", "Híbrido"), option("remoto", "Remoto"), option("misto", "Varia por área")] },
   { id: "momento_empresa", label: "Momento atual da empresa", type: "select", required: true, span: 6, options: [option("crescimento", "Crescimento"), option("reestruturacao", "Reestruturação"), option("estabilizacao", "Estabilização"), option("ma", "Fusão ou aquisição"), option("crise", "Pressão ou crise operacional")] },
 ];
@@ -49,10 +53,11 @@ export const SERVICES = {
         { id: "rh_interno", label: "Existe RH interno?", type: "radio", required: true, options: [option("nao", "Não"), option("operacional", "Sim, predominantemente operacional"), option("estruturado", "Sim, já estruturado")] },
         { id: "pessoas_rh", label: "Quantas pessoas atuam no RH?", type: "number", min: 0, value: 0, span: 4 },
         { id: "lideranca_rh", label: "Há liderança sênior de RH?", type: "select", required: true, span: 8, options: [option("nao", "Não"), option("parcial", "Parcial ou acumulada por outra área"), option("sim", "Sim")] },
-        { id: "frentes", label: "Quais frentes precisam de apoio?", type: "checkboxes", required: true, options: [option("direcao", "Direção estratégica"), option("indicadores", "Indicadores e People Analytics"), option("dho", "DHO e performance"), option("processos", "Políticas e processos"), option("cargos", "Cargos e salários"), option("saude", "Saúde ocupacional e conformidade"), option("lideranca", "Apoio à liderança"), option("atracao", "Desenho de Atração e Seleção")] },
-        { id: "indicadores", label: "Quais indicadores são acompanhados atualmente?", type: "checkboxes", options: [option("turnover", "Turnover"), option("absenteismo", "Absenteísmo"), option("clima", "Clima"), option("headcount", "Headcount e custo"), option("performance", "Performance"), option("nenhum", "Nenhum de forma consistente")] },
+        { id: "estrutura_rh", label: "Conte um pouco mais sobre quem compõe o RH hoje", type: "textarea", maxlength: 1500, placeholder: "Papéis, senioridade, divisão de responsabilidades ou algum contexto importante. Campo opcional." },
+        { id: "frentes", label: "Em quais frentes você precisa de apoio?", type: "checkboxes", required: true, help: "Você pode selecionar quantas forem necessárias.", options: [option("planejamento", "Planejamento estratégico de pessoas"), option("desenho", "Estrutura e desenho organizacional"), option("governanca", "Governança, políticas e processos"), option("people_analytics", "People Analytics e dashboards"), option("desempenho", "Gestão de desempenho e metas"), option("clima", "Clima e engajamento"), option("cultura", "Cultura e valores"), option("cargos", "Cargos, carreira e salários"), option("sucessao", "Sucessão e gestão de talentos"), option("liderancas", "Desenvolvimento e apoio às lideranças"), option("decisoes", "Decisões sensíveis e relações de trabalho"), option("atracao", "Atração, seleção e onboarding"), option("marca", "Marca empregadora e experiência do colaborador"), option("comunicacao", "Comunicação interna"), option("saude", "Saúde mental, ocupacional e conformidade"), option("diversidade", "Diversidade, equidade e inclusão")] },
+        { id: "indicadores", label: "Quais indicadores são acompanhados e com qual nível de consistência?", type: "indicator_matrix", required: true, help: "Selecione o indicador e classifique o acompanhamento como baixo, médio ou alto.", options: [option("turnover_total", "Turnover total e voluntário"), option("retencao", "Retenção de posições críticas"), option("absenteismo", "Absenteísmo e afastamentos"), option("headcount", "Headcount e movimentações"), option("custo", "Custo de pessoal, folha e benefícios"), option("horas_extras", "Horas extras e banco de horas"), option("recrutamento", "Tempo e custo de contratação"), option("qualidade_contratacao", "Qualidade das contratações"), option("performance", "Desempenho e atingimento de metas"), option("clima", "Clima, engajamento ou eNPS"), option("desenvolvimento", "Treinamento e desenvolvimento"), option("mobilidade", "Mobilidade e promoções internas"), option("sucessao", "Sucessão e cobertura de posições-chave"), option("diversidade", "Diversidade e representatividade"), option("saude", "Saúde, segurança e riscos psicossociais"), option("produtividade", "Produtividade ou receita por colaborador"), { value: "nenhum", label: "Nenhum de forma consistente", exclusive: true }] },
         { id: "principal_desafio", label: "Qual decisão ou problema mais exige atenção agora?", type: "textarea", required: true },
-        { id: "frequencia", label: "Frequência esperada com a liderança", type: "radio", required: true, options: [option("mensal", "Mensal"), option("quinzenal", "Quinzenal"), option("semanal", "Semanal")] },
+        { id: "frequencia", label: "Qual cadência você espera para a atuação da Patrícia junto à liderança?", type: "radio", required: true, options: [option("mensal", "Mensal"), option("quinzenal", "Quinzenal"), option("semanal", "Semanal")] },
         { id: "presencial", label: "Necessidade de atuação presencial", type: "select", required: true, options: [option("nao", "Sem necessidade fixa"), option("eventual", "Eventual, quando necessário"), option("mensal", "Uma visita por mês"), option("mais", "Mais de uma visita por mês")] },
       ]},
       { title: "Momento da decisão", fields: [
@@ -67,7 +72,7 @@ export const SERVICES = {
       const fronts = answers.frentes || [];
       if (fronts.length >= 5 || answers.frequencia === "semanal" || answers.presencial === "mais") alerts.push({ level: "high", text: "Complexidade e cadência indicam CALI FULL." });
       if (answers.rh_interno === "nao") alerts.push({ level: "medium", text: "Empresa sem RH interno: esclarecer limites entre advisory e execução operacional." });
-      if ((answers.indicadores || []).includes("nenhum")) alerts.push({ level: "medium", text: "Incluir implantação mínima de rotina de indicadores." });
+      if ((answers.indicadores || []).some((item) => String(item).startsWith("Nenhum"))) alerts.push({ level: "medium", text: "Incluir implantação mínima de rotina de indicadores." });
       return alerts;
     },
   },
