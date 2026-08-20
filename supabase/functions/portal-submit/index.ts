@@ -5,7 +5,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const ADMIN_EMAIL = "patricia@calirh.com";
-const PORTAL_URL = "https://cali-portal.vercel.app";
+const PORTAL_URL = "https://portal.calirh.com";
+const PORTAL_ORIGINS = new Set([
+  PORTAL_URL,
+  "https://cali-portal.vercel.app",
+  "https://propostas.calirh.com",
+]);
 const SERVICE_LABELS: Record<string,string> = {
   "assessoria-estrategica":"Assessoria Estratégica Mensal","mentoria-rh":"Mentoria para Profissionais de RH",
   "diagnostico-executivo":"Diagnóstico Executivo de People","cultura-direcao":"Projeto de Cultura e Direção",
@@ -14,12 +19,12 @@ const SERVICE_LABELS: Record<string,string> = {
 
 function cors(request: Request) {
   const origin = request.headers.get("origin") ?? "";
-  const allowed = origin === PORTAL_URL || origin === "https://propostas.calirh.com" || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+  const allowed = PORTAL_ORIGINS.has(origin) || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
   return { "Access-Control-Allow-Origin": allowed ? origin : PORTAL_URL, "Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods":"POST, OPTIONS", Vary:"Origin" };
 }
 function portalUrl(request: Request) {
   const origin = request.headers.get("origin") ?? "";
-  return origin === "https://portal.calirh.com" || origin === "https://propostas.calirh.com" || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) ? origin : PORTAL_URL;
+  return PORTAL_ORIGINS.has(origin) || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) ? origin : PORTAL_URL;
 }
 function response(request:Request, body:unknown, status=200){return new Response(JSON.stringify(body),{status,headers:{...cors(request),"Content-Type":"application/json; charset=utf-8"}})}
 function esc(value:unknown){return String(value??"").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]??c))}
