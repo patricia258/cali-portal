@@ -28,7 +28,7 @@ export function safeNext(value, fallback = "/admin") {
 
 export async function requestPasswordRecovery(email = CONFIG.adminEmail) {
   const { error } = await supabase.auth.resetPasswordForEmail(String(email).trim().toLowerCase(), {
-    redirectTo: `${location.origin}/redefinir-senha`,
+    redirectTo: "https://portal.calirh.com/redefinir-senha",
   });
   if (error) {
     if (error.status === 429) throw new Error("Aguarde alguns minutos antes de solicitar outro link.");
