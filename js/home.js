@@ -14,11 +14,14 @@ const iconPaths = {
 
 const grid = document.getElementById("service-grid");
 grid.innerHTML = Object.values(SERVICES).map((service, index) => `
-  <a class="service-editorial-card reveal" href="/servicos/${service.slug}">
-    <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
-    <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>
-    <div class="service-card-bottom"><span>Iniciar briefing</span><span class="circle-arrow">↗</span></div>
-  </a>`).join("");
+  <article class="service-editorial-card reveal">
+    <a class="service-card-primary" href="/servicos/${service.slug}">
+      <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
+      <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>
+      <div class="service-card-bottom"><span>Iniciar briefing</span><span class="circle-arrow">↗</span></div>
+    </a>
+    ${index === 0 ? '<a class="service-site-link" href="https://calirh.com" target="_blank" rel="noreferrer">Conhecer este serviço no site <span>↗</span></a>' : ''}
+  </article>`).join("");
 
 const topbar = document.getElementById("topbar");
 const updateHeader = () => topbar.classList.toggle("is-scrolled", window.scrollY > 28);

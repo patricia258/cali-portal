@@ -34,7 +34,7 @@ export const SERVICES = {
   "assessoria-estrategica": {
     slug: "assessoria-estrategica",
     code: "AEM",
-    title: "Assessoria Estratégica Mensal",
+    title: "Assessoria Estratégica Mensal — HR as a Service",
     kicker: "RH sênior ao lado da liderança",
     intro: "Conte como a gestão de pessoas funciona hoje. A partir das respostas, estruturamos o modelo mais coerente entre CALI PARTNER e CALI FULL.",
     accent: "bordo",
