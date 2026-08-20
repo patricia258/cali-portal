@@ -19,7 +19,7 @@ form.addEventListener("submit", async (event) => {
   const button = event.submitter;
   button.disabled = true; button.textContent = "Enviando…"; feedback.textContent = "";
   try {
-    await requestPasswordRecovery(CONFIG.adminEmail);
+    await requestPasswordRecovery();
     form.classList.add("hidden");
     document.getElementById("access-success").classList.remove("hidden");
   } catch (error) {

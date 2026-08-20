@@ -40,12 +40,24 @@ supabase.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") enableRecovery(session);
 });
 
-const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-if (!enableRecovery(session)) {
-  feedback.innerHTML = sessionError
-    ? "Não consegui validar este link. Solicite um novo."
-    : 'Este link é inválido ou expirou. <a href="/acesso?modo=recuperar">Solicite um novo link.</a>';
+async function prepareRecovery() {
+  const fragment = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const tokenHash = fragment.get("token_hash");
+
+  if (tokenHash) {
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+    history.replaceState(null, "", location.pathname);
+    if (!error && enableRecovery(data.session)) return;
+    feedback.innerHTML = 'Este link é inválido ou expirou. <a href="/acesso?modo=recuperar">Solicite um novo link.</a>';
+    return;
+  }
+
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (!error && enableRecovery(session)) return;
+  feedback.innerHTML = 'Este link é inválido ou expirou. <a href="/acesso?modo=recuperar">Solicite um novo link.</a>';
 }
+
+await prepareRecovery();
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();

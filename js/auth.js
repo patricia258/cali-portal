@@ -1,5 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/+esm";
-import { CONFIG } from "/js/config.js";
+import { CONFIG, functionUrl } from "/js/config.js";
 
 export const supabase = createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey, {
   auth: {
@@ -26,14 +26,17 @@ export function safeNext(value, fallback = "/admin") {
   }
 }
 
-export async function requestPasswordRecovery(email = CONFIG.adminEmail) {
-  const { error } = await supabase.auth.resetPasswordForEmail(String(email).trim().toLowerCase(), {
-    redirectTo: "https://portal.calirh.com/redefinir-senha",
+export async function requestPasswordRecovery() {
+  const response = await fetch(functionUrl("portal-admin-access"), {
+    method: "POST",
+    headers: {
+      apikey: CONFIG.supabasePublishableKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ website: "" }),
   });
-  if (error) {
-    if (error.status === 429) throw new Error("Aguarde alguns minutos antes de solicitar outro link.");
-    throw new Error(error.message || "Não foi possível enviar o link agora.");
-  }
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || "Não foi possível enviar o link agora.");
   return true;
 }
 
