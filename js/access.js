@@ -9,15 +9,14 @@ if (mode === "primeiro") {
   document.title = "Primeiro acesso · CALI";
   document.getElementById("access-kicker").textContent = "Primeiro acesso";
   document.getElementById("access-title").textContent = "Crie sua senha";
-  document.getElementById("access-copy").textContent = "Enviarei um link seguro para você cadastrar sua primeira senha neste portal.";
+  document.getElementById("access-copy").textContent = "Você receberá um link seguro para definir a senha deste portal.";
   document.getElementById("story-title").innerHTML = "Seu primeiro acesso,<br>protegido desde o início.";
-  document.getElementById("story-copy").textContent = "O link é pessoal, temporário e enviado somente ao e-mail administrativo autorizado.";
 }
 
 form.email.value = CONFIG.adminEmail;
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const button = form.querySelector("button[type=submit]");
+  const button = event.submitter;
   button.disabled = true; button.textContent = "Enviando…"; feedback.textContent = "";
   try {
     await requestPasswordRecovery(CONFIG.adminEmail);
