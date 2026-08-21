@@ -43,8 +43,8 @@ export const SERVICES = {
     intro: "Conte como a gestão de pessoas funciona hoje. A partir das respostas, estruturamos o modelo mais coerente entre CALI PARTNER e CALI FULL.",
     accent: "bordo",
     packages: [
-      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica periódica, leitura de indicadores e apoio a decisões críticas.", minimumMonths: 6 },
-      { code: "FULL", label: "CALI FULL", description: "Acompanhamento mais próximo, maior profundidade e uma visita presencial fixa por mês.", minimumMonths: 8 },
+      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica periódica, leitura de indicadores e apoio a decisões críticas.", minimumMonths: 6, suggestedHours: 12, hoursRange: "10 a 15" },
+      { code: "FULL", label: "CALI FULL", description: "Acompanhamento mais próximo, maior profundidade e uma visita presencial fixa por mês.", minimumMonths: 8, suggestedHours: 22, hoursRange: "20 a 25" },
     ],
     sections: [
       { title: "Sobre você", description: "Quem conduz esta conversa com a CALI.", fields: COMMON_CONTACT },

@@ -13,14 +13,15 @@ const iconPaths = {
 };
 
 const grid = document.getElementById("service-grid");
+const arrowIcon = '<svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 grid.innerHTML = Object.values(SERVICES).map((service, index) => `
   <article class="service-editorial-card reveal">
     <a class="service-card-primary" href="/servicos/${service.slug}">
       <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
       <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>
-      <div class="service-card-bottom"><span>Iniciar briefing</span><span class="circle-arrow">↗</span></div>
+      <div class="service-card-bottom"><span>Iniciar briefing</span><span class="circle-arrow">${arrowIcon}</span></div>
     </a>
-    ${index === 0 ? '<a class="service-site-link" href="https://calirh.com" target="_blank" rel="noreferrer">Conhecer este serviço no site <span>↗</span></a>' : ''}
+    ${index === 0 ? `<a class="service-site-link" href="https://calirh.com" target="_blank" rel="noreferrer">Conhecer este serviço no site <span>${arrowIcon}</span></a>` : ''}
   </article>`).join("");
 
 const topbar = document.getElementById("topbar");
