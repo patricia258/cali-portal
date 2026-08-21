@@ -31,8 +31,8 @@ const answerText = (id) => {
   return labelFor(field?.options, value);
 };
 const firstAvailable = (ids) => ids.find((id) => answerText(id));
-const contextIds = ["momento_empresa","modelo_trabalho","colaboradores","unidades","localidade",firstAvailable(["prazo_inicio","data_desejada"]),firstAvailable(["presencial","formato","formato_entrevistas"])].filter(Boolean);
-const priorityIds = ["frentes","principal_desafio","objetivo","problemas","situacoes","contexto","principal_gap","observacoes"].filter((id) => answerText(id)).slice(0,3);
+const contextIds = ["momento_empresa","modelo_trabalho","colaboradores","unidades","localidade",firstAvailable(["modelo_interesse","modalidade","modelo_contratacao"]),firstAvailable(["prazo_inicio","data_desejada"]),firstAvailable(["presencial","formato","formato_entrevistas"])].filter(Boolean);
+const priorityIds = ["frentes","principal_desafio","uso_resultado","objetivo","objetivo_grupo","problemas","situacoes","contexto","principal_gap","observacoes"].filter((id) => answerText(id)).slice(0,3);
 const contextCards = contextIds.map((id) => `<div class="proposal-context-card"><span>${escapeHtml(fieldById(id)?.label || id)}</span><strong>${escapeHtml(answerText(id))}</strong></div>`).join("");
 const priorities = priorityIds.map((id) => `<div class="proposal-priority"><span>${escapeHtml(fieldById(id)?.label || id)}</span><p>${escapeHtml(answerText(id))}</p></div>`).join("");
 const monthly = Boolean(proposal.calculator_data?.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
@@ -48,6 +48,21 @@ function packageConditions() {
   if (service.slug === "assessoria-estrategica" && proposal.package_code === "FULL") return [`Carga mensal contratada de ${monthlyHours} horas.`,"Acompanhamento estratégico de maior proximidade, com encontros quinzenais.","Uma visita presencial fixa por mês incluída.","Indicadores, projeções e cruzamentos de maior complexidade.","Até 2 ajustes de processo ou fluxo por mês, ou 1 projeto ou treinamento estrutural maior por trimestre.","Inclui Partner, Cargos e Salários, People Analytics, T&D, Saúde Ocupacional, conformidade e apoio próximo à liderança.","Pode incluir desenho do processo de Atração e Seleção, sem operação de vagas ou busca de candidatos.",`Contrato mínimo de ${minimumMonths} meses, com renovação automática. Após o período mínimo, passa a vigorar por prazo indeterminado.`,"Reajuste a cada 12 meses e cancelamento mediante aviso prévio de 30 dias."];
   return [packageInfo?.description || service.intro, monthly ? `Contrato mínimo de ${minimumMonths} meses.` : "Cronograma definido após a aprovação da proposta.", "Escopo executado pessoalmente por Patrícia Lima."];
 }
+function processSteps() {
+  if (service.slug === "assessoria-estrategica") return [
+    ["Conversa estratégica", "Leitura do momento da empresa, dores prioritárias e foco do ciclo."],
+    ["Desenho do encaixe", `Definição do pacote ${packageLabel}, frentes prioritárias e carga mensal.`],
+    ["Leitura de indicadores", "Organização dos dados de pessoas e construção do plano de entregas."],
+    ["Rotina de decisão", "Encontros com a liderança, leitura contínua e ajustes de políticas e processos."],
+  ];
+  return [["Leitura", "Confirmação do contexto, do objetivo e das pessoas envolvidas."],["Encaixe", "Definição do formato, escopo, cadência e responsabilidades."],["Preparação", "Coleta de insumos, desenho e organização do cronograma."],["Execução", "Início do trabalho, checkpoints e próximos movimentos."]];
+}
+function outOfScope() {
+  if (service.slug === "assessoria-estrategica") return ["Folha de pagamento, eSocial, encargos e rotinas de Departamento Pessoal.","Parecer jurídico trabalhista, defesa ou contencioso.","Operação de recrutamento: abertura de vaga, busca de candidatos e condução integral do processo.","Horas, visitas e entregas não utilizadas não são acumuladas para o período seguinte."];
+  if (service.slug === "mentoria-rh") return ["Garantia de promoção, recolocação, aumento salarial ou resultado dependente de terceiros.","Atendimento clínico, terapêutico ou de saúde mental.","Execução das decisões e entregas profissionais no lugar do participante."];
+  return ["Parecer jurídico, clínico ou atividade que exija habilitação não prevista no escopo.","Custos de terceiros, deslocamentos e licenças não indicados expressamente na proposta.","Entregas adicionais ou reutilização de materiais fora das condições contratadas."];
+}
+const processHtml = processSteps().map((step,index)=>`<div class="proposal-process-step"><span>${String(index+1).padStart(2,"0")}</span><div><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div></div>`).join("");
 document.title = `Proposta ${service.title} · ${submission.company_name} · CALI`;
 root.innerHTML = `<div class="proposal-document">
   <article class="proposal-page proposal-cover-page">
@@ -63,9 +78,16 @@ root.innerHTML = `<div class="proposal-document">
     <section class="proposal-section proposal-solution"><div class="proposal-kicker">A solução recomendada</div><h2>${escapeHtml(packageLabel)}</h2><p>${escapeHtml(proposal.public_notes || packageInfo?.description || service.intro)}</p></section>
     <section class="proposal-section"><h2>Escopo incluído</h2><ul class="scope-list">${(proposal.scope_items||[]).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     <section class="proposal-section"><h2>Como esta atuação funciona</h2><ul class="condition-list">${packageConditions().map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
+    <section class="proposal-section"><h2>Da leitura ao início</h2><div class="proposal-process">${processHtml}</div></section>
+    <footer class="proposal-footer"><span>Patrícia Lima · People Advisory Executive</span><span>02</span></footer>
+  </article>
+  <article class="proposal-page proposal-detail-page proposal-commercial-page">
+    <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(packageLabel)}</strong><br>${escapeHtml(submission.company_name || submission.contact_name)}</div></header>
     <section class="proposal-section"><h2>Investimento</h2><div class="investment-reference"><span>${monthly ? "Mensalidade de referência" : "Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue ? `<div class="investment-discount"><span>${escapeHtml(discountType)}${discountDescription ? ` · ${escapeHtml(discountDescription)}` : ""}</span><strong>− ${currency(discountValue)} (${discountPct.toLocaleString("pt-BR",{maximumFractionDigits:2})}%)</strong></div>` : ""}<div class="investment"><div><div class="investment-label">${monthly ? "Mensalidade final" : "Investimento final"}</div><div class="investment-value">${currency(proposal.final_unit)}</div></div></div><p class="investment-terms">${monthly ? `${monthlyHours ? `${monthlyHours} horas mensais. ` : ""}Contrato mínimo de ${minimumMonths} meses, renovação automática e aviso prévio de 30 dias. ` : ""}${escapeHtml(proposal.payment_terms || "Pagamento conforme cronograma definido.")}</p></section>
+    <section class="proposal-section"><h2>Fora do escopo</h2><ul class="condition-list">${outOfScope().map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
+    <section class="proposal-section"><h2>Próximos passos</h2><div class="proposal-next-steps"><div><span>01</span><strong>Aprovação da proposta</strong></div><div><span>02</span><strong>Contrato e condições</strong></div><div><span>03</span><strong>Kickoff e insumos</strong></div><div><span>04</span><strong>Início da atuação</strong></div></div></section>
     <section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI · HR for Business</div></section>
-    <footer class="proposal-footer"><span>patricia@calirh.com · +55 41 98779-1933</span><span>calirh.com · 02</span></footer>
+    <footer class="proposal-footer"><span>patricia@calirh.com · +55 41 98779-1933</span><span>calirh.com · 03</span></footer>
   </article>
 </div>`;
 

@@ -50,7 +50,7 @@ function fieldHtml(field) {
   else if (field.type === "select") control = `<select class="control" ${common}><option value="">Selecione</option>${field.options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select>`;
   else if (field.type === "radio" || field.type === "checkboxes") {
     const inputType = field.type === "radio" ? "radio" : "checkbox";
-    control = `<div class="choices">${field.options.map((item) => `<label class="choice"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}"><span>${escapeHtml(item.label)}</span></label>`).join("")}</div>`;
+    control = `<div class="choices">${field.options.map((item) => `<label class="choice"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}"><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
   } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
   else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
   else control = `<input class="control" ${common} type="${field.type || "text"}" ${field.value !== undefined ? `value="${escapeHtml(field.value)}"` : ""}>`;
@@ -59,7 +59,7 @@ function fieldHtml(field) {
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
 }
 
-stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
+stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 
 function valueFor(field) {
   if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked`)].map((element) => element.value);
@@ -89,6 +89,15 @@ function updateConditionalFields() {
   });
 }
 
+function updateContextNotices() {
+  const answers = collectAnswers();
+  const notices = service.notices?.(answers) || [];
+  form.querySelectorAll("[data-context-notices]").forEach((container) => {
+    container.innerHTML = notices.map((notice) => `<div class="context-notice ${notice.level || "info"}">${escapeHtml(notice.text)}</div>`).join("");
+    container.classList.toggle("empty", notices.length === 0);
+  });
+}
+
 function showStep(index, shouldScroll = true) {
   current = Math.max(0, Math.min(index, service.sections.length - 1));
   document.querySelectorAll(".form-step").forEach((element, i) => element.classList.toggle("active", i === current));
@@ -102,6 +111,7 @@ function showStep(index, shouldScroll = true) {
   document.getElementById("consent-wrap").classList.toggle("hidden", !finalStep);
   feedback.textContent = "";
   updateConditionalFields();
+  updateContextNotices();
   if (shouldScroll) window.scrollTo({ top: Math.max(0, document.querySelector(".form-layout").offsetTop - 96), behavior: "smooth" });
 }
 
@@ -113,15 +123,17 @@ function validateStep() {
     const value = valueFor(field);
     const missing = field.required && (Array.isArray(value) ? value.length === 0 : value === "");
     const invalidEmail = field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const invalidUrl = field.type === "url" && value && !/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(value);
     const phoneDigits = field.phone ? String(value).replace(/\D/g, "") : "";
     const invalidPhone = field.phone && value && (phoneDigits.length < 10 || phoneDigits.length > 15);
     const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
     const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
-    const isInvalid = Boolean(missing || invalidEmail || invalidPhone || invalidLetters || invalidIndicator);
+    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidIndicator);
     wrapper.classList.toggle("invalid", isInvalid);
     const error = wrapper.querySelector(".field-error");
     if (error) {
       if (invalidEmail) error.textContent = "Informe um e-mail válido.";
+      else if (invalidUrl) error.textContent = "Informe um link completo, começando por https://.";
       else if (invalidPhone) error.textContent = "Informe um WhatsApp válido, com DDD.";
       else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
       else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
@@ -160,10 +172,13 @@ form.addEventListener("input", (event) => {
   if (target.type === "email") target.value = target.value.replace(/\s/g, "").toLowerCase();
   target.closest(".field")?.classList.remove("invalid");
   updateConditionalFields();
+  updateContextNotices();
 });
 
 form.addEventListener("change", (event) => {
   const target = event.target;
+  updateConditionalFields();
+  updateContextNotices();
   if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
   const matrix = target.closest(".indicator-matrix");
   const selected = [...matrix.querySelectorAll('input[type="checkbox"]')];
@@ -201,3 +216,4 @@ form.addEventListener("submit", async (event) => {
 
 showStep(0, false);
 updateConditionalFields();
+updateContextNotices();

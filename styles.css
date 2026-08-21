@@ -276,7 +276,7 @@ html,.home-body{background:var(--marfim)}
 .calc-final-field small{display:block;margin-top:6px;color:#8e7d70;font-size:9px}
 .calc-condition{margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);font-size:10px;line-height:1.5;color:#d9c4bd}
 
-/* ─── Proposta editorial em duas páginas A4 ────────────────────── */
+/* ─── Proposta editorial em três páginas A4 ───────────────────── */
 .proposal-document{padding:1px 0 30px}
 .proposal-page{background:var(--marfim-claro);overflow:hidden}
 .proposal-logo img{display:block;width:112px;height:auto}
@@ -303,6 +303,7 @@ html,.home-body{background:var(--marfim)}
 .proposal-detail-page .investment-value{font-size:36px;margin-top:5px}
 .investment-terms{margin:9px 0 0!important;font-size:10px!important;line-height:1.5}
 .proposal-detail-page .signature{margin-top:20px}
+.proposal-process{display:grid;grid-template-columns:1fr 1fr;gap:8px}.proposal-process-step{display:flex;gap:11px;padding:11px 12px;border:1px solid #eadfd9;background:#fff}.proposal-process-step>span,.proposal-next-steps span{font:500 18px/1 var(--serif);color:var(--dourado)}.proposal-process-step strong{display:block;color:var(--bordo);font-size:10.5px}.proposal-process-step p{margin:3px 0 0;font-size:9.5px;line-height:1.45}.proposal-commercial-page .proposal-section{margin-top:32px}.proposal-next-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.proposal-next-steps>div{display:grid;gap:8px;padding:14px 11px;background:#faf6f2;border-top:2px solid var(--dourado)}.proposal-next-steps strong{font-size:9.5px;line-height:1.35;color:var(--bordo)}
 .send-standard-note{margin:-3px 0 18px;color:#75696b;font-size:11px;line-height:1.6}
 
 @media(max-width:820px){
@@ -311,7 +312,7 @@ html,.home-body{background:var(--marfim)}
   .proposal-context-grid{grid-template-columns:1fr 1fr}
   .proposal-needs{grid-template-columns:1fr}
   .proposal-needs h2{grid-column:auto}
-  .proposal-detail-page .scope-list,.condition-list{grid-template-columns:1fr}
+  .proposal-detail-page .scope-list,.condition-list,.proposal-process,.proposal-next-steps{grid-template-columns:1fr}
   .proposal-toolbar-inner{align-items:flex-start}.proposal-toolbar-actions{flex-wrap:wrap;justify-content:flex-end}
 }
 
@@ -326,3 +327,6 @@ html,.home-body{background:var(--marfim)}
   .proposal-footer{left:17mm!important;right:17mm!important;bottom:12mm!important}
   @page{size:A4;margin:0}
 }
+
+/* Briefings: opções editoriais e avisos contextuais */
+.choice-copy{display:grid;gap:4px}.choice-copy strong{font-size:13px}.choice-copy small{color:#807577;font-size:11px;line-height:1.45;font-weight:400}.choice:has(input:checked) .choice-copy small{color:#70535b}.form-context-notices{display:grid;gap:8px;margin:0 0 24px}.form-context-notices.empty{display:none}.context-notice{border-left:3px solid var(--dourado);background:#FAF6F0;padding:11px 13px;color:#655b5d;font-size:11px;line-height:1.55}.context-notice.attention{border-color:var(--ambar);background:#FFF8E8;color:#704f13}.consent a{color:var(--bordo);font-weight:700}
