@@ -28,7 +28,7 @@
       <div>
         <div class="eyebrow" style="margin:0;color:#DDBB7F">Envio aprovado</div>
         <h2>Enviar proposta</h2>
-        <p id="send-to"></p>
+        <p id="send-to">Revise os dados antes do disparo.</p>
       </div>
       <button class="icon-btn" id="close-send">×</button>
     </div>
@@ -38,8 +38,30 @@
         <p>Use o botão “Salvar PDF”. A versão de impressão preserva as três páginas, as cores e os detalhes da proposta. O nome do arquivo é sugerido automaticamente com o serviço, o cliente, a empresa e o protocolo.</p>
       </div>
       <div class="drawer-section">
-        <h3>2. Anexe e envie</h3>
-        <p class="send-standard-note">O e-mail padrão já apresenta a proposta, reforça os principais ganhos do escopo e convida o lead para conversar.</p>
+        <h3>2. Confirme o destinatário</h3>
+        <p class="send-standard-note">Os dados vieram do briefing. Você pode corrigi-los para este envio sem alterar o cadastro original do lead.</p>
+        <div class="send-confirm-grid">
+          <div class="field">
+            <label for="send-company">Empresa</label>
+            <input class="control" id="send-company" type="text" maxlength="180" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="send-recipient-name">Nome do decisor <span class="required">*</span></label>
+            <input class="control" id="send-recipient-name" type="text" maxlength="160" autocomplete="name" required>
+          </div>
+          <div class="field send-confirm-email">
+            <label for="send-recipient-email">E-mail de envio <span class="required">*</span></label>
+            <input class="control" id="send-recipient-email" type="email" maxlength="254" autocomplete="email" required>
+          </div>
+        </div>
+        <div class="send-subject-preview">
+          <span>Assunto do e-mail</span>
+          <strong id="send-subject"></strong>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <h3>3. Anexe e envie</h3>
+        <p class="send-standard-note">O e-mail apresenta a proposta, destaca o escopo construído e abre um canal direto para a conversa.</p>
         <div class="field">
           <label for="pdf-file">Proposta final em PDF</label>
           <input class="control" id="pdf-file" type="file" accept="application/pdf,.pdf">
@@ -51,7 +73,7 @@
         <div class="auth-feedback" id="send-feedback"></div>
       </div>
     </div>
-    <div class="drawer-footer"><button class="btn btn-primary" id="send-email" disabled>Confirmar envio</button></div>
+    <div class="drawer-footer"><button class="btn btn-primary" id="send-email" disabled>Confirmar e enviar</button></div>
   </aside>
   <script type="module" src="/js/proposta.js"></script>
 </body>

@@ -108,9 +108,26 @@ printButton.addEventListener("click",()=>{
   window.print();
 });
 const drawer=document.getElementById("send-drawer"),overlay=document.getElementById("send-overlay"),fileInput=document.getElementById("pdf-file"),sendButton=document.getElementById("send-email"),feedback=document.getElementById("send-feedback");
-function openSend(){document.getElementById("send-to").textContent=`${submission.contact_name} <${submission.contact_email}>`;drawer.classList.add("open");overlay.classList.add("open")}
+const companyInput=document.getElementById("send-company"),recipientNameInput=document.getElementById("send-recipient-name"),recipientEmailInput=document.getElementById("send-recipient-email"),subjectPreview=document.getElementById("send-subject");
+const proposalSubject=()=>`CALI RH - Olá, ${recipientNameInput.value.trim()||"Nome do decisor"}, Sua proposta chegou! 🧲 ${service.title} · ${submission.protocol}.`;
+function refreshSendConfirmation(){
+  subjectPreview.textContent=proposalSubject();
+  const file=fileInput.files?.[0],fieldsValid=recipientNameInput.value.trim().length>=2&&recipientEmailInput.checkValidity();
+  sendButton.disabled=!file||file.size>8*1024*1024||!fieldsValid;
+}
+function openSend(){
+  companyInput.value=submission.company_name||"";
+  recipientNameInput.value=submission.contact_name||"";
+  recipientEmailInput.value=submission.contact_email||"";
+  document.getElementById("send-to").textContent=`${service.title} · ${submission.protocol}`;
+  feedback.textContent="";
+  feedback.style.color="var(--vermelho)";
+  refreshSendConfirmation();
+  drawer.classList.add("open");overlay.classList.add("open");
+}
 function closeSend(){drawer.classList.remove("open");overlay.classList.remove("open")}
 document.getElementById("open-send").addEventListener("click",openSend);document.getElementById("close-send").addEventListener("click",closeSend);overlay.addEventListener("click",closeSend);
-fileInput.addEventListener("change",()=>{const file=fileInput.files?.[0];feedback.textContent="";sendButton.disabled=!file;if(file&&file.size>8*1024*1024){feedback.textContent="O PDF ultrapassa 8 MB.";sendButton.disabled=true}});
+[companyInput,recipientNameInput,recipientEmailInput].forEach((input)=>input.addEventListener("input",()=>{feedback.textContent="";refreshSendConfirmation()}));
+fileInput.addEventListener("change",()=>{const file=fileInput.files?.[0];feedback.textContent="";if(file&&file.size>8*1024*1024)feedback.textContent="O PDF ultrapassa 8 MB.";refreshSendConfirmation()});
 function fileBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=()=>reject(new Error("Não foi possível ler o PDF."));reader.readAsDataURL(file)})}
-sendButton.addEventListener("click",async()=>{const file=fileInput.files?.[0];if(!file)return;sendButton.disabled=true;sendButton.textContent="Enviando…";feedback.textContent="";try{const response=await fetch(functionUrl("portal-send-proposal"),{method:"POST",headers:apiHeaders(session),body:JSON.stringify({proposal_id:proposal.id,pdf_base64:await fileBase64(file),pdf_name:file.name,note:document.getElementById("email-note").value})});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||"Falha no envio.");feedback.style.color="var(--verde)";feedback.textContent=`Enviado para ${submission.contact_email} ✓`;sendButton.textContent="Enviado"}catch(error){feedback.textContent=error instanceof Error?error.message:"Falha no envio.";sendButton.disabled=false;sendButton.textContent="Confirmar envio"}});
+sendButton.addEventListener("click",async()=>{const file=fileInput.files?.[0];if(!file||sendButton.disabled)return;sendButton.disabled=true;sendButton.textContent="Enviando…";feedback.textContent="";try{const response=await fetch(functionUrl("portal-send-proposal"),{method:"POST",headers:apiHeaders(session),body:JSON.stringify({proposal_id:proposal.id,pdf_base64:await fileBase64(file),pdf_name:file.name,note:document.getElementById("email-note").value,company_name:companyInput.value.trim(),recipient_name:recipientNameInput.value.trim(),recipient_email:recipientEmailInput.value.trim()})});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||"Falha no envio.");feedback.style.color="var(--verde)";feedback.textContent=`Proposta enviada para ${result.to||recipientEmailInput.value.trim()} ✓`;sendButton.textContent="Enviado"}catch(error){feedback.style.color="var(--vermelho)";feedback.textContent=error instanceof Error?error.message:"Falha no envio.";sendButton.textContent="Confirmar e enviar";refreshSendConfirmation()}});
