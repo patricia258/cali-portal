@@ -1,7 +1,7 @@
 import { CONFIG, functionUrl } from "/js/config.js";
 import { ASSETS } from "/js/assets-data.js";
 import { requireAdmin, apiHeaders, signOut } from "/js/auth.js";
-import { SERVICES } from "/js/services.js";
+import { SERVICES, flattenFields, labelFor } from "/js/services.js";
 
 const session = await requireAdmin();
 if (!session) throw new Error("Sessão ausente.");
@@ -18,10 +18,55 @@ async function rest(path, options={}) {
 const data = await rest(`cali_proposals?id=eq.${proposalId}&select=*,submission:cali_submissions(*)`);
 const proposal = data?.[0], submission = proposal?.submission, service = proposal ? SERVICES[proposal.service_slug] : null;
 if (!proposal || !submission || !service) { root.innerHTML='<div class="empty">Proposta não encontrada.</div>'; throw new Error("Proposta não encontrada"); }
-const packageLabel = service.packages?.find((p)=>p.code===proposal.package_code)?.label || proposal.package_code;
+const packageInfo = service.packages?.find((p)=>p.code===proposal.package_code);
+const packageLabel = packageInfo?.label || proposal.package_code;
 const validity = new Date(proposal.updated_at || proposal.created_at); validity.setDate(validity.getDate() + Number(proposal.validity_days || 15));
+const fields = flattenFields(service), answers = submission.answers || {};
+const fieldById = (id) => fields.find((field) => field.id === id);
+const answerText = (id) => {
+  const field = fieldById(id), value = answers[id];
+  if (value === undefined || value === null || value === "" || (Array.isArray(value) && !value.length)) return "";
+  if (field?.type === "indicator_matrix") return Array.isArray(value) ? value.join("; ") : String(value);
+  if (field?.type === "checkbox") return value ? "Sim" : "Não";
+  return labelFor(field?.options, value);
+};
+const firstAvailable = (ids) => ids.find((id) => answerText(id));
+const contextIds = ["momento_empresa","modelo_trabalho","colaboradores","unidades","localidade",firstAvailable(["prazo_inicio","data_desejada"]),firstAvailable(["presencial","formato","formato_entrevistas"])].filter(Boolean);
+const priorityIds = ["frentes","principal_desafio","objetivo","problemas","situacoes","contexto","principal_gap","observacoes"].filter((id) => answerText(id)).slice(0,3);
+const contextCards = contextIds.map((id) => `<div class="proposal-context-card"><span>${escapeHtml(fieldById(id)?.label || id)}</span><strong>${escapeHtml(answerText(id))}</strong></div>`).join("");
+const priorities = priorityIds.map((id) => `<div class="proposal-priority"><span>${escapeHtml(fieldById(id)?.label || id)}</span><p>${escapeHtml(answerText(id))}</p></div>`).join("");
+const monthly = Boolean(proposal.calculator_data?.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
+const referencePrice = Number(proposal.subtotal || proposal.calculator_data?.subtotal || proposal.final_unit || 0);
+const discountValue = Math.max(0, referencePrice - Number(proposal.final_unit || 0));
+const discountPct = referencePrice ? (discountValue / referencePrice) * 100 : 0;
+const discountType = proposal.calculator_data?.discountType || "Condição comercial";
+const discountDescription = proposal.calculator_data?.discountDescription || "";
+const minimumMonths = Number(proposal.contract_months || packageInfo?.minimumMonths || 1);
+function packageConditions() {
+  if (service.slug === "assessoria-estrategica" && proposal.package_code === "PARTNER") return ["Atuação estratégica 100% online.","Encontro mensal com founders, diretoria ou liderança de RH.","Leitura mensal dos indicadores e apoio a decisões críticas.",`Contrato mínimo de ${minimumMonths} meses, com renovação automática.`,"Atuação presencial sob demanda e precificada separadamente."];
+  if (service.slug === "assessoria-estrategica" && proposal.package_code === "FULL") return ["Acompanhamento estratégico de maior proximidade.","Encontros quinzenais com a liderança.","Uma visita presencial fixa por mês incluída.","Indicadores, projeções e apoio a decisões de maior complexidade.",`Contrato mínimo de ${minimumMonths} meses, com renovação automática.`];
+  return [packageInfo?.description || service.intro, monthly ? `Contrato mínimo de ${minimumMonths} meses.` : "Cronograma definido após a aprovação da proposta.", "Escopo executado pessoalmente por Patrícia Lima."];
+}
 document.title = `Proposta ${service.title} · ${submission.company_name} · CALI`;
-root.innerHTML = `<article class="proposal-page"><header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(submission.protocol)}</strong><br>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")}<br>Válida até ${validity.toLocaleDateString("pt-BR")}</div></header><div class="proposal-kicker">Proposta comercial · ${escapeHtml(packageLabel)}</div><h1>${escapeHtml(service.title)}</h1><p class="proposal-lead">${escapeHtml(submission.contact_name)}, esta proposta foi construída a partir do contexto compartilhado pela ${escapeHtml(submission.company_name || "empresa")} e da leitura técnica da CALI.</p><section class="proposal-section"><h2>O movimento proposto</h2><p>${escapeHtml(proposal.public_notes || service.intro)}</p></section><section class="proposal-section"><h2>Escopo incluído</h2><ul class="scope-list">${(proposal.scope_items||[]).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section><section class="proposal-section"><h2>Investimento</h2><div class="investment"><div><div class="investment-label">${proposal.calculator_data?.monthly?"Investimento mensal":"Investimento total"}</div><div class="investment-value">${currency(proposal.final_unit)}</div></div>${proposal.calculator_data?.monthly?`<div><div class="investment-label">Contrato de ${proposal.contract_months} meses</div><div style="font-weight:800">${currency(proposal.total_value)}</div></div>`:""}</div><p>${escapeHtml(proposal.payment_terms || "Pagamento conforme cronograma definido.")}</p></section><section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI — HR for Business</div></section><footer class="proposal-footer"><span>patricia@calirh.com · +55 41 98779-1933</span><span>calirh.com</span></footer></article>`;
+root.innerHTML = `<div class="proposal-document">
+  <article class="proposal-page proposal-cover-page">
+    <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(submission.protocol)}</strong><br>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")}<br>Válida até ${validity.toLocaleDateString("pt-BR")}</div></header>
+    <div class="proposal-kicker">Proposta comercial · ${escapeHtml(packageLabel)}</div><h1>${escapeHtml(service.title)}</h1>
+    <p class="proposal-lead">${escapeHtml(submission.contact_name)}, transformei o contexto compartilhado pela ${escapeHtml(submission.company_name || "empresa")} em uma proposta coerente com o momento do negócio.</p>
+    <section class="proposal-section"><h2>O contexto que orienta esta proposta</h2><div class="proposal-context-grid">${contextCards}</div></section>
+    ${priorities ? `<section class="proposal-section proposal-needs"><h2>O que precisa ganhar movimento</h2>${priorities}</section>` : ""}
+    <footer class="proposal-footer"><span>Patrícia Lima · People Advisory Executive</span><span>01</span></footer>
+  </article>
+  <article class="proposal-page proposal-detail-page">
+    <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(packageLabel)}</strong><br>${escapeHtml(submission.company_name || submission.contact_name)}</div></header>
+    <section class="proposal-section proposal-solution"><div class="proposal-kicker">A solução recomendada</div><h2>${escapeHtml(packageLabel)}</h2><p>${escapeHtml(proposal.public_notes || packageInfo?.description || service.intro)}</p></section>
+    <section class="proposal-section"><h2>Escopo incluído</h2><ul class="scope-list">${(proposal.scope_items||[]).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
+    <section class="proposal-section"><h2>Como esta atuação funciona</h2><ul class="condition-list">${packageConditions().map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
+    <section class="proposal-section"><h2>Investimento</h2><div class="investment-reference"><span>${monthly ? "Mensalidade de referência" : "Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue ? `<div class="investment-discount"><span>${escapeHtml(discountType)}${discountDescription ? ` · ${escapeHtml(discountDescription)}` : ""}</span><strong>− ${currency(discountValue)} (${discountPct.toLocaleString("pt-BR",{maximumFractionDigits:2})}%)</strong></div>` : ""}<div class="investment"><div><div class="investment-label">${monthly ? "Mensalidade final" : "Investimento final"}</div><div class="investment-value">${currency(proposal.final_unit)}</div></div></div><p class="investment-terms">${monthly ? `Contrato mínimo de ${minimumMonths} meses. ` : ""}${escapeHtml(proposal.payment_terms || "Pagamento conforme cronograma definido.")}</p></section>
+    <section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI · HR for Business</div></section>
+    <footer class="proposal-footer"><span>patricia@calirh.com · +55 41 98779-1933</span><span>calirh.com · 02</span></footer>
+  </article>
+</div>`;
 
 document.getElementById("print").addEventListener("click",()=>window.print());
 const drawer=document.getElementById("send-drawer"),overlay=document.getElementById("send-overlay"),fileInput=document.getElementById("pdf-file"),sendButton=document.getElementById("send-email"),feedback=document.getElementById("send-feedback");

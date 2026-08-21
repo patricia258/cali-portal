@@ -245,7 +245,7 @@ export function initialPackageFor(service, answers = {}) {
   return service.packages?.[0]?.code || "PERSONALIZADO";
 }
 
-export function calculateProposal({ service, answers, packageCode, basePrice, discount = 0, extras = 0, months = 1 }) {
+export function calculateProposal({ service, answers, packageCode, basePrice, discount = 0, extras = 0, months = 1, finalOverride = null }) {
   const n = (value, fallback = 0) => Number(value) || fallback;
   let factor = 1;
   const breakdown = [];
@@ -299,7 +299,13 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
   const monthly = service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
   const subtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
   const discountValue = Math.round(subtotal * Math.min(Math.max(n(discount), 0), 50) / 100);
-  const finalUnit = subtotal - discountValue;
-  const total = monthly ? finalUnit * n(months, 1) : finalUnit;
-  return { factor: Number(factor.toFixed(3)), subtotal, discountValue, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), breakdown };
+  const calculatedFinal = subtotal - discountValue;
+  const hasOverride = finalOverride !== null && finalOverride !== "" && Number.isFinite(Number(finalOverride));
+  const finalUnit = hasOverride ? Math.max(0, Number(finalOverride)) : calculatedFinal;
+  const effectiveDiscountValue = Math.max(0, subtotal - finalUnit);
+  const effectiveDiscountPct = subtotal ? Number(((effectiveDiscountValue / subtotal) * 100).toFixed(2)) : 0;
+  // Serviços recorrentes são apresentados pela mensalidade. O prazo mínimo é uma
+  // condição contratual, não um total a ser somado na proposta.
+  const total = finalUnit;
+  return { factor: Number(factor.toFixed(3)), subtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, breakdown };
 }
