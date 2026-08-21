@@ -392,6 +392,58 @@ const profiles = {
     ],
     nextSteps: projectNextSteps,
   },
+
+  "solucao-personalizada": {
+    contextIds: ["momento_empresa", "colaboradores", "modelo_trabalho", "temas_aproximados", "publico_envolvido", "formato_desejado", "etapa_decisao", "prazo_inicio"],
+    contextLabels: {
+      momento_empresa: "Momento da empresa",
+      colaboradores: "Número de colaboradores",
+      modelo_trabalho: "Modelo de trabalho",
+      temas_aproximados: "Temas relacionados",
+      publico_envolvido: "Públicos envolvidos",
+      formato_desejado: "Formato desejado",
+      etapa_decisao: "Etapa da decisão",
+      prazo_inicio: "Início desejado",
+    },
+    priorityIds: ["necessidade_descricao", "resultado_esperado", "impacto_negocio", "tentativas_anteriores", "restricoes"],
+    priorityLabels: {
+      necessidade_descricao: "Contexto que originou a necessidade",
+      resultado_esperado: "Resultado que precisa ser alcançado",
+      impacto_negocio: "Impacto atual no negócio e nas pessoas",
+      tentativas_anteriores: "O que já foi tentado",
+      restricoes: "Restrições e sensibilidades",
+    },
+    needsTitle: "O que esta solução precisa colocar em movimento",
+    solutionCopy: {
+      SOB_MEDIDA: "Uma solução desenhada a partir do contexto real da empresa, combinando leitura estratégica, estruturação e desenvolvimento sem forçar a necessidade em um pacote pronto.",
+    },
+    process: () => [
+      ["Leitura do contexto", "Confirmação do desafio, do impacto, dos públicos envolvidos e do resultado esperado."],
+      ["Desenho do encaixe", "Definição das frentes, da abordagem, dos limites e das premissas do trabalho."],
+      ["Escopo sob medida", "Organização das entregas, do formato, da capacidade dedicada e do cronograma."],
+      ["Execução e checkpoints", "Realização do trabalho com marcos de validação e ajustes previstos no escopo."],
+    ],
+    operating: () => [
+      "O formato, a duração e a cadência são definidos conforme a natureza e a complexidade da necessidade.",
+      "A empresa disponibiliza as pessoas, os dados, os acessos e as aprovações necessários ao trabalho.",
+      "Entregas, limites e responsabilidades são descritos expressamente na proposta e no contrato.",
+      "Mudanças relevantes de escopo, volume ou formato são avaliadas antes da execução.",
+      "Etapas presenciais, fornecedores, licenças e deslocamentos só estão incluídos quando descritos.",
+    ],
+    commercial: () => commonProjectCommercial,
+    outOfScope: [
+      "Folha de pagamento, ponto, benefícios, admissões, férias, desligamentos, eSocial ou outras rotinas de Departamento Pessoal.",
+      "Operação contínua de recrutamento, hunting em volume, abertura de vagas ou alocação de recrutadores.",
+      "Serviços jurídicos, contábeis, médicos, clínicos ou outras atividades técnicas reguladas.",
+      "Terceirização de rotinas administrativas ou execução transacional contínua do RH.",
+    ],
+    nextSteps: [
+      ["Conversa de confirmação", "Validação do desafio, do resultado esperado e das premissas principais."],
+      ["Desenho do escopo", "Definição das entregas, do formato, do cronograma e do investimento."],
+      ["Contrato", "Formalização das condições e responsabilidades."],
+      ["Kickoff", "Organização dos insumos, das agendas e do primeiro movimento."],
+    ],
+  },
 };
 
 export function proposalProfile({ service, packageCode, packageLabel, answers, answerText, minimumMonths, monthlyHours }) {

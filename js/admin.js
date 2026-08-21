@@ -4,7 +4,7 @@ import { SERVICES, STATUS, flattenFields, labelFor, initialPackageFor, calculate
 
 const session = await requireAdmin();
 if (!session) throw new Error("Sessão administrativa ausente.");
-let submissions = [], pricingRules = [], proposals = [], selected = null;
+let submissions = [], pricingRules = [], proposals = [], selected = null, pendingDelete = null, showArchived = false;
 const tableBody = document.getElementById("table-body");
 const drawer = document.getElementById("drawer"), overlay = document.getElementById("overlay"), drawerBody = document.getElementById("drawer-body");
 
@@ -15,6 +15,8 @@ function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) 
 const currency = (value) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const formatDate = (value) => new Date(value).toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
 const DISCOUNT_TYPES = ["Condição comercial","Cliente novo","Indicação","Campanha do mês","Parceria","Outro"];
+const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
+const deleteIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 
 async function rest(path, options = {}) {
   const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${path}`, { ...options, headers: apiHeaders(session, options.headers || {}) });
@@ -35,10 +37,11 @@ async function load() {
 }
 
 function updateKpis() {
-  document.getElementById("kpi-new").textContent = submissions.filter((r) => r.status === "novo").length;
-  document.getElementById("kpi-analysis").textContent = submissions.filter((r) => ["analise","edicao","aprovada"].includes(r.status)).length;
-  document.getElementById("kpi-sent").textContent = submissions.filter((r) => ["enviada","negociacao"].includes(r.status)).length;
-  document.getElementById("kpi-won").textContent = submissions.filter((r) => r.status === "fechada").length;
+  const active = submissions.filter((row) => !row.archived_at);
+  document.getElementById("kpi-new").textContent = active.filter((r) => r.status === "novo").length;
+  document.getElementById("kpi-analysis").textContent = active.filter((r) => ["analise","edicao","aprovada"].includes(r.status)).length;
+  document.getElementById("kpi-sent").textContent = active.filter((r) => ["enviada","negociacao"].includes(r.status)).length;
+  document.getElementById("kpi-won").textContent = active.filter((r) => r.status === "fechada").length;
 }
 
 function filteredSubmissions() {
@@ -47,7 +50,8 @@ function filteredSubmissions() {
   const statusFilter = document.getElementById("status-filter").value;
   return submissions.filter((r) => {
     const haystack = [r.company_name,r.contact_name,r.contact_email,r.protocol].join(" ").toLowerCase();
-    return (!query || haystack.includes(query)) && (!serviceFilter || r.service_slug === serviceFilter) && (!statusFilter || r.status === statusFilter);
+    const archiveMatch = showArchived ? Boolean(r.archived_at) : !r.archived_at;
+    return archiveMatch && (!query || haystack.includes(query)) && (!serviceFilter || r.service_slug === serviceFilter) && (!statusFilter || r.status === statusFilter);
   });
 }
 
@@ -56,9 +60,12 @@ function render() {
   document.getElementById("empty").classList.toggle("hidden", filtered.length > 0);
   tableBody.innerHTML = filtered.map((r) => {
     const service = SERVICES[r.service_slug];
-    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td><span class="status-chip" data-status="${escapeHtml(r.status)}">${escapeHtml(STATUS.find((s) => s.value === r.status)?.label || r.status)}</span></td><td><button class="btn btn-outline" data-open="${r.id}">Abrir</button></td></tr>`;
+    const archiveAction = r.archived_at ? `<button class="table-icon-action restore" data-restore="${r.id}" aria-label="Restaurar ${escapeHtml(r.company_name || r.contact_name)}" title="Restaurar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6M4 4v6h6"/></svg></button>` : `<button class="table-icon-action danger" data-delete="${r.id}" aria-label="Arquivar ${escapeHtml(r.company_name || r.contact_name)}" title="Arquivar registro de teste">${deleteIcon}</button>`;
+    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td><span class="status-chip" data-status="${escapeHtml(r.status)}">${escapeHtml(STATUS.find((s) => s.value === r.status)?.label || r.status)}</span></td><td><div class="table-actions"><button class="table-icon-action" data-open="${r.id}" aria-label="Editar ${escapeHtml(r.company_name || r.contact_name)}" title="Editar">${pencilIcon}</button>${archiveAction}</div></td></tr>`;
   }).join("");
   tableBody.querySelectorAll("[data-open]").forEach((button) => button.addEventListener("click", () => openSubmission(button.dataset.open)));
+  tableBody.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => openDeleteConfirmation(button.dataset.delete)));
+  tableBody.querySelectorAll("[data-restore]").forEach((button) => button.addEventListener("click", () => restoreSubmission(button.dataset.restore)));
 }
 
 function csvValue(value) {
@@ -96,6 +103,7 @@ function scopeDefaults(service) {
     "shadowing-lideranca":["Observação estruturada de situações reais","Leitura de comunicação, decisão e conflito","Registro técnico de padrões","Devolutiva individual","Recomendações práticas"],
     treinamentos:["Diagnóstico rápido da necessidade","Desenho de conteúdo sob medida","Facilitação ao vivo","Materiais de apoio","Aplicação prática"],
     "marca-empregadora":["Diagnóstico de percepção interna e externa","Definição do EVP","Personas e canais de atração","Plano de ativação","Painel de indicadores"],
+    "solucao-personalizada":["Leitura aprofundada do contexto","Desenho do escopo sob medida","Definição de entregas, limites e responsabilidades","Cronograma e checkpoints de validação","Recomendações conectadas ao resultado esperado"],
   };
   return map[service.slug] || [];
 }
@@ -118,7 +126,7 @@ function openSubmission(id) {
   const hoursField = service.slug === "assessoria-estrategica" ? `<div class="field"><label>Horas mensais contratadas</label><input class="control" id="monthly-hours" type="number" min="1" max="200" step="1" value="${defaultHours}"><small class="field-help">Referência da matriz: ${escapeHtml(packageInfo?.hoursRange || "a definir")}h/mês. O número final é ajustável.</small></div>` : "";
   const alerts = service.alerts?.(answers) || [];
   const answerHtml = fields.map((field) => `<div class="answer"><small>${escapeHtml(field.label)}</small><div>${escapeHtml(labelFor(field.options, answers[field.id]))}</div></div>`).join("");
-  drawerBody.innerHTML = `<section class="drawer-section"><h3>Leitura do briefing</h3><div class="answer-grid">${answerHtml}</div></section><section class="drawer-section"><h3>Avisos para a análise</h3><div class="alerts">${alerts.length ? alerts.map((a) => `<div class="alert ${a.level}">${escapeHtml(a.text)}</div>`).join("") : '<div class="alert low">Nenhum alerta crítico gerado pelas regras atuais.</div>'}</div></section><section class="drawer-section"><h3>Análise interna</h3><div class="field"><label>Status</label><select class="control" id="review-status">${STATUS.map((s) => `<option value="${s.value}" ${selected.status===s.value?"selected":""}>${s.label}</option>`).join("")}</select></div><div class="field" style="margin-top:12px"><label>Observações internas</label><textarea class="control" id="internal-notes">${escapeHtml(selected.internal_notes || "")}</textarea></div></section><section class="drawer-section"><h3>Calculadora da proposta</h3><p class="calc-explainer">O valor-base recebe os ajustes de complexidade do briefing. Você pode aplicar uma condição comercial e, se necessário, editar diretamente o valor final.</p><div class="calc-grid"><div class="field"><label>Modelo / pacote</label><select class="control" id="package-code">${packages.map((p) => `<option value="${p.code}" ${recommended===p.code?"selected":""}>${escapeHtml(p.label)}</option>`).join("")}</select></div><div class="field"><label>Valor-base interno</label><input class="control" id="base-price" type="number" min="0" step="50" value="${base}"></div><div class="field"><label>Adicionais</label><input class="control" id="extras" type="number" min="0" step="50" value="${currentProposal?.extras ?? 0}"></div><div class="field"><label>Desconto (%)</label><input class="control" id="discount" type="number" min="0" max="50" step=".01" value="${currentProposal?.discount_pct ?? 0}"></div><div class="field"><label>Tipo de desconto</label><select class="control" id="discount-type"><option value="">Sem identificação</option>${DISCOUNT_TYPES.map((type) => `<option value="${type}" ${savedCalc.discountType===type?"selected":""}>${type}</option>`).join("")}</select></div><div class="field"><label>Descrição da condição</label><input class="control" id="discount-description" value="${escapeHtml(savedCalc.discountDescription || "")}" placeholder="Ex.: condição válida neste mês"></div><div class="field"><label id="months-label">Contrato mínimo (meses)</label><input class="control" id="months" type="number" min="1" value="${currentProposal?.contract_months ?? (recommended === "FULL" ? 8 : recommended === "PARTNER" ? 6 : 1)}"></div>${hoursField}<div class="field"><label>Validade da proposta (dias)</label><input class="control" id="validity" type="number" min="1" value="${currentProposal?.validity_days ?? 15}"></div><div class="field calc-final-field"><label>Valor final editável</label><input class="control" id="final-price" type="number" min="0" step="50" value="${currentProposal?.final_unit ?? ""}"><small>Ao editar, o desconto efetivo é recalculado.</small></div></div><div class="calc-result" id="calc-result"></div></section><section class="drawer-section"><h3>Escopo e condições</h3><div class="field"><label>Entregas incluídas — uma por linha</label><textarea class="control" id="scope" style="min-height:160px">${escapeHtml((currentProposal?.scope_items || scopeDefaults(service)).join("\n"))}</textarea></div><div class="field" style="margin-top:12px"><label>Condições de pagamento</label><textarea class="control" id="payment-terms">${escapeHtml(currentProposal?.payment_terms || "Pagamento conforme cronograma definido na proposta.")}</textarea></div><div class="field" style="margin-top:12px"><label>Observações que aparecem na proposta</label><textarea class="control" id="public-notes">${escapeHtml(currentProposal?.public_notes || "")}</textarea></div></section>`;
+  drawerBody.innerHTML = `<section class="drawer-section"><div class="drawer-section-heading"><div><div class="eyebrow">Dados editáveis</div><h3>Contato e empresa</h3></div><span class="edit-badge">${pencilIcon} Editar</span></div><div class="calc-grid"><div class="field"><label>Nome do contato / decisor</label><input class="control" id="edit-contact-name" value="${escapeHtml(selected.contact_name || "")}" maxlength="140"></div><div class="field"><label>Cargo</label><input class="control" id="edit-contact-role" value="${escapeHtml(selected.contact_role || "")}" maxlength="140"></div><div class="field"><label>E-mail</label><input class="control" id="edit-contact-email" type="email" value="${escapeHtml(selected.contact_email || "")}" maxlength="254"></div><div class="field"><label>WhatsApp</label><input class="control" id="edit-contact-phone" value="${escapeHtml(selected.contact_phone || "")}" maxlength="40"></div><div class="field"><label>Empresa</label><input class="control" id="edit-company-name" value="${escapeHtml(selected.company_name || "")}" maxlength="180"></div><div class="field"><label>Localidade</label><input class="control" id="edit-company-location" value="${escapeHtml(selected.company_location || "")}" maxlength="180"></div></div><p class="edit-note">As respostas originais do briefing permanecem preservadas abaixo. Aqui você corrige os dados que aparecem no painel, na proposta e na confirmação de envio.</p></section><section class="drawer-section"><h3>Leitura do briefing</h3><div class="answer-grid">${answerHtml}</div></section><section class="drawer-section"><h3>Avisos para a análise</h3><div class="alerts">${alerts.length ? alerts.map((a) => `<div class="alert ${a.level}">${escapeHtml(a.text)}</div>`).join("") : '<div class="alert low">Nenhum alerta crítico gerado pelas regras atuais.</div>'}</div></section><section class="drawer-section"><h3>Análise interna</h3><div class="field"><label>Status</label><select class="control" id="review-status">${STATUS.map((s) => `<option value="${s.value}" ${selected.status===s.value?"selected":""}>${s.label}</option>`).join("")}</select></div><div class="field" style="margin-top:12px"><label>Observações internas</label><textarea class="control" id="internal-notes">${escapeHtml(selected.internal_notes || "")}</textarea></div></section><section class="drawer-section"><h3>Calculadora da proposta</h3><p class="calc-explainer">O valor-base recebe os ajustes de complexidade do briefing. Você pode aplicar uma condição comercial e, se necessário, editar diretamente o valor final.</p><div class="calc-grid"><div class="field"><label>Modelo / pacote</label><select class="control" id="package-code">${packages.map((p) => `<option value="${p.code}" ${recommended===p.code?"selected":""}>${escapeHtml(p.label)}</option>`).join("")}</select></div><div class="field"><label>Valor-base interno</label><input class="control" id="base-price" type="number" min="0" step="50" value="${base}"></div><div class="field"><label>Adicionais</label><input class="control" id="extras" type="number" min="0" step="50" value="${currentProposal?.extras ?? 0}"></div><div class="field"><label>Desconto (%)</label><input class="control" id="discount" type="number" min="0" max="50" step=".01" value="${currentProposal?.discount_pct ?? 0}"></div><div class="field"><label>Tipo de desconto</label><select class="control" id="discount-type"><option value="">Sem identificação</option>${DISCOUNT_TYPES.map((type) => `<option value="${type}" ${savedCalc.discountType===type?"selected":""}>${type}</option>`).join("")}</select></div><div class="field"><label>Descrição da condição</label><input class="control" id="discount-description" value="${escapeHtml(savedCalc.discountDescription || "")}" placeholder="Ex.: condição válida neste mês"></div><div class="field"><label id="months-label">Contrato mínimo (meses)</label><input class="control" id="months" type="number" min="1" value="${currentProposal?.contract_months ?? (recommended === "FULL" ? 8 : recommended === "PARTNER" ? 6 : 1)}"></div>${hoursField}<div class="field"><label>Validade da proposta (dias)</label><input class="control" id="validity" type="number" min="1" value="${currentProposal?.validity_days ?? 15}"></div><div class="field calc-final-field"><label>Valor final editável</label><input class="control" id="final-price" type="number" min="0" step="50" value="${currentProposal?.final_unit ?? ""}"><small>Ao editar, o desconto efetivo é recalculado.</small></div></div><div class="calc-result" id="calc-result"></div></section><section class="drawer-section"><h3>Escopo e condições</h3><div class="field"><label>Entregas incluídas — uma por linha</label><textarea class="control" id="scope" style="min-height:160px">${escapeHtml((currentProposal?.scope_items || scopeDefaults(service)).join("\n"))}</textarea></div><div class="field" style="margin-top:12px"><label>Condições de pagamento</label><textarea class="control" id="payment-terms">${escapeHtml(currentProposal?.payment_terms || "Pagamento conforme cronograma definido na proposta.")}</textarea></div><div class="field" style="margin-top:12px"><label>Observações que aparecem na proposta</label><textarea class="control" id="public-notes">${escapeHtml(currentProposal?.public_notes || "")}</textarea></div></section>`;
   let manualFinal = Boolean(savedCalc.manualFinal);
   const recalc = () => {
     const rule = pricingRules.find((r) => r.service_slug === service.slug && r.package_code === document.getElementById("package-code").value);
@@ -147,14 +155,52 @@ function openSubmission(id) {
 
 function closeDrawer() { drawer.classList.remove("open"); overlay.classList.remove("open"); selected = null; }
 
+function editableSubmissionPayload() {
+  const contactName = document.getElementById("edit-contact-name").value.trim();
+  const contactEmail = document.getElementById("edit-contact-email").value.trim().toLowerCase();
+  if (contactName.length < 2) throw new Error("Informe o nome do contato.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) throw new Error("Informe um e-mail válido.");
+  return {status:document.getElementById("review-status").value,internal_notes:document.getElementById("internal-notes").value,contact_name:contactName,contact_role:document.getElementById("edit-contact-role").value.trim()||null,contact_email:contactEmail,contact_phone:document.getElementById("edit-contact-phone").value.trim()||null,company_name:document.getElementById("edit-company-name").value.trim()||null,company_location:document.getElementById("edit-company-location").value.trim()||null,updated_at:new Date().toISOString()};
+}
+
 async function saveReview() {
   if (!selected) return;
-  await rest(`cali_submissions?id=eq.${selected.id}`, { method:"PATCH", headers:{Prefer:"return=representation"}, body:JSON.stringify({status:document.getElementById("review-status").value,internal_notes:document.getElementById("internal-notes").value,updated_at:new Date().toISOString()}) });
+  await rest(`cali_submissions?id=eq.${selected.id}`, { method:"PATCH", headers:{Prefer:"return=representation"}, body:JSON.stringify(editableSubmissionPayload()) });
   await load(); closeDrawer();
+}
+
+function openDeleteConfirmation(id) {
+  pendingDelete = submissions.find((item) => item.id === id) || null;
+  if (!pendingDelete) return;
+  document.getElementById("delete-summary").innerHTML = `<strong>${escapeHtml(pendingDelete.company_name || pendingDelete.contact_name)}</strong><br>${escapeHtml(pendingDelete.protocol)} · ${escapeHtml(SERVICES[pendingDelete.service_slug]?.title || pendingDelete.service_slug)}`;
+  document.getElementById("delete-feedback").textContent = "";
+  document.getElementById("delete-overlay").classList.remove("hidden");
+}
+
+function closeDeleteConfirmation() {
+  document.getElementById("delete-overlay").classList.add("hidden");
+  pendingDelete = null;
+}
+
+async function deleteSubmission() {
+  if (!pendingDelete) return;
+  const button = document.getElementById("confirm-delete"), feedback = document.getElementById("delete-feedback");
+  button.disabled = true; button.textContent = "Excluindo…"; feedback.textContent = "";
+  try {
+    await rest(`cali_submissions?id=eq.${pendingDelete.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({archived_at:new Date().toISOString(),updated_at:new Date().toISOString()})});
+    closeDeleteConfirmation(); await load();
+  } catch (error) { feedback.textContent = error instanceof Error ? error.message : "Não foi possível arquivar o registro."; }
+  finally { button.disabled = false; button.textContent = "Arquivar registro"; }
+}
+
+async function restoreSubmission(id) {
+  await rest(`cali_submissions?id=eq.${id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({archived_at:null,updated_at:new Date().toISOString()})});
+  await load();
 }
 
 async function saveProposal() {
   if (!selected) return;
+  await rest(`cali_submissions?id=eq.${selected.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(editableSubmissionPayload())});
   const service = SERVICES[selected.service_slug], existing = latestProposal(selected.id), calculation = drawer._recalc();
   const calculatorData = { ...calculation, monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim() };
   const payload = { submission_id:selected.id, service_slug:selected.service_slug, version:existing?.version || 1, package_code:document.getElementById("package-code").value, base_price:Number(document.getElementById("base-price").value)||0, extras:Number(document.getElementById("extras").value)||0, discount_pct:Math.min(50, calculation.discountPct), contract_months:Number(document.getElementById("months").value)||1, validity_days:Number(document.getElementById("validity").value)||15, subtotal:calculation.subtotal, final_unit:calculation.finalUnit, total_value:calculation.finalUnit, calculator_data:calculatorData, scope_items:document.getElementById("scope").value.split("\n").map((x)=>x.trim()).filter(Boolean), payment_terms:document.getElementById("payment-terms").value, public_notes:document.getElementById("public-notes").value, status:"rascunho", updated_at:new Date().toISOString() };
@@ -170,6 +216,11 @@ Object.entries(SERVICES).forEach(([slug, service]) => document.getElementById("s
 STATUS.forEach((status) => document.getElementById("status-filter").insertAdjacentHTML("beforeend", `<option value="${status.value}">${status.label}</option>`));
 ["search","service-filter","status-filter"].forEach((id) => document.getElementById(id).addEventListener("input", render));
 document.getElementById("clear").addEventListener("click", () => { document.getElementById("search").value=""; document.getElementById("service-filter").value=""; document.getElementById("status-filter").value=""; render(); });
-document.getElementById("refresh").addEventListener("click", load); document.getElementById("close").addEventListener("click", closeDrawer); overlay.addEventListener("click", closeDrawer); document.getElementById("save-review").addEventListener("click", saveReview); document.getElementById("save-proposal").addEventListener("click", saveProposal);
+const runDrawerAction = async (action) => { const feedback = document.getElementById("drawer-save-feedback"); feedback.textContent = ""; try { await action(); } catch (error) { feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar."; } };
+document.getElementById("refresh").addEventListener("click", load); document.getElementById("close").addEventListener("click", closeDrawer); overlay.addEventListener("click", closeDrawer); document.getElementById("save-review").addEventListener("click", () => runDrawerAction(saveReview)); document.getElementById("save-proposal").addEventListener("click", () => runDrawerAction(saveProposal));
 document.getElementById("export-csv").addEventListener("click", exportCsv);
+document.getElementById("archive-filter").addEventListener("click", () => { showArchived = !showArchived; document.getElementById("archive-filter").textContent = showArchived ? "Ver ativos" : "Ver arquivados"; render(); });
+document.getElementById("cancel-delete").addEventListener("click", closeDeleteConfirmation);
+document.getElementById("delete-overlay").addEventListener("click", (event) => { if (event.target.id === "delete-overlay") closeDeleteConfirmation(); });
+document.getElementById("confirm-delete").addEventListener("click", deleteSubmission);
 await load();

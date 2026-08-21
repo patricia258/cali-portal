@@ -10,12 +10,13 @@ const iconPaths = {
   "shadowing-lideranca": '<path d="M4 12s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"/><circle cx="12" cy="12" r="2.5"/>',
   treinamentos: '<path d="M4 6h16v11H4zM8 21l4-4 4 4M8 10h8M8 13h5"/>',
   "marca-empregadora": '<path d="M6 19V5h9l3 3v11H6zM15 5v4h4"/><path d="m9 14 2 2 4-5"/>',
+  "solucao-personalizada": '<path d="M5 5h6v6H5zM13 13h6v6h-6zM14 5h5M5 14v5M8 11v3h5M11 8h3"/>',
 };
 
 const grid = document.getElementById("service-grid");
 const arrowIcon = '<svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 grid.innerHTML = Object.values(SERVICES).map((service, index) => `
-  <article class="service-editorial-card reveal">
+  <article class="service-editorial-card ${service.slug === "solucao-personalizada" ? "service-editorial-custom" : ""} reveal">
     <a class="service-card-primary" href="/servicos/${service.slug}">
       <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
       <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>

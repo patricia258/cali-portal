@@ -5,7 +5,7 @@ create table if not exists public.cali_submissions (
   protocol text not null unique,
   service_slug text not null check (service_slug = any (array[
     'assessoria-estrategica','mentoria-rh','diagnostico-executivo','cultura-direcao',
-    'shadowing-lideranca','treinamentos','marca-empregadora'
+    'shadowing-lideranca','treinamentos','marca-empregadora','solucao-personalizada'
   ])),
   status text not null default 'novo' check (status = any (array[
     'novo','analise','edicao','aprovada','enviada','negociacao','fechada','recusada','expirada'
@@ -24,6 +24,7 @@ create table if not exists public.cali_submissions (
   source_path text,
   lgpd_accepted boolean not null default false,
   internal_notes text,
+  archived_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -80,6 +81,7 @@ create table if not exists public.cali_activity (
 
 create index if not exists cali_submissions_status_created_idx on public.cali_submissions(status, created_at desc);
 create index if not exists cali_submissions_service_created_idx on public.cali_submissions(service_slug, created_at desc);
+create index if not exists cali_submissions_archived_created_idx on public.cali_submissions(archived_at, created_at desc);
 create index if not exists cali_proposals_submission_idx on public.cali_proposals(submission_id, version desc);
 create index if not exists cali_activity_submission_idx on public.cali_activity(submission_id, created_at desc);
 create index if not exists cali_activity_proposal_idx on public.cali_activity(proposal_id, created_at desc);
@@ -141,7 +143,8 @@ insert into public.cali_pricing_rules(service_slug,package_code,package_label,ba
 ('treinamentos','TREINAMENTO','Treinamento Personalizado',3200,2,'{}'::jsonb),
 ('treinamentos','PROGRAMA','Programa de Liderança Sob Medida',5500,3,'{}'::jsonb),
 ('marca-empregadora','PROJETO','Projeto de Marca Empregadora',8500,1,'{"typical_weeks":12}'::jsonb),
-('marca-empregadora','RECORRENTE','Sustentação Recorrente',4800,2,'{"minimum_months":6}'::jsonb)
+('marca-empregadora','RECORRENTE','Sustentação Recorrente',4800,2,'{"minimum_months":6}'::jsonb),
+('solucao-personalizada','SOB_MEDIDA','Projeto sob medida',0,1,'{"manual_pricing":true}'::jsonb)
 on conflict(service_slug,package_code) do update set package_label=excluded.package_label, config=excluded.config;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)

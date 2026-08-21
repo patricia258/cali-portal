@@ -19,6 +19,11 @@ document.title = `${service.title} · CALI`;
 document.getElementById("service-kicker").textContent = service.kicker;
 document.getElementById("service-title").textContent = service.title;
 document.getElementById("service-intro").textContent = service.intro;
+const boundaries = document.getElementById("service-boundaries");
+if (service.boundaryItems?.length) {
+  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2><p>${escapeHtml(service.boundaryIntro)}</p></div><ul>${service.boundaryItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p>`;
+  boundaries.classList.remove("hidden");
+}
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);

@@ -252,6 +252,48 @@ export const SERVICES = {
     alerts(a){const x=[]; if(a.reviews==="negativas")x.push({level:"high",text:"Prever frente de reputação e resposta a passivos de percepção."}); if(a.modelo_contratacao==="recorrente"&&(a.ativos||[]).includes("evp"))x.push({level:"medium",text:"Separar fase inicial de definição do EVP da sustentação mensal."}); if(!(a.equipe_interna||[]).includes("marketing")&&!(a.equipe_interna||[]).includes("comunicacao"))x.push({level:"medium",text:"Sem Marketing ou Comunicação: definir capacidade interna de produção e aprovação."}); return x;},
     notices(a){const x=[]; if(a.reviews==="negativas")x.push({level:"attention",text:"Quando há avaliações negativas, a primeira etapa costuma ser leitura de causa e reputação antes de campanhas de atração."}); if(a.modelo_contratacao==="recorrente"&&(a.ativos||[]).includes("evp"))x.push({level:"info",text:"A definição do EVP é uma fase estruturante; a sustentação recorrente começa depois que essa base estiver validada."}); return x;},
   },
+  "solucao-personalizada": {
+    slug:"solucao-personalizada",
+    code:"SOB",
+    title:"Solução Personalizada",
+    kicker:"Quando o desafio não cabe em uma categoria",
+    intro:"Você não encontrou o serviço que precisa? Compartilhe sua necessidade. Eu avalio o contexto e, quando houver aderência, desenho uma solução personalizada.",
+    boundaryTitle:"O que a CALI não executa",
+    boundaryIntro:"A CALI atua em estratégia, estruturação e desenvolvimento de pessoas. Não fazem parte do escopo:",
+    boundaryItems:[
+      "Folha de pagamento, ponto, benefícios, admissões, férias, desligamentos, eSocial ou outras rotinas de Departamento Pessoal.",
+      "Operação contínua de recrutamento, hunting em volume, abertura de vagas ou alocação de recrutadores.",
+      "Serviços jurídicos, contábeis, médicos, clínicos ou outras atividades técnicas reguladas.",
+      "Terceirização de rotinas administrativas ou execução transacional contínua do RH.",
+    ],
+    boundaryClosing:"Fora desses limites, conte o seu desafio. Eu avalio a aderência e proponho o formato mais coerente — sem encaixar sua necessidade à força em um pacote pronto.",
+    packages:[{code:"SOB_MEDIDA",label:"Projeto sob medida",description:"Escopo, formato e investimento construídos após a leitura do contexto."}],
+    sections:[
+      {title:"Sobre você",description:"Quem conduz esta conversa com a CALI.",fields:COMMON_CONTACT},
+      {title:"Sobre a empresa",description:"Contexto para dimensionar a necessidade e a complexidade.",fields:COMMON_COMPANY},
+      {title:"O desafio",description:"Conte o que está acontecendo hoje e o que precisa mudar.",fields:[
+        {id:"temas_aproximados",label:"De quais temas esta necessidade mais se aproxima?",type:"checkboxes",required:true,help:"Selecione quantos forem necessários. Esta escolha só organiza a leitura; ela não limita o desenho.",options:[option("estrategia_pessoas","Estratégia de pessoas e RH"),option("estrutura_processos","Estrutura, políticas ou processos"),option("lideranca","Liderança e tomada de decisão"),option("cultura","Cultura e transformação"),option("carreira_desenvolvimento","Carreira e desenvolvimento"),option("dados_indicadores","Dados, indicadores e People Analytics"),option("comunicacao_experiencia","Comunicação e experiência do colaborador"),option("atracao_marca","Atração e marca empregadora"),option("treinamento","Treinamento, palestra ou facilitação"),option("outro","Outro desafio") ]},
+        {id:"necessidade_descricao",label:"O que está acontecendo hoje e por que essa necessidade surgiu?",type:"textarea",required:true,maxlength:3000,placeholder:"Traga o contexto, os sinais percebidos e o que motivou esta busca."},
+        {id:"resultado_esperado",label:"O que precisa estar diferente ao final deste trabalho?",type:"textarea",required:true,maxlength:2000},
+        {id:"impacto_negocio",label:"Que impacto esta situação gera hoje para o negócio ou para as pessoas?",type:"textarea",maxlength:1800,placeholder:"Ex.: decisões lentas, retrabalho, risco, perda de talentos, baixa clareza ou crescimento travado."},
+        {id:"publico_envolvido",label:"Quem será envolvido ou impactado?",type:"checkboxes",required:true,options:[option("founders","Founders ou sócios"),option("diretoria","Diretoria ou C-level"),option("liderancas","Lideranças"),option("rh","Time de RH"),option("area","Uma área específica"),option("empresa","Toda a empresa"),option("outros","Outros públicos") ]},
+        {id:"quantidade_pessoas",label:"Número aproximado de pessoas diretamente envolvidas",type:"number",min:1,max:1000000,span:6},
+        {id:"tentativas_anteriores",label:"O que já foi tentado e o que aconteceu?",type:"textarea",maxlength:1600,placeholder:"Campo opcional, mas ajuda a evitar repetir soluções que não funcionaram."},
+      ]},
+      {title:"Formato e decisão",description:"Informações práticas para eu avaliar o melhor encaixe.",fields:[
+        {id:"formato_desejado",label:"Qual formato parece mais adequado?",type:"radio",required:true,options:[option("remoto","Remoto"),option("hibrido","Híbrido"),option("presencial","Presencial"),option("avaliar","Quero que a CALI recomende")]},
+        {id:"local_execucao",label:"Cidade e estado caso exista etapa presencial",type:"text",span:6,maxlength:180},
+        {id:"prazo_inicio",label:"Quando gostaria de iniciar?",type:"select",required:true,span:6,options:[option("imediato","O quanto antes"),option("30","Em até 30 dias"),option("60","Entre 30 e 60 dias"),option("90","Em até 90 dias"),option("planejamento","Ainda estou planejando")]},
+        {id:"decisores",label:"Quem participa da decisão?",type:"text",required:true,span:6,maxlength:220,placeholder:"Nome, cargo ou área"},
+        {id:"etapa_decisao",label:"Em que etapa está esta contratação?",type:"select",required:true,span:6,options:[option("aprovada","Demanda aprovada e com orçamento"),option("orcamento","Demanda aprovada; orçamento em definição"),option("avaliacao","Em avaliação interna"),option("exploratoria","Primeira conversa exploratória")]},
+        {id:"investimento",label:"Faixa de investimento considerada",type:"select",span:6,options:[option("ate5","Até R$ 5 mil"),option("5a10","R$ 5 mil a R$ 10 mil"),option("10a20","R$ 10 mil a R$ 20 mil"),option("20mais","Acima de R$ 20 mil"),option("avaliar","Prefiro avaliar pelo escopo")]},
+        {id:"restricoes",label:"Existe algum prazo, restrição, sensibilidade ou condição que eu precise considerar?",type:"textarea",maxlength:1600},
+        {id:"observacoes",label:"Algo importante que não perguntamos?",type:"textarea",maxlength:1600},
+      ]},
+    ],
+    alerts(a){const x=[];if(a.prazo_inicio==="imediato")x.push({level:"medium",text:"Início imediato: validar agenda, disponibilidade dos decisores e insumos mínimos."});if(a.formato_desejado==="presencial"&&!String(a.local_execucao||"").toLowerCase().includes("curitiba"))x.push({level:"medium",text:"Etapa presencial fora de Curitiba e Região Metropolitana: prever deslocamento e eventual hospedagem."});if(a.etapa_decisao==="exploratoria")x.push({level:"medium",text:"Demanda ainda exploratória: a proposta deve explicitar premissas e possíveis caminhos antes de fechar o escopo."});return x;},
+    notices(a){const x=[];if(a.formato_desejado==="presencial")x.push({level:"info",text:"Atuações presenciais são avaliadas conforme localidade, agenda, deslocamento e carga dedicada."});if(a.etapa_decisao==="exploratoria")x.push({level:"attention",text:"Tudo bem ainda não ter um escopo fechado. A leitura deste briefing serve justamente para organizar o melhor caminho."});return x;},
+  },
 };
 
 export function serviceFromPath() {
