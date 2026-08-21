@@ -3,6 +3,7 @@ import { ASSETS } from "/js/assets-data.js";
 import { requireAdmin, apiHeaders, signOut } from "/js/auth.js";
 import { SERVICES, flattenFields } from "/js/services.js";
 import { proposalProfile } from "/js/proposal-profiles.js";
+import { proposalPdfBaseName, proposalPdfFileName } from "/js/pdf-filename.js";
 
 const session = await requireAdmin();
 if (!session) throw new Error("Sessão ausente.");
@@ -64,7 +65,14 @@ const solutionCopy = proposal.public_notes || profile.solutionCopy || packageInf
 const investmentTerms = monthly
   ? `${monthlyHours ? `${monthlyHours} horas mensais. ` : ""}${minimumMonths > 1 ? `Contrato mínimo de ${minimumMonths} meses. ` : ""}${escapeHtml(proposal.payment_terms || "Pagamento mensal conforme condição definida.")}`
   : escapeHtml(proposal.payment_terms || "Pagamento conforme cronograma definido.");
-document.title = `Proposta ${service.title} · ${submission.company_name} · CALI`;
+const pdfNameData = {
+  serviceName: service.title,
+  contactName: submission.contact_name,
+  companyName: submission.company_name,
+  protocol: submission.protocol,
+};
+const suggestedPdfName = proposalPdfFileName(pdfNameData);
+document.title = proposalPdfBaseName(pdfNameData);
 root.innerHTML = `<div class="proposal-document">
   <article class="proposal-page proposal-cover-page">
     <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(submission.protocol)}</strong><br>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")}<br>Válida até ${validity.toLocaleDateString("pt-BR")}</div></header>
@@ -93,7 +101,12 @@ root.innerHTML = `<div class="proposal-document">
   </article>
 </div>`;
 
-document.getElementById("print").addEventListener("click",()=>window.print());
+const printButton = document.getElementById("print");
+printButton.title = `Salvar como ${suggestedPdfName}`;
+printButton.addEventListener("click",()=>{
+  document.title = proposalPdfBaseName(pdfNameData);
+  window.print();
+});
 const drawer=document.getElementById("send-drawer"),overlay=document.getElementById("send-overlay"),fileInput=document.getElementById("pdf-file"),sendButton=document.getElementById("send-email"),feedback=document.getElementById("send-feedback");
 function openSend(){document.getElementById("send-to").textContent=`${submission.contact_name} <${submission.contact_email}>`;drawer.classList.add("open");overlay.classList.add("open")}
 function closeSend(){drawer.classList.remove("open");overlay.classList.remove("open")}
