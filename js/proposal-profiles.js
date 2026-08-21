@@ -21,7 +21,21 @@ const projectNextSteps = [
 const profiles = {
   "assessoria-estrategica": {
     contextIds: ["momento_empresa", "colaboradores", "rh_interno", "lideranca_rh", "modelo_interesse", "frequencia", "presencial", "prazo_inicio"],
+    contextLabels: {
+      momento_empresa: "Momento da empresa",
+      colaboradores: "Número de colaboradores",
+      rh_interno: "Estrutura atual de RH",
+      lideranca_rh: "Liderança sênior de RH",
+      modelo_interesse: "Modelo de assessoria",
+      frequencia: "Cadência esperada",
+      presencial: "Atuação presencial",
+      prazo_inicio: "Início desejado",
+    },
     priorityIds: ["principal_desafio", "frentes"],
+    priorityLabels: {
+      principal_desafio: "Desafio prioritário",
+      frentes: "Frentes de atuação prioritárias",
+    },
     needsTitle: "Prioridades que orientam o primeiro ciclo",
     solutionCopy: {
       PARTNER: "Direção estratégica periódica para organizar a agenda de pessoas, qualificar decisões críticas e criar uma rotina de leitura com a liderança.",
@@ -68,8 +82,23 @@ const profiles = {
   },
 
   "mentoria-rh": {
-    contextIds: ["modalidade", "cargo_atual", "tempo_rh", "momento", "participantes", "frequencia", "duracao_sessao", "suporte", "prazo_inicio"],
+    contextIds: ["modalidade", "cargo_atual", "tempo_rh", "momento", "participantes", "frequencia", "duracao_sessao", "suporte"],
+    contextLabels: {
+      modalidade: "Formato da contratação",
+      cargo_atual: "Público participante",
+      tempo_rh: "Experiência em RH",
+      momento: "Momento profissional",
+      participantes: "Número de participantes",
+      frequencia: "Cadência dos encontros",
+      duracao_sessao: "Duração por encontro",
+      suporte: "Suporte entre encontros",
+    },
     priorityIds: ["caso_real", "objetivos", "objetivo_grupo"],
+    priorityLabels: {
+      caso_real: "Desafio a trabalhar primeiro",
+      objetivos: "Competências a desenvolver",
+      objetivo_grupo: "Resultado esperado pela empresa",
+    },
     needsTitle: "O que este ciclo precisa desenvolver",
     solutionCopy: {
       TRILHA: "Um ciclo de clareza e direção para organizar o momento profissional, priorizar competências e transformar intenção em um plano de desenvolvimento aplicável.",
@@ -113,8 +142,23 @@ const profiles = {
   },
 
   "diagnostico-executivo": {
-    contextIds: ["momento_empresa", "colaboradores", "unidades", "pessoas_rh", "documentos", "indicadores_disponiveis", "entrevistas", "survey", "formato_entrevistas", "prazo_inicio"],
+    contextIds: ["momento_empresa", "colaboradores", "unidades", "pessoas_rh", "documentos", "indicadores_disponiveis", "entrevistas", "survey"],
+    contextLabels: {
+      momento_empresa: "Momento da empresa",
+      colaboradores: "Número de colaboradores",
+      unidades: "Unidades ou filiais",
+      pessoas_rh: "Estrutura interna de RH",
+      documentos: "Documentação disponível",
+      indicadores_disponiveis: "Indicadores disponíveis",
+      entrevistas: "Entrevistas previstas",
+      survey: "Pesquisa quantitativa",
+    },
     priorityIds: ["situacao_critica", "problemas", "uso_resultado"],
+    priorityLabels: {
+      situacao_critica: "Situação crítica que motivou a leitura",
+      problemas: "Problemas que precisam ser esclarecidos",
+      uso_resultado: "Decisão que o diagnóstico deve sustentar",
+    },
     needsTitle: "Questões que a leitura precisa responder",
     solutionCopy: {
       ESSENCIAL: "Uma leitura executiva para organizar os riscos mais relevantes, identificar prioridades e orientar os primeiros movimentos de gestão de pessoas.",
@@ -144,8 +188,23 @@ const profiles = {
   },
 
   "cultura-direcao": {
-    contextIds: ["momento_empresa", "colaboradores", "unidades", "contexto", "palavra_atual", "palavra_desejada", "pesquisa", "entrevistas", "grupos", "workshops", "patrocinio_lideranca"],
+    contextIds: ["momento_empresa", "colaboradores", "unidades", "palavra_atual", "palavra_desejada", "pesquisa", "entrevistas", "patrocinio_lideranca"],
+    contextLabels: {
+      momento_empresa: "Momento da empresa",
+      colaboradores: "Número de colaboradores",
+      unidades: "Unidades ou filiais",
+      palavra_atual: "Cultura percebida hoje",
+      palavra_desejada: "Cultura desejada",
+      pesquisa: "Abrangência da pesquisa",
+      entrevistas: "Entrevistas previstas",
+      patrocinio_lideranca: "Patrocínio da liderança",
+    },
     priorityIds: ["principal_gap", "contexto", "sensibilidades"],
+    priorityLabels: {
+      principal_gap: "Gap cultural prioritário",
+      contexto: "Contexto que influencia a cultura",
+      sensibilidades: "Sensibilidades que exigem cuidado",
+    },
     needsTitle: "Tensões culturais que precisam ser trabalhadas",
     solutionCopy: {
       DIAGNOSTICO: "Uma leitura estruturada da cultura atual para revelar forças, riscos e distâncias entre o discurso, a prática e a estratégia.",
@@ -176,7 +235,22 @@ const profiles = {
 
   "shadowing-lideranca": {
     contextIds: ["lideres", "nivel", "situacoes", "horas", "presencial", "devolutiva", "feedback_360", "ciencia_lideres"],
+    contextLabels: {
+      lideres: "Lideranças participantes",
+      nivel: "Nível das lideranças",
+      situacoes: "Situações observadas",
+      horas: "Horas por liderança",
+      presencial: "Formato da observação",
+      devolutiva: "Formato da devolutiva",
+      feedback_360: "Integração com feedback 360",
+      ciencia_lideres: "Ciência das lideranças",
+    },
     priorityIds: ["objetivo", "contexto_observacao", "confidencialidade"],
+    priorityLabels: {
+      objetivo: "Objetivo da observação",
+      contexto_observacao: "Situações que precisam ser observadas",
+      confidencialidade: "Acordos de confidencialidade",
+    },
     needsTitle: "Comportamentos e situações que orientarão a observação",
     solutionCopy: {
       INDIVIDUAL: "Observação estruturada da liderança em situações reais, seguida de leitura franca e recomendações concretas para mudança de comportamento.",
@@ -211,8 +285,23 @@ const profiles = {
   },
 
   treinamentos: {
-    contextIds: ["tema", "publico", "senioridade_publico", "participantes", "turmas", "formato", "encontros", "carga_horaria", "data_desejada"],
+    contextIds: ["tema", "publico", "participantes", "turmas", "formato", "encontros", "carga_horaria", "data_desejada"],
+    contextLabels: {
+      tema: "Tema principal",
+      publico: "Público participante",
+      participantes: "Participantes por turma",
+      turmas: "Número de turmas",
+      formato: "Formato da realização",
+      encontros: "Número de encontros",
+      carga_horaria: "Carga por encontro",
+      data_desejada: "Data ou período desejado",
+    },
     priorityIds: ["objetivo", "contexto", "acessibilidade"],
+    priorityLabels: {
+      objetivo: "Resultado de aprendizagem esperado",
+      contexto: "Contexto que precisa entrar no desenho",
+      acessibilidade: "Necessidades de acessibilidade",
+    },
     needsTitle: "Resultado de aprendizagem esperado",
     solutionCopy: {
       PALESTRA: "Uma palestra estratégica desenhada para o contexto da empresa, com conteúdo objetivo, provocação responsável e conexão prática com o negócio.",
@@ -256,8 +345,23 @@ const profiles = {
   },
 
   "marca-empregadora": {
-    contextIds: ["modelo_contratacao", "momento_empresa", "contratacoes_mes", "turnover", "reviews", "evp", "personas", "canais", "prazo_inicio"],
+    contextIds: ["modelo_contratacao", "momento_empresa", "contratacoes_mes", "turnover", "reviews", "evp", "personas", "canais"],
+    contextLabels: {
+      modelo_contratacao: "Modelo da contratação",
+      momento_empresa: "Momento da empresa",
+      contratacoes_mes: "Contratações por mês",
+      turnover: "Turnover atual",
+      reviews: "Percepção nas avaliações",
+      evp: "Maturidade do EVP",
+      personas: "Personas prioritárias",
+      canais: "Canais de atração",
+    },
     priorityIds: ["objetivo", "problemas", "ativos"],
+    priorityLabels: {
+      objetivo: "Resultado de marca empregadora",
+      problemas: "Problemas de percepção e atração",
+      ativos: "Ativos que já existem ou precisam ser construídos",
+    },
     needsTitle: "Percepções e resultados que precisam mudar",
     solutionCopy: {
       PROJETO: "Um projeto estruturante para diagnosticar a percepção atual, definir o EVP e transformar estratégia de marca empregadora em ativos e plano de ativação.",
@@ -296,7 +400,9 @@ export function proposalProfile({ service, packageCode, packageLabel, answers, a
   const resolve = (value, fallback = []) => typeof value === "function" ? value(context) : value || fallback;
   return {
     contextIds: profile?.contextIds || ["momento_empresa", "modelo_trabalho", "colaboradores", "unidades", "localidade", "prazo_inicio"],
+    contextLabels: profile?.contextLabels || {},
     priorityIds: profile?.priorityIds || ["objetivo", "contexto", "observacoes"],
+    priorityLabels: profile?.priorityLabels || {},
     needsTitle: profile?.needsTitle || "O que precisa ganhar movimento",
     solutionCopy: profile?.solutionCopy?.[packageCode] || service.intro,
     process: resolve(profile?.process, [["Leitura", "Confirmação do contexto e do objetivo."], ["Encaixe", "Definição do formato e do escopo."], ["Preparação", "Organização dos insumos e do cronograma."], ["Execução", "Início do trabalho e checkpoints."]]),

@@ -1,7 +1,7 @@
 import { CONFIG, functionUrl } from "/js/config.js";
 import { ASSETS } from "/js/assets-data.js";
 import { requireAdmin, apiHeaders, signOut } from "/js/auth.js";
-import { SERVICES, flattenFields, labelFor } from "/js/services.js";
+import { SERVICES, flattenFields } from "/js/services.js";
 import { proposalProfile } from "/js/proposal-profiles.js";
 
 const session = await requireAdmin();
@@ -24,12 +24,25 @@ const packageLabel = packageInfo?.label || proposal.package_code;
 const validity = new Date(proposal.updated_at || proposal.created_at); validity.setDate(validity.getDate() + Number(proposal.validity_days || 15));
 const fields = flattenFields(service), answers = submission.answers || {};
 const fieldById = (id) => fields.find((field) => field.id === id);
+const legacyAnswerLabels = {
+  tempo_rh: { "5a10": "5 a 10 anos" },
+  momento: { novo_desafio: "Novo desafio profissional" },
+  objetivos: { visao_negocio: "Visão de negócio" },
+};
+const readableAnswer = (id, field, value) => {
+  const direct = legacyAnswerLabels[id]?.[value];
+  if (direct) return direct;
+  const option = field?.options?.find((item) => item.value === value)?.label;
+  if (option) return option;
+  return value;
+};
 const answerText = (id) => {
   const field = fieldById(id), value = answers[id];
   if (value === undefined || value === null || value === "" || (Array.isArray(value) && !value.length)) return "";
   if (field?.type === "indicator_matrix") return Array.isArray(value) ? value.join("; ") : String(value);
   if (field?.type === "checkbox") return value ? "Sim" : "Não";
-  return labelFor(field?.options, value);
+  if (Array.isArray(value)) return value.map((item) => readableAnswer(id, field, item)).join(", ");
+  return readableAnswer(id, field, value);
 };
 const monthly = Boolean(proposal.calculator_data?.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
 const referencePrice = Number(proposal.subtotal || proposal.calculator_data?.subtotal || proposal.final_unit || 0);
@@ -40,10 +53,10 @@ const discountDescription = proposal.calculator_data?.discountDescription || "";
 const minimumMonths = Number(proposal.contract_months || packageInfo?.minimumMonths || 1);
 const monthlyHours = Number(proposal.calculator_data?.monthlyHours || packageInfo?.suggestedHours || 0);
 const profile = proposalProfile({ service, packageCode: proposal.package_code, packageLabel, answers, answerText, minimumMonths, monthlyHours });
-const contextIds = profile.contextIds.filter((id) => answerText(id)).slice(0, 9);
+const contextIds = profile.contextIds.filter((id) => answerText(id)).slice(0, 8);
 const priorityIds = profile.priorityIds.filter((id) => answerText(id)).slice(0, 3);
-const contextCards = contextIds.map((id) => `<div class="proposal-context-card"><span>${escapeHtml(fieldById(id)?.label || id)}</span><strong>${escapeHtml(answerText(id))}</strong></div>`).join("");
-const priorities = priorityIds.map((id) => `<div class="proposal-priority"><span>${escapeHtml(fieldById(id)?.label || id)}</span><p>${escapeHtml(answerText(id))}</p></div>`).join("");
+const contextRows = contextIds.map((id) => `<div class="proposal-context-row"><span>${escapeHtml(profile.contextLabels[id] || fieldById(id)?.label || id)}</span><strong>${escapeHtml(answerText(id))}</strong></div>`).join("");
+const priorities = priorityIds.map((id,index) => `<div class="proposal-development-item"><span class="proposal-development-number">${String(index+1).padStart(2,"0")}</span><div><strong>${escapeHtml(profile.priorityLabels[id] || fieldById(id)?.label || id)}</strong><p>${escapeHtml(answerText(id))}</p></div></div>`).join("");
 const processHtml = profile.process.map((step,index)=>`<div class="proposal-process-step"><span>${String(index+1).padStart(2,"0")}</span><div><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div></div>`).join("");
 const nextStepsHtml = profile.nextSteps.map((step,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div>`).join("");
 const contractingParty = service.slug === "mentoria-rh" && answers.modalidade !== "grupo" ? submission.contact_name : (submission.company_name || submission.contact_name);
@@ -57,8 +70,8 @@ root.innerHTML = `<div class="proposal-document">
     <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(submission.protocol)}</strong><br>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")}<br>Válida até ${validity.toLocaleDateString("pt-BR")}</div></header>
     <div class="proposal-kicker">Proposta comercial · ${escapeHtml(packageLabel)}</div><h1>${escapeHtml(service.title)}</h1>
     <p class="proposal-lead">${escapeHtml(submission.contact_name)}, transformei o contexto compartilhado em uma proposta coerente com o momento de ${escapeHtml(contractingParty)}.</p>
-    <section class="proposal-section"><h2>O contexto que orienta esta proposta</h2><div class="proposal-context-grid">${contextCards}</div></section>
-    ${priorities ? `<section class="proposal-section proposal-needs"><h2>${escapeHtml(profile.needsTitle)}</h2><div class="proposal-priority-grid">${priorities}</div></section>` : ""}
+    <section class="proposal-section"><h2>O contexto que orienta esta proposta</h2><div class="proposal-context-list">${contextRows}</div></section>
+    ${priorities ? `<section class="proposal-section proposal-needs"><h2>${escapeHtml(profile.needsTitle)}</h2><div class="proposal-development-list">${priorities}</div></section>` : ""}
     <footer class="proposal-footer"><span>Patrícia Lima · People Advisory Executive</span><span>01</span></footer>
   </article>
   <article class="proposal-page proposal-detail-page">
