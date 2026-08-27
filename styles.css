@@ -193,13 +193,18 @@ html,.home-body{background:var(--marfim)}
 .form-body .form-hero-editorial .form-intro{font-size:14px;max-width:680px}
 .form-layout-single{display:block;width:min(900px,calc(100% - 44px));margin-top:-38px;padding-bottom:86px}
 .form-layout-single .form-card-editorial{width:100%;padding:clamp(30px,4.2vw,50px)}
-.briefing-welcome{position:relative;min-height:500px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:clamp(10px,3vw,34px) clamp(2px,3vw,30px);overflow:hidden}
-.briefing-welcome::after{content:"C";position:absolute;right:-.03em;bottom:-.16em;font:400 clamp(190px,31vw,330px)/.8 var(--serif);color:rgba(90,30,45,.035);pointer-events:none}
-.welcome-rule{width:56px;height:2px;background:var(--dourado);margin-bottom:30px}
-.briefing-welcome .eyebrow{margin-bottom:12px}.briefing-welcome h2{font:400 clamp(43px,6vw,64px)/1 var(--serif);letter-spacing:-.035em;color:var(--bordo);margin:0 0 24px}
-.briefing-welcome p{max-width:650px;margin:0 0 14px;color:#655b5d;font-size:15px;line-height:1.78;position:relative;z-index:1}
-.welcome-signature{display:flex;align-items:baseline;gap:8px;margin:18px 0 28px;color:#887d7f;font-size:11px}.welcome-signature strong{font:400 22px/1 var(--serif);color:var(--bordo)}
-.welcome-start{min-width:190px;position:relative;z-index:1}
+.briefing-welcome{position:relative;min-height:570px;display:grid;place-items:center;padding:clamp(28px,5vw,52px);overflow:hidden;border:1px solid rgba(90,30,45,.055);border-radius:13px;background:radial-gradient(circle at 14% 8%,rgba(255,255,255,.92),transparent 30%),linear-gradient(145deg,#f3ece7,#ece1da)}
+.briefing-welcome::before{content:"";position:absolute;left:50%;top:50%;width:min(690px,calc(100% - 70px));height:calc(100% - 94px);background:#f9f4ee;border:1px solid rgba(90,30,45,.09);box-shadow:0 15px 35px rgba(67,21,35,.07);transform:translate(-48.5%,-48.5%) rotate(1.15deg);pointer-events:none}
+.welcome-letter{position:relative;z-index:1;width:min(690px,100%);padding:clamp(40px,6vw,62px) clamp(34px,6.5vw,68px) clamp(34px,5vw,50px);background:#fffdfa;border:1px solid rgba(90,30,45,.11);box-shadow:0 26px 65px rgba(67,21,35,.13),0 3px 9px rgba(67,21,35,.06);animation:letter-arrive .65s cubic-bezier(.22,.75,.24,1) both}
+.welcome-letter::before{content:"";position:absolute;left:clamp(34px,6.5vw,68px);right:clamp(34px,6.5vw,68px);top:0;height:3px;background:linear-gradient(90deg,var(--dourado),rgba(181,140,82,.18))}
+.letter-overline{margin-bottom:22px;color:var(--dourado);font-size:9px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+.briefing-welcome h2{margin:0 0 18px;color:var(--bordo);font:400 clamp(47px,6vw,61px)/.95 "Snell Roundhand","Segoe Script","Bradley Hand",cursive;letter-spacing:0}
+.letter-copy{max-width:555px}.briefing-welcome p{margin:0 0 13px;color:#5e5456;font:400 15px/1.76 Georgia,"Times New Roman",serif}
+.briefing-welcome .letter-note{margin-top:21px;padding-top:17px;border-top:1px solid rgba(90,30,45,.11);color:#74696b;font-size:13px;font-style:italic}
+.letter-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-top:29px}
+.welcome-signature{display:flex;flex-direction:column;align-items:flex-start;margin:0;color:#8a7e80}.welcome-signature>span{margin-bottom:5px;font:400 10px/1.45 var(--sans)}.welcome-signature strong{color:var(--bordo);font:400 clamp(27px,3.5vw,35px)/1 "Snell Roundhand","Segoe Script","Bradley Hand",cursive;letter-spacing:.01em}.welcome-signature small{margin-top:5px;color:#a09294;font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.welcome-start{min-width:178px;position:relative;z-index:1;padding:12px 20px;font-size:12px;box-shadow:0 10px 25px rgba(90,30,45,.15)}
+@keyframes letter-arrive{from{opacity:0;transform:translateY(14px) rotate(-.35deg)}to{opacity:1;transform:none}}
 .form-progress-compact{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 20px;margin-bottom:34px;padding-bottom:20px;border-bottom:1px solid rgba(90,30,45,.09);font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--bordo)}
 .form-progress-compact #progress-count{color:var(--taupe)}
 .form-progress-compact .progress-track{grid-column:1/-1;width:100%;height:2px;margin:4px 0 0;background:#eee6e1}
@@ -222,14 +227,16 @@ html,.home-body{background:var(--marfim)}
   .form-body .topbar-solid{height:70px}.form-body .topbar-solid .brand-image{width:94px}
   .form-body .icon-nav .whatsapp-link{width:36px;padding:0;justify-content:center}.form-body .whatsapp-link span{display:none}
   .form-body .form-hero-editorial{padding:96px 0 66px}.form-layout-single{width:min(100% - 28px,900px);margin-top:-30px}
-  .briefing-welcome{min-height:440px}.indicator-row{grid-template-columns:1fr}.indicator-level{width:100%}.indicator-na{justify-self:start;margin-left:28px}
+  .briefing-welcome{min-height:520px;padding:28px 24px}.briefing-welcome::before{width:calc(100% - 64px);height:calc(100% - 74px)}.indicator-row{grid-template-columns:1fr}.indicator-level{width:100%}.indicator-na{justify-self:start;margin-left:28px}
 }
 @media(max-width:560px){
   .form-body .icon-nav>a:nth-child(-n+3){display:none}.form-body .topbar-solid .brand-image{width:88px}
   .form-body .form-hero-editorial .page-title{font-size:38px}.form-body .form-hero-editorial .form-intro{font-size:13px}
-  .form-layout-single .form-card-editorial{padding:25px 18px}.briefing-welcome{min-height:420px;padding:8px 2px}.briefing-welcome h2{font-size:42px}.briefing-welcome p{font-size:14px}
+  .form-layout-single .form-card-editorial{padding:18px 10px}.briefing-welcome{min-height:0;padding:22px 10px;border-radius:10px}.briefing-welcome::before{width:calc(100% - 34px);height:calc(100% - 46px);transform:translate(-48%,-48%) rotate(1deg)}.welcome-letter{padding:37px 25px 30px}.welcome-letter::before{left:25px;right:25px}.letter-overline{margin-bottom:18px}.briefing-welcome h2{font-size:47px;margin-bottom:15px}.briefing-welcome p{font-size:14px;line-height:1.68}.briefing-welcome .letter-note{font-size:12px;margin-top:17px;padding-top:14px}.letter-footer{align-items:flex-start;flex-direction:column;gap:22px;margin-top:24px}.welcome-signature strong{font-size:30px}.welcome-start{width:100%;min-width:0}
   .form-progress-compact{margin-bottom:27px}.indicator-row{padding:12px}.single-check{padding:13px}
 }
+
+@media(prefers-reduced-motion:reduce){.welcome-letter{animation:none}}
 
 /* ─── Logo oficial: uma única escala em todo o portal ──────────── */
 .topbar .brand-image,
