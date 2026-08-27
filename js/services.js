@@ -1,5 +1,106 @@
 const option = (value, label = value, description = "") => ({ value, label, description });
 
+const INVESTMENT_BANDS = {
+  "assessoria-estrategica": { period: "por mês", options: [
+    { value: "ate5", label: "Até R$ 5 mil", min: 0, max: 5000 },
+    { value: "5a8", label: "R$ 5 mil a R$ 8 mil", min: 5000, max: 8000 },
+    { value: "8a12", label: "R$ 8 mil a R$ 12 mil", min: 8000, max: 12000 },
+    { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "mentoria-rh": { period: "por ciclo", options: [
+    { value: "ate2", label: "Até R$ 2 mil", min: 0, max: 2000 },
+    { value: "2a4", label: "R$ 2 mil a R$ 4 mil", min: 2000, max: 4000 },
+    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
+    { value: "7mais", label: "Acima de R$ 7 mil", min: 7000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "diagnostico-executivo": { period: "pelo projeto", options: [
+    { value: "ate3", label: "Até R$ 3 mil", min: 0, max: 3000 },
+    { value: "3a5", label: "R$ 3 mil a R$ 5 mil", min: 3000, max: 5000 },
+    { value: "5a8", label: "R$ 5 mil a R$ 8 mil", min: 5000, max: 8000 },
+    { value: "8mais", label: "Acima de R$ 8 mil", min: 8000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "cultura-direcao": { period: "pelo projeto", options: [
+    { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
+    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
+    { value: "7a10", label: "R$ 7 mil a R$ 10 mil", min: 7000, max: 10000 },
+    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "shadowing-lideranca": { period: "pelo ciclo", options: [
+    { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
+    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
+    { value: "7a12", label: "R$ 7 mil a R$ 12 mil", min: 7000, max: 12000 },
+    { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  treinamentos: { period: "pela contratação", options: [
+    { value: "ate5", label: "Até R$ 5 mil", min: 0, max: 5000 },
+    { value: "5a8", label: "R$ 5 mil a R$ 8 mil", min: 5000, max: 8000 },
+    { value: "8a12", label: "R$ 8 mil a R$ 12 mil", min: 8000, max: 12000 },
+    { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "marca-empregadora": { period: "pelo projeto ou mensalidade", options: [
+    { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
+    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
+    { value: "7a10", label: "R$ 7 mil a R$ 10 mil", min: 7000, max: 10000 },
+    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+  "solucao-personalizada": { period: "pela contratação", options: [
+    { value: "ate3", label: "Até R$ 3 mil", min: 0, max: 3000 },
+    { value: "3a5", label: "R$ 3 mil a R$ 5 mil", min: 3000, max: 5000 },
+    { value: "5a10", label: "R$ 5 mil a R$ 10 mil", min: 5000, max: 10000 },
+    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
+  ]},
+};
+
+const LEGACY_INVESTMENT_BANDS = {
+  "diagnostico-executivo": [
+    { value:"ate5", label:"Até R$ 5 mil", min:0, max:5000 },
+    { value:"8a12", label:"R$ 8 mil a R$ 12 mil", min:8000, max:12000 },
+    { value:"12mais", label:"Acima de R$ 12 mil", min:12000, max:null },
+  ],
+  "cultura-direcao": [
+    { value:"ate6", label:"Até R$ 6 mil", min:0, max:6000 },
+    { value:"6a10", label:"R$ 6 mil a R$ 10 mil", min:6000, max:10000 },
+    { value:"10a15", label:"R$ 10 mil a R$ 15 mil", min:10000, max:15000 },
+    { value:"15mais", label:"Acima de R$ 15 mil", min:15000, max:null },
+  ],
+  treinamentos: [
+    { value:"ate3", label:"Até R$ 3 mil", min:0, max:3000 },
+    { value:"3a6", label:"R$ 3 mil a R$ 6 mil", min:3000, max:6000 },
+    { value:"6a12", label:"R$ 6 mil a R$ 12 mil", min:6000, max:12000 },
+  ],
+  "marca-empregadora": [
+    { value:"ate6", label:"Até R$ 6 mil", min:0, max:6000 },
+    { value:"6a10", label:"R$ 6 mil a R$ 10 mil", min:6000, max:10000 },
+    { value:"10a15", label:"R$ 10 mil a R$ 15 mil", min:10000, max:15000 },
+    { value:"15mais", label:"Acima de R$ 15 mil", min:15000, max:null },
+  ],
+  "solucao-personalizada": [
+    { value:"ate5", label:"Até R$ 5 mil", min:0, max:5000 },
+    { value:"10a20", label:"R$ 10 mil a R$ 20 mil", min:10000, max:20000 },
+    { value:"20mais", label:"Acima de R$ 20 mil", min:20000, max:null },
+  ],
+};
+
+function investmentField(serviceSlug, label, id = "investimento") {
+  return {
+    id,
+    label,
+    type: "select",
+    required: true,
+    span: 6,
+    help: "Essa resposta orienta o formato, a profundidade e as prioridades da proposta.",
+    options: INVESTMENT_BANDS[serviceSlug].options.map(({ value, label: optionLabel }) => option(value, optionLabel)),
+  };
+}
+
 export const STATUS = [
   option("novo", "Nova resposta"),
   option("analise", "Em análise"),
@@ -70,7 +171,7 @@ export const SERVICES = {
       { title: "Momento da decisão", fields: [
         { id: "prazo_inicio", label: "Quando gostaria de iniciar?", type: "select", required: true, span: 6, options: [option("imediato", "O quanto antes"), option("30", "Em até 30 dias"), option("60", "Entre 30 e 60 dias"), option("planejamento", "Estou planejando")] },
         { id: "decisores", label: "Quem participa da decisão?", type: "text", required: true, span: 6 },
-        { id: "investimento", label: "Faixa mensal considerada para este apoio", type: "select", span: 6, options: [option("ate5", "Até R$ 5 mil"), option("5a8", "R$ 5 mil a R$ 8 mil"), option("8a12", "R$ 8 mil a R$ 12 mil"), option("12mais", "Acima de R$ 12 mil"), option("avaliar", "Prefiro avaliar pelo escopo")] },
+        investmentField("assessoria-estrategica", "Até quanto a empresa considera investir por mês neste apoio?"),
         { id: "observacoes", label: "Algo importante que não perguntamos?", type: "textarea" },
       ]},
     ],
@@ -117,6 +218,7 @@ export const SERVICES = {
         { id: "suporte", label: "Qual suporte deseja entre os encontros?", type: "select", required: true, span: 4, options: [option("essencial", "Sem suporte por mensagem", "Materiais e tarefas são tratados nos encontros."), option("mensagens", "Dúvidas pontuais por mensagem", "Canal para perguntas objetivas, respondidas em horário comercial."), option("proximo", "Check-ins e discussão de casos", "Acompanhamento de maior proximidade, com carga adicional prevista no ciclo.")] },
         { id: "prazo_inicio", label: "Quando gostaria de realizar o primeiro encontro?", type: "select", required: true, span: 6, options: [option("imediato", "O quanto antes"), option("30", "Em até 30 dias"), option("60", "Entre 30 e 60 dias"), option("planejamento", "Ainda estou planejando")] },
         { id: "disponibilidade", label: "Quais dias ou períodos costumam funcionar melhor?", type: "text", span: 6, maxlength: 300, placeholder: "Ex.: terças pela manhã" },
+        investmentField("mentoria-rh", "Até quanto você ou a empresa considera investir neste ciclo?"),
       ]},
     ],
     alerts(a) { const x=[]; if(a.modalidade==="grupo"&&Number(a.participantes)>5)x.push({level:"high",text:"A mentoria em grupo é limitada a 5 participantes da mesma empresa."}); if(a.suporte==="proximo")x.push({level:"medium",text:"Prever carga adicional de suporte entre sessões."}); if(a.modalidade==="grupo"&&["avaliacao","nao_apresentada"].includes(a.status_iniciativa))x.push({level:"medium",text:"Iniciativa corporativa ainda não aprovada: proposta deve apoiar a decisão e explicitar premissas."}); if(a.frequencia==="semanal")x.push({level:"medium",text:"Cadência semanal: validar agenda e intensidade do ciclo."}); return x; },
@@ -143,6 +245,7 @@ export const SERVICES = {
         { id: "situacao_critica", label: "Qual situação mais preocupa a liderança hoje?", type: "textarea", required: true },
         { id: "formato_entrevistas", label: "Formato das entrevistas", type: "select", required: true, span: 6, options: [option("remoto", "Remoto"), option("hibrido", "Híbrido"), option("presencial", "Presencial")] },
         { id: "prazo_inicio", label: "Prazo desejado para início", type: "select", required: true, span: 6, options: [option("imediato", "O quanto antes"), option("30", "Até 30 dias"), option("60", "30 a 60 dias"), option("planejamento", "Em planejamento")] },
+        investmentField("diagnostico-executivo", "Até quanto a empresa considera investir neste diagnóstico?"),
       ]},
     ],
     alerts(a){const x=[]; if(Number(a.entrevistas)>10)x.push({level:"medium",text:"Mais de 10 entrevistas: revisar carga e cronograma."}); if(a.documentos==="desorganizada"||a.acesso_dados==="nao")x.push({level:"high",text:"Aplicar etapa e carga de organização documental antes da leitura."}); if(a.prazo_inicio==="imediato")x.push({level:"medium",text:"Confirmar disponibilidade mínima de quatro semanas."}); return x;},
@@ -166,6 +269,7 @@ export const SERVICES = {
         {id:"sensibilidades",label:"Há histórico, conflito ou tema sensível que precisa ser considerado?",type:"textarea",maxlength:1500,help:"Não inclua nomes ou dados pessoais sensíveis de terceiros neste briefing."},
         {id:"principal_gap",label:"Onde a distância entre cultura e estratégia aparece com mais força?",type:"textarea",required:true},
         {id:"prazo_inicio",label:"Quando gostaria de iniciar?",type:"select",required:true,options:[option("30","Até 30 dias"),option("60","30 a 60 dias"),option("90","Em até 90 dias"),option("planejamento","Em planejamento")]},
+        investmentField("cultura-direcao", "Até quanto a empresa considera investir neste projeto?"),
       ]},
     ],
     alerts(a){const x=[]; if(Number(a.colaboradores)>200||Number(a.unidades)>3)x.push({level:"medium",text:"Revisar amostra, comunicação e logística por porte."}); if((a.contexto||[]).includes("ma"))x.push({level:"high",text:"Contexto de M&A exige trilha específica de integração cultural."}); if(a.patrocinio_lideranca==="baixo")x.push({level:"high",text:"Baixo patrocínio executivo: prever etapa de alinhamento antes da mobilização ampla."}); return x;},
@@ -189,6 +293,7 @@ export const SERVICES = {
         {id:"destinatario_devolutiva",label:"Quem receberá a síntese executiva, se houver?",type:"text",maxlength:180,showWhen:{field:"devolutiva",equals:"individual_executiva"}},
         {id:"confidencialidade",label:"Há alguma condição especial de confidencialidade?",type:"textarea"},
         {id:"objetivo",label:"O que precisa mudar na prática ao final do ciclo?",type:"textarea",required:true},
+        investmentField("shadowing-lideranca", "Até quanto a empresa considera investir neste ciclo?"),
       ]},
     ],
     alerts(a){const x=[]; if(a.presencial==="remoto")x.push({level:"medium",text:"O presencial é recomendado por ser a essência do Shadowing."}); if(Number(a.lideres)>5)x.push({level:"high",text:"Mais de 5 líderes: dividir em ondas ou ampliar prazo."}); if(a.ciencia_lideres==="nao")x.push({level:"high",text:"Planejar comunicação e consentimento antes da observação."}); return x;},
@@ -220,7 +325,7 @@ export const SERVICES = {
         {id:"acessibilidade",label:"Há necessidade de acessibilidade, tradução ou adaptação de materiais?",type:"textarea",span:6,maxlength:600},
         {id:"gravacao",label:"Pretende gravar ou reutilizar o conteúdo?",type:"radio",required:true,options:[option("nao","Não"),option("sim","Sim"),option("avaliar","A avaliar")]},
         {id:"data_desejada",label:"Data ou período desejado",type:"text",required:true,span:6},
-        {id:"budget",label:"Faixa de investimento",type:"select",span:6,options:[option("ate3","Até R$ 3 mil"),option("3a6","R$ 3 mil a R$ 6 mil"),option("6a12","R$ 6 mil a R$ 12 mil"),option("12mais","Acima de R$ 12 mil"),option("avaliar","A avaliar pelo escopo")]},
+        investmentField("treinamentos", "Até quanto a empresa considera investir nesta contratação?", "budget"),
         {id:"contexto",label:"Contexto e expectativas",type:"textarea"},
       ]},
     ],
@@ -247,6 +352,7 @@ export const SERVICES = {
         {id:"ativos_existentes",label:"Quais pesquisas, guias de marca ou materiais já existem?",type:"textarea",maxlength:1200},
         {id:"objetivo",label:"Qual resultado precisa ser percebido primeiro?",type:"textarea",required:true},
         {id:"prazo_inicio",label:"Quando gostaria de iniciar?",type:"select",required:true,options:[option("30","Até 30 dias"),option("60","30 a 60 dias"),option("90","Em até 90 dias"),option("planejamento","Em planejamento")]},
+        investmentField("marca-empregadora", "Até quanto a empresa considera investir nesta iniciativa?"),
       ]},
     ],
     alerts(a){const x=[]; if(a.reviews==="negativas")x.push({level:"high",text:"Prever frente de reputação e resposta a passivos de percepção."}); if(a.modelo_contratacao==="recorrente"&&(a.ativos||[]).includes("evp"))x.push({level:"medium",text:"Separar fase inicial de definição do EVP da sustentação mensal."}); if(!(a.equipe_interna||[]).includes("marketing")&&!(a.equipe_interna||[]).includes("comunicacao"))x.push({level:"medium",text:"Sem Marketing ou Comunicação: definir capacidade interna de produção e aprovação."}); return x;},
@@ -286,7 +392,7 @@ export const SERVICES = {
         {id:"prazo_inicio",label:"Quando gostaria de iniciar?",type:"select",required:true,span:6,options:[option("imediato","O quanto antes"),option("30","Em até 30 dias"),option("60","Entre 30 e 60 dias"),option("90","Em até 90 dias"),option("planejamento","Ainda estou planejando")]},
         {id:"decisores",label:"Quem participa da decisão?",type:"text",required:true,span:6,maxlength:220,placeholder:"Nome, cargo ou área"},
         {id:"etapa_decisao",label:"Em que etapa está esta contratação?",type:"select",required:true,span:6,options:[option("aprovada","Demanda aprovada e com orçamento"),option("orcamento","Demanda aprovada; orçamento em definição"),option("avaliacao","Em avaliação interna"),option("exploratoria","Primeira conversa exploratória")]},
-        {id:"investimento",label:"Faixa de investimento considerada",type:"select",span:6,options:[option("ate5","Até R$ 5 mil"),option("5a10","R$ 5 mil a R$ 10 mil"),option("10a20","R$ 10 mil a R$ 20 mil"),option("20mais","Acima de R$ 20 mil"),option("avaliar","Prefiro avaliar pelo escopo")]},
+        investmentField("solucao-personalizada", "Até quanto a empresa considera investir nesta solução?"),
         {id:"restricoes",label:"Existe algum prazo, restrição, sensibilidade ou condição que eu precise considerar?",type:"textarea",maxlength:1600},
         {id:"observacoes",label:"Algo importante que não perguntamos?",type:"textarea",maxlength:1600},
       ]},
@@ -311,8 +417,20 @@ export function labelFor(options, value) {
   return options?.find((o) => o.value === value)?.label || value || "—";
 }
 
+export function investmentContextFor(service, answers = {}) {
+  const config = INVESTMENT_BANDS[service.slug];
+  if (!config) return null;
+  const value = answers.investimento || answers.budget || "";
+  if (!value) return null;
+  const band = config.options.find((item) => item.value === value) || LEGACY_INVESTMENT_BANDS[service.slug]?.find((item) => item.value === value);
+  if (!band) return null;
+  return { value, label: band.label, min: band.min, max: band.max, period: config.period, open: value === "avaliar" };
+}
+
 export function initialPackageFor(service, answers = {}) {
   if (service.slug === "assessoria-estrategica") {
+    const investment = investmentContextFor(service, answers);
+    if (investment?.max && investment.max <= 8000) return "PARTNER";
     if (["PARTNER", "FULL"].includes(answers.modelo_interesse)) return answers.modelo_interesse;
     const fronts = answers.frentes?.length || 0;
     if (fronts >= 5 || answers.frequencia === "semanal" || answers.presencial === "mensal" || answers.presencial === "mais") return "FULL";
@@ -334,7 +452,7 @@ export function initialPackageFor(service, answers = {}) {
   return service.packages?.[0]?.code || "PERSONALIZADO";
 }
 
-export function calculateProposal({ service, answers, packageCode, basePrice, discount = 0, extras = 0, months = 1, finalOverride = null }) {
+export function calculateProposal({ service, answers, packageCode, basePrice, discount = 0, extras = 0, months = 1, finalOverride = null, scopeMode = "integral" }) {
   const n = (value, fallback = 0) => Number(value) || fallback;
   let factor = 1;
   const breakdown = [];
@@ -385,6 +503,11 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
     factor = (1 + Math.max(0, units - 1) * 0.08) * (1 + Math.max(0, personas - 2) * 0.05) * (1 + Math.max(0, assets - 3) * 0.06);
     breakdown.push(["Unidades", units], ["Personas", personas], ["Ativos", assets]);
   }
+  if (scopeMode === "prioritized") {
+    factor = Math.min(factor, 1);
+    extras = 0;
+    breakdown.push(["Escopo priorizado", 1]);
+  }
   const monthly = service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
   const subtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
   const discountValue = Math.round(subtotal * Math.min(Math.max(n(discount), 0), 50) / 100);
@@ -396,5 +519,5 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
   // Serviços recorrentes são apresentados pela mensalidade. O prazo mínimo é uma
   // condição contratual, não um total a ser somado na proposta.
   const total = finalUnit;
-  return { factor: Number(factor.toFixed(3)), subtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, breakdown };
+  return { factor: Number(factor.toFixed(3)), subtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, scopeMode, breakdown };
 }
