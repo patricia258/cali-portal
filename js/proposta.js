@@ -72,7 +72,6 @@ const advantagesHtml = advantages.map((item,index)=>`<div><span>${String(index+1
 const bonus = proposal.calculator_data?.bonus;
 const bonusHtml = bonus?.title && bonus?.description ? `<div class="proposal-bonus"><span>Bônus escolhido</span><div><strong>${escapeHtml(bonus.title)}</strong><p>${escapeHtml(bonus.description)}</p></div></div>` : "";
 const nextStepsHtml = profile.nextSteps.slice(0,3).map((step,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div>`).join("");
-const contractingParty = service.slug === "mentoria-rh" && answers.modalidade !== "grupo" ? submission.contact_name : (submission.company_name || submission.contact_name);
 const solutionCopy = proposal.public_notes || profile.solutionCopy || packageInfo?.description || service.intro;
 const firstName = String(submission.contact_name || "").trim().split(/\s+/)[0] || "Olá";
 const payment = proposal.calculator_data?.payment || {};
@@ -112,10 +111,10 @@ root.innerHTML = `<div class="proposal-document">
   <article class="proposal-page proposal-cover-page">
     <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(submission.protocol)}</strong><br>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")}<br>Válida até ${validity.toLocaleDateString("pt-BR")}</div></header>
     <div class="proposal-kicker">Proposta comercial · ${escapeHtml(packageLabel)}</div><h1 class="proposal-greeting">Olá, <span>${escapeHtml(firstName)}</span>,<br>sua proposta chegou!</h1>
-    <div class="proposal-recipient"><span>Preparada especialmente para</span><strong>${escapeHtml(submission.contact_name)}</strong><em>${escapeHtml(submission.company_name || contractingParty)}</em></div>
-    <div class="proposal-service-name">${escapeHtml(service.title)}</div>
+    <div class="proposal-service-name"><strong>${escapeHtml(submission.company_name || "")}</strong><span>${escapeHtml(service.title)}</span></div>
     <section class="proposal-section"><h2>O contexto que orienta esta proposta</h2><div class="proposal-context-list">${contextRows}</div></section>
     ${focusHtml}
+    <section class="proposal-section proposal-cover-conditions"><h2>Premissas deste desenho</h2><ul class="condition-list">${profile.commercial.slice(0,3).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     <footer class="proposal-footer"><span>Patrícia Lima · People Advisory Executive</span><span>01</span></footer>
   </article>
   <article class="proposal-page proposal-detail-page">
@@ -132,7 +131,6 @@ root.innerHTML = `<div class="proposal-document">
     <section class="proposal-section"><h2>Investimento</h2><div class="investment-reference"><span>${monthly ? "Mensalidade de referência" : "Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue ? `<div class="investment-discount"><span>${escapeHtml(discountType)}${discountDescription ? ` · ${escapeHtml(discountDescription)}` : ""}</span><strong>− ${currency(discountValue)} (${discountPct.toLocaleString("pt-BR",{maximumFractionDigits:2})}%)</strong></div>` : ""}<div class="investment"><div><div class="investment-label">${monthly ? "Mensalidade final" : "Investimento final"}</div><div class="investment-value">${currency(proposal.final_unit)}</div></div></div></section>
     <section class="proposal-commercial-summary">${contractFactsHtml}</section>
     <section class="proposal-section proposal-payment"><h2>Forma de pagamento</h2><div class="proposal-payment-grid">${paymentRowsHtml}</div>${paymentNote ? `<p class="proposal-payment-note">${escapeHtml(paymentNote)}</p>` : ""}</section>
-    <section class="proposal-section proposal-conditions"><h2>Condições do trabalho</h2><ul class="condition-list">${profile.commercial.slice(0,4).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     <section class="proposal-section"><h2>Fora do escopo</h2><ul class="condition-list">${profile.outOfScope.map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     <section class="proposal-section"><h2>Próximos passos</h2><div class="proposal-next-steps">${nextStepsHtml}</div></section>
     <section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI · HR for Business</div></section>
