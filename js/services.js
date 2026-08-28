@@ -9,57 +9,79 @@ const INVESTMENT_BANDS = {
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "mentoria-rh": { period: "por ciclo", options: [
-    { value: "ate2", label: "Até R$ 2 mil", min: 0, max: 2000 },
-    { value: "2a4", label: "R$ 2 mil a R$ 4 mil", min: 2000, max: 4000 },
-    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
-    { value: "7mais", label: "Acima de R$ 7 mil", min: 7000, max: null },
+    { value: "ate15", label: "Até R$ 1,5 mil", min: 0, max: 1500 },
+    { value: "15a24", label: "R$ 1,5 mil a R$ 2,4 mil", min: 1500, max: 2400 },
+    { value: "24mais", label: "Acima de R$ 2,4 mil", min: 2400, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "diagnostico-executivo": { period: "pelo projeto", options: [
     { value: "ate3", label: "Até R$ 3 mil", min: 0, max: 3000 },
-    { value: "3a5", label: "R$ 3 mil a R$ 5 mil", min: 3000, max: 5000 },
-    { value: "5a8", label: "R$ 5 mil a R$ 8 mil", min: 5000, max: 8000 },
-    { value: "8mais", label: "Acima de R$ 8 mil", min: 8000, max: null },
+    { value: "3a45", label: "R$ 3 mil a R$ 4,5 mil", min: 3000, max: 4500 },
+    { value: "45mais", label: "Acima de R$ 4,5 mil", min: 4500, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "cultura-direcao": { period: "pelo projeto", options: [
     { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
-    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
-    { value: "7a10", label: "R$ 7 mil a R$ 10 mil", min: 7000, max: 10000 },
-    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "4mais", label: "Acima de R$ 4 mil", min: 4000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "shadowing-lideranca": { period: "pelo ciclo", options: [
     { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
-    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
-    { value: "7a12", label: "R$ 7 mil a R$ 12 mil", min: 7000, max: 12000 },
-    { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
+    { value: "4mais", label: "Acima de R$ 4 mil", min: 4000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   treinamentos: { period: "pela contratação", options: [
-    { value: "ate5", label: "Até R$ 5 mil", min: 0, max: 5000 },
-    { value: "5a8", label: "R$ 5 mil a R$ 8 mil", min: 5000, max: 8000 },
-    { value: "8a12", label: "R$ 8 mil a R$ 12 mil", min: 8000, max: 12000 },
-    { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
+    { value: "ate25", label: "Até R$ 2,5 mil", min: 0, max: 2500 },
+    { value: "25a5", label: "R$ 2,5 mil a R$ 5 mil", min: 2500, max: 5000 },
+    { value: "5mais", label: "Acima de R$ 5 mil", min: 5000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "marca-empregadora": { period: "pelo projeto ou mensalidade", options: [
     { value: "ate4", label: "Até R$ 4 mil", min: 0, max: 4000 },
-    { value: "4a7", label: "R$ 4 mil a R$ 7 mil", min: 4000, max: 7000 },
-    { value: "7a10", label: "R$ 7 mil a R$ 10 mil", min: 7000, max: 10000 },
-    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "4mais", label: "Acima de R$ 4 mil", min: 4000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
   "solucao-personalizada": { period: "pela contratação", options: [
     { value: "ate3", label: "Até R$ 3 mil", min: 0, max: 3000 },
-    { value: "3a5", label: "R$ 3 mil a R$ 5 mil", min: 3000, max: 5000 },
-    { value: "5a10", label: "R$ 5 mil a R$ 10 mil", min: 5000, max: 10000 },
-    { value: "10mais", label: "Acima de R$ 10 mil", min: 10000, max: null },
+    { value: "3mais", label: "Acima de R$ 3 mil", min: 3000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
 };
 
+export const PACKAGE_PRICE_BANDS = {
+  "assessoria-estrategica": {
+    PARTNER: { min: 3900, max: 5800 },
+    FULL: { min: 6500, max: 8000 },
+  },
+  "mentoria-rh": {
+    ESSENCIAL: { min: 1500, max: 1800 },
+    AMPLIADO: { min: 2200, max: 2400 },
+  },
+  "diagnostico-executivo": {
+    ESSENCIAL: { min: 2800, max: 3000 },
+    COMPLETO: { min: 4000, max: 4500 },
+  },
+  "cultura-direcao": { PROJETO: { min: 3800, max: 4000 } },
+  "shadowing-lideranca": { CICLO: { min: 3500, max: 4000 } },
+  treinamentos: {
+    PALESTRA: { min: 1800, max: 2500 },
+    WORKSHOP: { min: 2800, max: 3800 },
+    TREINAMENTO: { min: 4000, max: 5000 },
+  },
+  "marca-empregadora": {
+    PROJETO: { min: 3800, max: 4000 },
+    RECORRENTE: { min: 3200, max: 4000 },
+  },
+  "solucao-personalizada": { SOB_MEDIDA: { min: 2800, max: 3000 } },
+};
+
 const LEGACY_INVESTMENT_BANDS = {
+  "mentoria-rh": [
+    { value:"ate2", label:"Até R$ 2 mil", min:0, max:2000 },
+    { value:"2a4", label:"R$ 2 mil a R$ 4 mil", min:2000, max:4000 },
+    { value:"4a7", label:"R$ 4 mil a R$ 7 mil", min:4000, max:7000 },
+    { value:"7mais", label:"Acima de R$ 7 mil", min:7000, max:null },
+  ],
   "diagnostico-executivo": [
     { value:"ate5", label:"Até R$ 5 mil", min:0, max:5000 },
     { value:"8a12", label:"R$ 8 mil a R$ 12 mil", min:8000, max:12000 },
@@ -146,16 +168,16 @@ export const SERVICES = {
     intro: "Conte como a gestão de pessoas funciona hoje. A partir das respostas, estruturamos o modelo mais coerente entre CALI PARTNER e CALI FULL.",
     accent: "bordo",
     packages: [
-      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica periódica, leitura de indicadores e apoio a decisões críticas.", minimumMonths: 6, suggestedHours: 12, hoursRange: "10 a 15" },
-      { code: "FULL", label: "CALI FULL", description: "Acompanhamento mais próximo, maior profundidade e uma visita presencial fixa por mês.", minimumMonths: 8, suggestedHours: 22, hoursRange: "20 a 25" },
+      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.", minimumMonths: 6, suggestedHours: 10, hoursRange: "8 a 12" },
+      { code: "FULL", label: "CALI FULL", description: "Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.", minimumMonths: 6, suggestedHours: 16, hoursRange: "14 a 18" },
     ],
     sections: [
       { title: "Sobre você", description: "Quem conduz esta conversa com a CALI.", fields: COMMON_CONTACT },
       { title: "Sobre a empresa", description: "Contexto que define porte e complexidade.", fields: COMMON_COMPANY },
       { title: "A gestão de pessoas hoje", fields: [
         { id: "modelo_interesse", label: "Qual modelo parece mais próximo do que a empresa precisa hoje?", type: "radio", required: true, help: "Essa escolha não engessa a proposta: eu confirmo o melhor encaixe depois da leitura.", options: [
-          option("PARTNER", "CALI PARTNER", "10 a 15h/mês · direção estratégica periódica · encontro mensal · 100% online · contrato mínimo de 6 meses."),
-          option("FULL", "CALI FULL", "20 a 25h/mês · acompanhamento mais próximo · encontro quinzenal · 1 visita/mês · contrato mínimo de 8 meses."),
+          option("PARTNER", "CALI PARTNER", "8 a 12h/mês · uma prioridade central por ciclo · encontro mensal · 100% online · contrato mínimo de 6 meses."),
+          option("FULL", "CALI FULL", "14 a 18h/mês · até duas prioridades simultâneas · encontros quinzenais · 1 visita/mês com finalidade definida · contrato mínimo de 6 meses."),
           option("RECOMENDAR", "Quero que a CALI recomende", "Eu comparo porte, maturidade, frentes, cadência e presencialidade para indicar o modelo mais coerente."),
         ] },
         { id: "rh_interno", label: "Existe RH interno?", type: "radio", required: true, options: [option("nao", "Não"), option("operacional", "Sim, predominantemente operacional"), option("estruturado", "Sim, já estruturado")] },
@@ -187,11 +209,10 @@ export const SERVICES = {
     notices(a) { const x=[]; if(a.rh_interno==="nao")x.push({level:"info",text:"A assessoria oferece direção sênior e estruturação estratégica. Rotinas de DP, folha e operação contínua não fazem parte do escopo."}); if(a.presencial==="mais")x.push({level:"attention",text:"Mais de uma visita mensal exige desenho específico de agenda, deslocamento e carga de horas."}); return x; },
   },
   "mentoria-rh": {
-    slug: "mentoria-rh", code: "MRH", title: "Mentoria para Profissionais de RH", kicker: "Maturidade, decisão e posicionamento", intro: "Este formulário ajuda a entender o momento profissional e desenhar um ciclo coerente com o objetivo.",
+    slug: "mentoria-rh", code: "MRH", title: "Programa de Desenvolvimento para Profissionais de RH", kicker: "Maturidade, decisão e posicionamento", intro: "Este formulário ajuda a entender o momento profissional e desenhar um programa completo, com começo, desenvolvimento e fechamento.",
     packages: [
-      { code: "TRILHA", label: "TRILHA", description: "Clareza, organização e direção inicial." },
-      { code: "ESCALADA", label: "ESCALADA", description: "Desenvolvimento aplicado a desafios reais." },
-      { code: "AVIOES", label: "AVIÕES", description: "Acompanhamento executivo para desafios de maior complexidade." },
+      { code: "ESSENCIAL", label: "Programa Essencial", description: "Três encontros para organizar um objetivo prioritário e construir um plano aplicável." },
+      { code: "AMPLIADO", label: "Programa Ampliado", description: "Cinco encontros para aprofundar competências relacionadas e acompanhar a aplicação prática." },
     ],
     sections: [
       { title: "Sobre você", fields: COMMON_CONTACT.concat([
@@ -205,8 +226,8 @@ export const SERVICES = {
         { id: "objetivos", label: "O que deseja desenvolver?", type: "checkboxes", required: true, options: [option("estrategia", "Atuação estratégica"), option("posicionamento", "Posicionamento executivo"), option("decisao", "Tomada de decisão"), option("comunicacao", "Comunicação e oratória"), option("carreira", "Transição de carreira"), option("consultoria", "Crescimento em consultoria"), option("lideranca", "Liderança de RH")] },
         { id: "caso_real", label: "Qual desafio real você gostaria de trabalhar primeiro?", type: "textarea", required: true },
       ]},
-      { title: "Formato do ciclo", fields: [
-        { id: "modalidade", label: "Como a mentoria será contratada?", type: "radio", required: true, options: [option("individual", "Individual", "Para uma pessoa, com objetivos e casos profissionais próprios."), option("grupo", "Grupo da mesma empresa", "Para até 5 profissionais da mesma empresa, com uma agenda comum de desenvolvimento.")] },
+      { title: "Formato do programa", fields: [
+        { id: "modalidade", label: "Como o programa será contratado?", type: "radio", required: true, options: [option("individual", "Individual", "Para uma pessoa, com objetivos e casos profissionais próprios."), option("grupo", "Grupo da mesma empresa", "Para até 5 profissionais da mesma empresa, com uma agenda comum de desenvolvimento.")] },
         { id: "empresa_grupo", label: "Qual empresa formará o grupo?", type: "text", required: true, span: 6, maxlength: 180, showWhen: { field: "modalidade", equals: "grupo" } },
         { id: "status_iniciativa", label: "Em que etapa está a decisão interna?", type: "select", required: true, span: 6, showWhen: { field: "modalidade", equals: "grupo" }, options: [option("aprovada", "Aprovada e com orçamento"), option("aprovada_sem_orcamento", "Aprovada, orçamento em definição"), option("avaliacao", "Em avaliação pela empresa"), option("nao_apresentada", "Ainda não foi apresentada") ] },
         { id: "patrocinador_grupo", label: "Quem patrocina ou decide esta iniciativa?", type: "text", required: true, span: 6, maxlength: 180, showWhen: { field: "modalidade", equals: "grupo" }, placeholder: "Nome, cargo ou área" },
@@ -221,8 +242,8 @@ export const SERVICES = {
         investmentField("mentoria-rh", "Até quanto você ou a empresa considera investir neste ciclo?"),
       ]},
     ],
-    alerts(a) { const x=[]; if(a.modalidade==="grupo"&&Number(a.participantes)>5)x.push({level:"high",text:"A mentoria em grupo é limitada a 5 participantes da mesma empresa."}); if(a.suporte==="proximo")x.push({level:"medium",text:"Prever carga adicional de suporte entre sessões."}); if(a.modalidade==="grupo"&&["avaliacao","nao_apresentada"].includes(a.status_iniciativa))x.push({level:"medium",text:"Iniciativa corporativa ainda não aprovada: proposta deve apoiar a decisão e explicitar premissas."}); if(a.frequencia==="semanal")x.push({level:"medium",text:"Cadência semanal: validar agenda e intensidade do ciclo."}); return x; },
-    notices(a) { const x=[]; if(a.modalidade==="grupo")x.push({level:"info",text:"A mentoria em grupo atende até 5 profissionais da mesma empresa e parte de um objetivo comum. Casos individuais continuam sendo tratados com confidencialidade."}); if(a.status_iniciativa==="nao_apresentada")x.push({level:"attention",text:"Tudo bem estar no início: a proposta poderá ser estruturada para apoiar a apresentação interna e a tomada de decisão."}); if(a.suporte==="proximo")x.push({level:"info",text:"Check-ins e discussão de casos entre encontros aumentam a carga dedicada e serão considerados no desenho do ciclo."}); return x; },
+    alerts(a) { const x=[]; if(a.modalidade==="grupo"&&Number(a.participantes)>5)x.push({level:"high",text:"O programa em grupo é limitado a 5 participantes da mesma empresa."}); if(a.suporte==="proximo")x.push({level:"medium",text:"Prever carga adicional de suporte entre encontros."}); if(a.modalidade==="grupo"&&["avaliacao","nao_apresentada"].includes(a.status_iniciativa))x.push({level:"medium",text:"Iniciativa corporativa ainda não aprovada: a proposta deve apoiar a decisão e explicitar as premissas."}); if(a.frequencia==="semanal")x.push({level:"medium",text:"Cadência semanal: validar agenda e intensidade do ciclo."}); return x; },
+    notices(a) { const x=[]; if(a.modalidade==="grupo")x.push({level:"info",text:"O programa em grupo atende até 5 profissionais da mesma empresa e parte de um objetivo comum. Casos individuais continuam sendo tratados com confidencialidade."}); if(a.status_iniciativa==="nao_apresentada")x.push({level:"attention",text:"Tudo bem estar no início: a proposta poderá ser estruturada para apoiar a apresentação interna e a tomada de decisão."}); if(a.suporte==="proximo")x.push({level:"info",text:"Check-ins e discussão de casos entre encontros aumentam a carga dedicada e serão considerados no desenho do ciclo."}); return x; },
   },
   "diagnostico-executivo": {
     slug: "diagnostico-executivo", code: "DEP", title: "Diagnóstico Executivo de People", kicker: "Riscos, prioridades e próximos movimentos", intro: "Uma leitura estratégica da casa para definir o que precisa acontecer primeiro.",
@@ -253,7 +274,7 @@ export const SERVICES = {
   },
   "cultura-direcao": {
     slug: "cultura-direcao", code: "PCD", title: "Projeto de Cultura e Direção", kicker: "Cultura traduzida em comportamento", intro: "Mapeamos o que acontece por baixo das estruturas formais e conectamos cultura à estratégia.",
-    packages:[{code:"DIAGNOSTICO",label:"Diagnóstico Cultural"},{code:"JORNADA",label:"Jornada Completa"}],
+    packages:[{code:"PROJETO",label:"Projeto Cultura e Direção",description:"Leitura da cultura atual, definição de comportamentos e roadmap de 90 dias."}],
     sections:[
       {title:"Contato",fields:COMMON_CONTACT},{title:"Empresa",fields:COMMON_COMPANY},
       {title:"Cultura e transformação",fields:[
@@ -261,9 +282,9 @@ export const SERVICES = {
         {id:"palavra_atual",label:"Se a cultura atual fosse uma palavra, qual seria?",type:"text",required:true,span:6},
         {id:"palavra_desejada",label:"E a cultura desejada?",type:"text",required:true,span:6},
         {id:"pesquisa",label:"Alcance da pesquisa quantitativa",type:"select",required:true,span:6,options:[option("amostra","Amostra"),option("todos","Todos os colaboradores"),option("definir","A definir")]},
-        {id:"entrevistas",label:"Entrevistas individuais previstas",type:"number",min:1,value:6,span:6},
-        {id:"grupos",label:"Grupos focais previstos",type:"number",min:0,value:2,span:6},
-        {id:"workshops",label:"Workshops com liderança",type:"number",min:1,value:2,span:6},
+        {id:"entrevistas",label:"Entrevistas individuais previstas",type:"number",min:1,value:4,span:6},
+        {id:"grupos",label:"Grupos focais previstos",type:"number",min:0,value:1,span:6},
+        {id:"workshops",label:"Workshops com liderança",type:"number",min:1,value:1,span:6},
         {id:"patrocinio_lideranca",label:"Qual é o nível de patrocínio da alta liderança?",type:"select",required:true,span:6,options:[option("alto","Alto — prioridade executiva"),option("parcial","Parcial — ainda precisa de alinhamento"),option("baixo","Baixo — iniciativa concentrada no RH")]},
         {id:"comunicacao_interna",label:"Existe canal e equipe para comunicar e mobilizar as pessoas?",type:"select",required:true,span:6,options:[option("sim","Sim, estruturados"),option("parcial","Parcialmente"),option("nao","Ainda não")]},
         {id:"sensibilidades",label:"Há histórico, conflito ou tema sensível que precisa ser considerado?",type:"textarea",maxlength:1500,help:"Não inclua nomes ou dados pessoais sensíveis de terceiros neste briefing."},
@@ -277,14 +298,14 @@ export const SERVICES = {
   },
   "shadowing-lideranca": {
     slug:"shadowing-lideranca",code:"SHL",title:"Shadowing de Liderança",kicker:"Observar a liderança como ela realmente acontece",intro:"O escopo parte de situações reais, com observação estruturada e devolutiva franca.",
-    packages:[{code:"INDIVIDUAL",label:"Shadowing Individual"},{code:"EXECUTIVO",label:"Ciclo Executivo"}],
+    packages:[{code:"CICLO",label:"Ciclo Individual de Shadowing",description:"Observação estruturada, devolutiva individual e plano de desenvolvimento para uma liderança."}],
     sections:[
       {title:"Contato",fields:COMMON_CONTACT},{title:"Empresa",fields:COMMON_COMPANY},
       {title:"Ciclo de observação",fields:[
-        {id:"lideres",label:"Número de líderes",type:"number",min:1,required:true,span:4},
+        {id:"lideres",label:"Número de líderes",type:"number",min:1,required:true,span:4,help:"O investimento cobre um ciclo individual por liderança. Quando houver mais pessoas, os ciclos são organizados separadamente."},
         {id:"nivel",label:"Nível predominante",type:"select",required:true,span:8,options:[option("primeira","Primeira liderança"),option("gerencia","Gerência"),option("diretoria","Diretoria"),option("founders","Founders ou sócios")]},
         {id:"situacoes",label:"Situações que devem ser observadas",type:"checkboxes",required:true,options:[option("reunioes","Reuniões de time"),option("decisoes","Tomada de decisão"),option("feedback","Feedback e conversas difíceis"),option("conflito","Conflitos"),option("rituais","Rituais de gestão"),option("um_a_um","Reuniões individuais") ]},
-        {id:"horas",label:"Horas de observação por líder no ciclo",type:"number",min:2,value:6,span:6},
+        {id:"horas",label:"Horas de observação por líder no ciclo",type:"number",min:2,value:4,span:6},
         {id:"presencial",label:"Formato",type:"select",required:true,span:6,options:[option("presencial","Presencial, recomendado"),option("hibrido","Híbrido"),option("remoto","Remoto") ]},
         {id:"devolutiva",label:"Formato de devolutiva",type:"select",required:true,span:6,options:[option("individual","Individual"),option("individual_executiva","Individual + síntese executiva") ]},
         {id:"feedback_360",label:"Incluir coleta 360°?",type:"radio",required:true,options:[option("nao","Não"),option("sim","Sim") ]},
@@ -296,15 +317,15 @@ export const SERVICES = {
         investmentField("shadowing-lideranca", "Até quanto a empresa considera investir neste ciclo?"),
       ]},
     ],
-    alerts(a){const x=[]; if(a.presencial==="remoto")x.push({level:"medium",text:"O presencial é recomendado por ser a essência do Shadowing."}); if(Number(a.lideres)>5)x.push({level:"high",text:"Mais de 5 líderes: dividir em ondas ou ampliar prazo."}); if(a.ciencia_lideres==="nao")x.push({level:"high",text:"Planejar comunicação e consentimento antes da observação."}); return x;},
+    alerts(a){const x=[]; if(a.presencial==="remoto")x.push({level:"medium",text:"O presencial é recomendado por ser a essência do Shadowing."}); if(Number(a.lideres)>1)x.push({level:"high",text:"O Shadowing é individual: organizar uma proposta ou ciclo próprio para cada liderança."}); if(a.ciencia_lideres==="nao")x.push({level:"high",text:"Planejar comunicação e consentimento antes da observação."}); return x;},
     notices(a){const x=[]; if(a.ciencia_lideres==="nao")x.push({level:"attention",text:"A observação precisa ser apresentada com transparência. O escopo pode incluir uma conversa de alinhamento antes do início."}); if(a.presencial==="remoto")x.push({level:"info",text:"O formato remoto é possível quando existem rituais reais observáveis online; o presencial costuma gerar uma leitura mais completa."}); return x;},
   },
   treinamentos: {
     slug:"treinamentos",code:"TRN",title:"Treinamentos & Palestras",kicker:"Conteúdo sob medida, conectado ao contexto real",intro:"A lógica considera desenho, facilitação, participantes, turmas, materiais e aplicação prática.",
     packages:[
       {code:"PALESTRA",label:"Palestra Estratégica",description:"Encontro único de 60 a 90 minutos."},
-      {code:"TREINAMENTO",label:"Treinamento Personalizado",description:"De 1 a 6 encontros."},
-      {code:"PROGRAMA",label:"Programa de Liderança Sob Medida",description:"Trilha de 4 a 10 encontros."},
+      {code:"WORKSHOP",label:"Workshop Aplicado",description:"Oficina prática de até quatro horas, com exercício conectado ao contexto."},
+      {code:"TREINAMENTO",label:"Treinamento Personalizado",description:"Programa compacto de até três encontros, desenhado para uma competência prioritária."},
     ],
     sections:[
       {title:"Contato",fields:COMMON_CONTACT},{title:"Empresa",fields:COMMON_COMPANY},
@@ -430,7 +451,7 @@ export function investmentContextFor(service, answers = {}) {
 export function initialPackageFor(service, answers = {}) {
   if (service.slug === "assessoria-estrategica") {
     const investment = investmentContextFor(service, answers);
-    if (investment?.max && investment.max <= 8000) return "PARTNER";
+    if (investment?.max && investment.max <= 5800) return "PARTNER";
     if (["PARTNER", "FULL"].includes(answers.modelo_interesse)) return answers.modelo_interesse;
     const fronts = answers.frentes?.length || 0;
     if (fronts >= 5 || answers.frequencia === "semanal" || answers.presencial === "mensal" || answers.presencial === "mais") return "FULL";
@@ -438,16 +459,16 @@ export function initialPackageFor(service, answers = {}) {
   }
   if (service.slug === "treinamentos") {
     const meetings = Number(answers.encontros || 1);
-    return meetings >= 4 ? "PROGRAMA" : meetings > 1 ? "TREINAMENTO" : "PALESTRA";
+    const hours = Number(answers.carga_horaria || 1.5);
+    return meetings > 1 ? "TREINAMENTO" : hours >= 4 ? "WORKSHOP" : "PALESTRA";
   }
   if (service.slug === "mentoria-rh") {
-    if (answers.modalidade === "grupo" || answers.suporte === "proximo") return "AVIOES";
-    if ((answers.objetivos?.length || 0) >= 3 || answers.frequencia === "semanal") return "ESCALADA";
-    return "TRILHA";
+    if (answers.modalidade === "grupo" || answers.suporte === "proximo" || (answers.objetivos?.length || 0) >= 3 || answers.frequencia === "semanal") return "AMPLIADO";
+    return "ESSENCIAL";
   }
-  if (service.slug === "diagnostico-executivo") return Number(answers.entrevistas || 0) > 6 || answers.survey === "sim" || answers.documentos !== "organizada" ? "COMPLETO" : "ESSENCIAL";
-  if (service.slug === "cultura-direcao") return Number(answers.grupos || 0) > 0 || Number(answers.workshops || 0) > 1 ? "JORNADA" : "DIAGNOSTICO";
-  if (service.slug === "shadowing-lideranca") return Number(answers.lideres || 1) > 1 || answers.feedback_360 === "sim" ? "EXECUTIVO" : "INDIVIDUAL";
+  if (service.slug === "diagnostico-executivo") return Number(answers.entrevistas || 0) > 3 || answers.survey === "sim" || answers.documentos !== "organizada" ? "COMPLETO" : "ESSENCIAL";
+  if (service.slug === "cultura-direcao") return "PROJETO";
+  if (service.slug === "shadowing-lideranca") return "CICLO";
   if (service.slug === "marca-empregadora") return answers.modelo_contratacao === "recorrente" ? "RECORRENTE" : "PROJETO";
   return service.packages?.[0]?.code || "PERSONALIZADO";
 }
@@ -458,45 +479,46 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
   const breakdown = [];
   if (service.slug === "assessoria-estrategica") {
     const size = n(answers.colaboradores, 20);
-    const sizeFactor = size <= 50 ? 1 : size <= 100 ? 1.12 : 1.25;
+    const sizeFactor = size <= 20 ? 1 : size <= 50 ? 1.08 : size <= 100 ? 1.15 : 1.22;
     const fronts = answers.frentes?.length || 1;
-    const included = packageCode === "FULL" ? 6 : 3;
-    const frontFactor = 1 + Math.max(0, fronts - included) * 0.08;
-    const cadenceFactor = answers.frequencia === "semanal" ? 1.18 : answers.frequencia === "quinzenal" ? 1.08 : 1;
+    const included = packageCode === "FULL" ? 2 : 1;
+    const frontFactor = 1 + Math.max(0, fronts - included) * 0.06;
+    const cadenceFactor = answers.frequencia === "semanal" ? 1.14 : answers.frequencia === "quinzenal" ? 1.06 : 1;
     factor = sizeFactor * frontFactor * cadenceFactor;
     breakdown.push(["Porte", sizeFactor], ["Frentes", frontFactor], ["Cadência", cadenceFactor]);
-    months = packageCode === "FULL" ? Math.max(n(months, 8), 8) : Math.max(n(months, 6), 6);
+    months = Math.max(n(months, 6), 6);
   } else if (service.slug === "treinamentos") {
     const groups = n(answers.turmas, 1);
     const meetings = n(answers.encontros, 1);
     const participants = n(answers.participantes, 20);
     const formatFactor = answers.formato === "presencial" ? 1.15 : answers.formato === "hibrido" ? 1.2 : 1;
     const participantFactor = participants > 35 ? 1.15 : participants > 20 ? 1.08 : 1;
-    factor = groups * Math.max(1, meetings) * formatFactor * participantFactor;
-    if (answers.materiais === "sim") extras += participants * groups * 65;
-    if (answers.followup === "sim") extras += 650;
+    const includedMeetings = packageCode === "TREINAMENTO" ? 3 : 1;
+    const meetingFactor = 1 + Math.max(0, meetings - includedMeetings) * 0.12;
+    const groupFactor = 1 + Math.max(0, groups - 1) * 0.18;
+    factor = groupFactor * meetingFactor * formatFactor * participantFactor;
+    if (answers.materiais === "sim") extras += Math.min(participants * groups * 25, 500);
     breakdown.push(["Turmas", groups], ["Encontros", meetings], ["Formato", formatFactor], ["Participantes", participantFactor]);
   } else if (service.slug === "mentoria-rh") {
-    const participants = n(answers.participantes, 1);
+    const participants = answers.modalidade === "grupo" ? n(answers.participantes, 2) : 1;
     const durationFactor = answers.duracao_sessao === "90" ? 1.25 : 1;
     const supportFactor = answers.suporte === "proximo" ? 1.2 : answers.suporte === "mensagens" ? 1.1 : 1;
-    factor = (1 + Math.max(0, participants - 1) * 0.55) * durationFactor * supportFactor;
+    factor = (1 + Math.max(0, participants - 1) * 0.12) * durationFactor * supportFactor;
     breakdown.push(["Participantes", participants], ["Duração", durationFactor], ["Suporte", supportFactor]);
   } else if (service.slug === "diagnostico-executivo") {
-    const interviews = n(answers.entrevistas, 5);
+    const interviews = n(answers.entrevistas, packageCode === "COMPLETO" ? 6 : 3);
     const units = n(answers.unidades, 1);
     const docFactor = answers.documentos === "desorganizada" ? 1.2 : answers.documentos === "parcial" ? 1.1 : 1;
-    factor = (1 + Math.max(0, interviews - 5) * 0.04) * (1 + Math.max(0, units - 1) * 0.08) * docFactor;
-    if (answers.survey === "sim") extras += 1200;
+    const includedInterviews = packageCode === "COMPLETO" ? 6 : 3;
+    factor = (1 + Math.max(0, interviews - includedInterviews) * 0.03) * (1 + Math.max(0, units - 1) * 0.05) * docFactor;
     breakdown.push(["Entrevistas", interviews], ["Unidades", units], ["Documentação", docFactor]);
   } else if (service.slug === "cultura-direcao") {
-    const interviews = n(answers.entrevistas, 6), groups = n(answers.grupos, 2), workshops = n(answers.workshops, 2);
-    factor = 1 + Math.max(0, interviews - 6) * 0.035 + Math.max(0, groups - 2) * 0.08 + Math.max(0, workshops - 2) * 0.1;
+    const interviews = n(answers.entrevistas, 4), groups = n(answers.grupos, 1), workshops = n(answers.workshops, 1);
+    factor = 1 + Math.max(0, interviews - 4) * 0.03 + Math.max(0, groups - 1) * 0.06 + Math.max(0, workshops - 1) * 0.08;
     breakdown.push(["Entrevistas", interviews], ["Grupos focais", groups], ["Workshops", workshops]);
   } else if (service.slug === "shadowing-lideranca") {
-    const leaders = n(answers.lideres, 1), hours = n(answers.horas, 6);
-    factor = leaders * Math.max(1, hours / 6);
-    if (answers.feedback_360 === "sim") extras += leaders * 650;
+    const leaders = n(answers.lideres, 1), hours = n(answers.horas, 4);
+    factor = Math.max(1, hours / 4);
     breakdown.push(["Líderes", leaders], ["Horas por líder", hours]);
   } else if (service.slug === "marca-empregadora") {
     const units = n(answers.unidades, 1), personas = n(answers.personas, 2), assets = answers.ativos?.length || 1;
@@ -508,16 +530,19 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
     extras = 0;
     breakdown.push(["Escopo priorizado", 1]);
   }
+  const priceBand = PACKAGE_PRICE_BANDS[service.slug]?.[packageCode] || null;
   const monthly = service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
-  const subtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
+  const rawSubtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
+  const subtotal = priceBand && rawSubtotal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, rawSubtotal)) : rawSubtotal;
   const discountValue = Math.round(subtotal * Math.min(Math.max(n(discount), 0), 50) / 100);
   const calculatedFinal = subtotal - discountValue;
   const hasOverride = finalOverride !== null && finalOverride !== "" && Number.isFinite(Number(finalOverride));
-  const finalUnit = hasOverride ? Math.max(0, Number(finalOverride)) : calculatedFinal;
+  const requestedFinal = hasOverride ? Math.max(0, Number(finalOverride)) : calculatedFinal;
+  const finalUnit = priceBand && requestedFinal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, requestedFinal)) : requestedFinal;
   const effectiveDiscountValue = Math.max(0, subtotal - finalUnit);
   const effectiveDiscountPct = subtotal ? Number(((effectiveDiscountValue / subtotal) * 100).toFixed(2)) : 0;
   // Serviços recorrentes são apresentados pela mensalidade. O prazo mínimo é uma
   // condição contratual, não um total a ser somado na proposta.
   const total = finalUnit;
-  return { factor: Number(factor.toFixed(3)), subtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, scopeMode, breakdown };
+  return { factor: Number(factor.toFixed(3)), subtotal, rawSubtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, scopeMode, breakdown, priceBand, ceilingApplied: Boolean(priceBand && rawSubtotal > priceBand.max) };
 }

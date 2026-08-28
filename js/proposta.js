@@ -59,11 +59,12 @@ const priorityIds = profile.priorityIds.filter((id) => answerText(id)).slice(0, 
 const contextRows = contextIds.map((id) => `<div class="proposal-context-row"><span>${escapeHtml(profile.contextLabels[id] || fieldById(id)?.label || id)}</span><strong>${escapeHtml(answerText(id))}</strong></div>`).join("");
 const priorities = priorityIds.map((id,index) => `<div class="proposal-development-item"><span class="proposal-development-number">${String(index+1).padStart(2,"0")}</span><div><strong>${escapeHtml(profile.priorityLabels[id] || fieldById(id)?.label || id)}</strong><p>${escapeHtml(answerText(id))}</p></div></div>`).join("");
 const processHtml = profile.process.map((step,index)=>`<div class="proposal-process-step"><span>${String(index+1).padStart(2,"0")}</span><div><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div></div>`).join("");
+const advantagesHtml = profile.advantages.map((item,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><p>${escapeHtml(item)}</p></div>`).join("");
 const nextStepsHtml = profile.nextSteps.map((step,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div>`).join("");
 const contractingParty = service.slug === "mentoria-rh" && answers.modalidade !== "grupo" ? submission.contact_name : (submission.company_name || submission.contact_name);
 const solutionCopy = proposal.public_notes || profile.solutionCopy || packageInfo?.description || service.intro;
 const investmentTerms = monthly
-  ? `${monthlyHours ? `${monthlyHours} horas mensais. ` : ""}${minimumMonths > 1 ? `Contrato mínimo de ${minimumMonths} meses. ` : ""}${escapeHtml(proposal.payment_terms || "Pagamento mensal conforme condição definida.")}`
+  ? `${monthlyHours ? `Capacidade mensal de até ${monthlyHours} horas, incluindo encontros, análise, preparação e devolutivas. ` : ""}${minimumMonths > 1 ? `Contrato mínimo de ${minimumMonths} meses. ` : ""}${escapeHtml(proposal.payment_terms || "Pagamento mensal conforme condição definida.")}`
   : escapeHtml(proposal.payment_terms || "Pagamento conforme cronograma definido.");
 const pdfNameData = {
   serviceName: service.title,
@@ -86,10 +87,12 @@ root.innerHTML = `<div class="proposal-document">
     <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(packageLabel)}</strong><br>${escapeHtml(submission.company_name || submission.contact_name)}</div></header>
     <section class="proposal-section proposal-solution"><div class="proposal-kicker">A solução recomendada</div><h2>${escapeHtml(packageLabel)}</h2><p>${escapeHtml(solutionCopy)}</p></section>
     <section class="proposal-section"><h2>Escopo incluído</h2><ul class="scope-list">${(proposal.scope_items||[]).map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
+    <section class="proposal-section proposal-value-section"><h2>Por que este desenho faz sentido</h2><div class="proposal-advantages">${advantagesHtml}</div><div class="proposal-bonus"><span>Bônus de contratação</span><div><strong>${escapeHtml(profile.bonus[0])}</strong><p>${escapeHtml(profile.bonus[1])}</p></div></div></section>
     <section class="proposal-section"><h2>Como esta atuação funciona</h2><ul class="condition-list">${profile.operating.map((item)=>`<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     <section class="proposal-section"><h2>A jornada</h2><div class="proposal-process">${processHtml}</div></section>
     <footer class="proposal-footer"><span>Patrícia Lima · People Advisory Executive</span><span>02</span></footer>
   </article>
+  <div class="proposal-hard-break" aria-hidden="true"></div>
   <article class="proposal-page proposal-detail-page proposal-commercial-page">
     <header class="proposal-head"><div class="proposal-logo"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"></div><div class="proposal-meta"><strong>${escapeHtml(packageLabel)}</strong><br>${escapeHtml(submission.company_name || submission.contact_name)}</div></header>
     <section class="proposal-section"><h2>Investimento</h2><div class="investment-reference"><span>${monthly ? "Mensalidade de referência" : "Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue ? `<div class="investment-discount"><span>${escapeHtml(discountType)}${discountDescription ? ` · ${escapeHtml(discountDescription)}` : ""}</span><strong>− ${currency(discountValue)} (${discountPct.toLocaleString("pt-BR",{maximumFractionDigits:2})}%)</strong></div>` : ""}<div class="investment"><div><div class="investment-label">${monthly ? "Mensalidade final" : "Investimento final"}</div><div class="investment-value">${currency(proposal.final_unit)}</div></div></div><p class="investment-terms">${investmentTerms}</p></section>

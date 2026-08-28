@@ -128,24 +128,21 @@ create policy "CALI admin reads activity" on public.cali_activity for select to 
 using ((select auth.uid()) is not null and lower((select auth.jwt()) ->> 'email') = 'patricia@calirh.com');
 
 insert into public.cali_pricing_rules(service_slug,package_code,package_label,base_price,sort_order,config) values
-('assessoria-estrategica','PARTNER','CALI PARTNER',4800,1,'{"minimum_months":6,"visit_included":0}'::jsonb),
-('assessoria-estrategica','FULL','CALI FULL',8500,2,'{"minimum_months":8,"visit_included":1}'::jsonb),
-('mentoria-rh','TRILHA','TRILHA',1200,1,'{}'::jsonb),
-('mentoria-rh','ESCALADA','ESCALADA',2200,2,'{}'::jsonb),
-('mentoria-rh','AVIOES','AVIÕES',3800,3,'{}'::jsonb),
-('diagnostico-executivo','ESSENCIAL','Leitura Essencial',4500,1,'{"minimum_weeks":4}'::jsonb),
-('diagnostico-executivo','COMPLETO','Diagnóstico Completo',8500,2,'{"minimum_weeks":4}'::jsonb),
-('cultura-direcao','DIAGNOSTICO','Diagnóstico Cultural',5500,1,'{"minimum_weeks":8}'::jsonb),
-('cultura-direcao','JORNADA','Jornada Completa',9500,2,'{"minimum_weeks":8}'::jsonb),
-('shadowing-lideranca','INDIVIDUAL','Shadowing Individual',3200,1,'{"minimum_weeks":8}'::jsonb),
-('shadowing-lideranca','EXECUTIVO','Ciclo Executivo',5500,2,'{"minimum_weeks":8}'::jsonb),
-('treinamentos','PALESTRA','Palestra Estratégica',1800,1,'{}'::jsonb),
-('treinamentos','TREINAMENTO','Treinamento Personalizado',3200,2,'{}'::jsonb),
-('treinamentos','PROGRAMA','Programa de Liderança Sob Medida',5500,3,'{}'::jsonb),
-('marca-empregadora','PROJETO','Projeto de Marca Empregadora',8500,1,'{"typical_weeks":12}'::jsonb),
-('marca-empregadora','RECORRENTE','Sustentação Recorrente',4800,2,'{"minimum_months":6}'::jsonb),
-('solucao-personalizada','SOB_MEDIDA','Projeto sob medida',0,1,'{"manual_pricing":true}'::jsonb)
-on conflict(service_slug,package_code) do update set package_label=excluded.package_label, config=excluded.config;
+('assessoria-estrategica','PARTNER','CALI PARTNER',3900,1,'{"minimum_months":6,"hours_min":8,"hours_max":12,"price_ceiling":5800,"visit_included":0}'::jsonb),
+('assessoria-estrategica','FULL','CALI FULL',6500,2,'{"minimum_months":6,"hours_min":14,"hours_max":18,"price_ceiling":8000,"visit_included":1}'::jsonb),
+('mentoria-rh','ESSENCIAL','Programa Essencial',1500,1,'{"meetings":3,"price_ceiling":1800}'::jsonb),
+('mentoria-rh','AMPLIADO','Programa Ampliado',2200,2,'{"meetings":5,"price_ceiling":2400}'::jsonb),
+('diagnostico-executivo','ESSENCIAL','Leitura Essencial',2800,1,'{"interviews_included":3,"price_ceiling":3000}'::jsonb),
+('diagnostico-executivo','COMPLETO','Diagnóstico Completo',4000,2,'{"interviews_included":6,"price_ceiling":4500}'::jsonb),
+('cultura-direcao','PROJETO','Projeto Cultura e Direção',3800,1,'{"interviews_included":4,"focus_groups_included":1,"workshops_included":1,"price_ceiling":4000}'::jsonb),
+('shadowing-lideranca','CICLO','Ciclo Individual de Shadowing',3500,1,'{"leaders_included":1,"observation_hours_included":4,"price_ceiling":4000}'::jsonb),
+('treinamentos','PALESTRA','Palestra Estratégica',1800,1,'{"price_ceiling":2500}'::jsonb),
+('treinamentos','WORKSHOP','Workshop Aplicado',3000,2,'{"price_ceiling":3800}'::jsonb),
+('treinamentos','TREINAMENTO','Treinamento Personalizado',4200,3,'{"meetings_included":3,"price_ceiling":5000}'::jsonb),
+('marca-empregadora','PROJETO','Projeto de Marca Empregadora',3800,1,'{"price_ceiling":4000}'::jsonb),
+('marca-empregadora','RECORRENTE','Sustentação Recorrente',3200,2,'{"minimum_months":4,"price_ceiling":4000}'::jsonb),
+('solucao-personalizada','SOB_MEDIDA','Projeto sob medida',2800,1,'{"price_ceiling":3000}'::jsonb)
+on conflict(service_slug,package_code) do update set package_label=excluded.package_label, base_price=excluded.base_price, sort_order=excluded.sort_order, config=excluded.config, active=true, updated_at=now();
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values ('cali-proposals','cali-proposals',false,8388608,array['application/pdf'])
