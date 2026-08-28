@@ -1,6 +1,7 @@
 import { CONFIG } from "/js/config.js";
 import { requireAdmin, apiHeaders, signOut } from "/js/auth.js";
 import { SERVICES, STATUS, flattenFields, labelFor, initialPackageFor, calculateProposal, investmentContextFor, PACKAGE_PRICE_BANDS } from "/js/services.js";
+import { proposalProfile } from "/js/proposal-profiles.js";
 
 const session = await requireAdmin();
 if (!session) throw new Error("Sessão administrativa ausente.");
@@ -15,6 +16,30 @@ function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) 
 const currency = (value) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const formatDate = (value) => new Date(value).toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
 const DISCOUNT_TYPES = ["Condição comercial","Cliente novo","Indicação","Campanha do mês","Parceria","Outro"];
+const PAYMENT_METHODS = [
+  ["monthly", "Mensal recorrente"],
+  ["split", "Entrada + finalização"],
+  ["pix", "À vista via PIX"],
+  ["card", "Cartão de crédito + taxas"],
+  ["custom", "Condição personalizada"],
+];
+const BONUS_PRESETS = {
+  "assessoria-estrategica": [
+    ["leadership-guide", "Guia prático de rituais de liderança", "Material editável com estrutura para reuniões, alinhamentos e acompanhamentos do ciclo."],
+    ["extra-alignment", "Encontro adicional de alinhamento", "Uma conversa extraordinária de até 60 minutos com a liderança, agendada durante o primeiro ciclo."],
+    ["governance-checklist", "Checklist de governança de pessoas", "Checklist editável para acompanhar decisões, responsáveis, prazos e pendências do primeiro ciclo."],
+  ],
+  "mentoria-rh": [
+    ["application-book", "Caderno de aplicação CALI", "Roteiro editável para registrar decisões, práticas e próximos movimentos entre os encontros."],
+    ["extra-checkin", "Check-in adicional de 30 minutos", "Um encontro breve após o encerramento para revisar a aplicação do plano de desenvolvimento."],
+  ],
+  "diagnostico-executivo": [["thirty-day-checkin", "Check-in executivo de 30 dias", "Uma conversa de 30 minutos para revisar o avanço das prioridades indicadas na devolutiva."]],
+  "cultura-direcao": [["ritual-guide", "Guia de rituais culturais", "Modelo editável para conectar comportamentos esperados às reuniões, decisões e conversas de liderança."]],
+  "shadowing-lideranca": [["followup", "Check-in de evolução", "Uma conversa de 30 minutos após o ciclo para revisar a aplicação do plano de ação da liderança."]],
+  treinamentos: [["application-guide", "Guia de aplicação pós-encontro", "Material editável para transformar os principais aprendizados em compromissos de aplicação."]],
+  "marca-empregadora": [["activation-matrix", "Matriz de ativação e indicadores", "Modelo editável para organizar iniciativa, responsável, canal, prazo e indicador."]],
+  "solucao-personalizada": [["followup", "Check-in executivo de 30 dias", "Uma conversa breve para revisar a aplicação da entrega principal e orientar o próximo movimento."]],
+};
 const BUDGET_STRATEGIES = [
   ["adequar", "Adequar pacote e escopo ao teto informado"],
   ["fasear", "Contratar uma primeira fase dentro do teto"],
@@ -273,7 +298,63 @@ function openSubmission(id) {
     : `<div class="budget-reading legacy"><span>Investimento do cliente</span><strong>Não informado</strong></div><p class="budget-open-note">Este briefing é anterior à pergunta obrigatória. Faça a análise comercial manualmente.</p>`;
   const selectedBand = PACKAGE_PRICE_BANDS[service.slug]?.[recommended];
   const priceBandHint = selectedBand ? `Faixa interna deste modelo: ${currency(selectedBand.min)} a ${currency(selectedBand.max)}.` : "";
+  const profileAnswerText = (fieldId) => {
+    const field = fields.find((item) => item.id === fieldId);
+    return labelFor(field?.options, answers[fieldId]);
+  };
+  const profile = proposalProfile({ service, packageCode:recommended, packageLabel:packageInfo?.label || recommended, answers, answerText:profileAnswerText, minimumMonths:Number(currentProposal?.contract_months ?? packageInfo?.minimumMonths ?? 1), monthlyHours:Number(defaultHours) });
+  const initialAdvantages = Array.isArray(savedCalc.advantages) && savedCalc.advantages.length ? savedCalc.advantages : profile.advantages;
+  const bonusPresets = BONUS_PRESETS[service.slug] || [];
+  const savedBonus = savedCalc.bonus || { code:"none", title:"", description:"" };
+  const bonusOptions = [["none", "Sem bônus"], ...bonusPresets.map(([code,title]) => [code,title]), ["custom", "Bônus personalizado"]];
+  const recurringModel = service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && recommended === "RECORRENTE");
+  const savedPayment = savedCalc.payment || {};
+  const defaultPaymentMethod = savedPayment.method || (recurringModel ? "monthly" : "split");
   drawerBody.innerHTML = `<section class="drawer-section"><div class="drawer-section-heading"><div><div class="eyebrow">Dados editáveis</div><h3>Contato e empresa</h3></div><span class="edit-badge">${pencilIcon} Editar</span></div><div class="calc-grid"><div class="field"><label>Nome do contato / decisor</label><input class="control" id="edit-contact-name" value="${escapeHtml(selected.contact_name || "")}" maxlength="140"></div><div class="field"><label>Cargo</label><input class="control" id="edit-contact-role" value="${escapeHtml(selected.contact_role || "")}" maxlength="140"></div><div class="field"><label>E-mail</label><input class="control" id="edit-contact-email" type="email" value="${escapeHtml(selected.contact_email || "")}" maxlength="254"></div><div class="field"><label>WhatsApp</label><input class="control" id="edit-contact-phone" value="${escapeHtml(selected.contact_phone || "")}" maxlength="40"></div><div class="field"><label>Empresa</label><input class="control" id="edit-company-name" value="${escapeHtml(selected.company_name || "")}" maxlength="180"></div><div class="field"><label>Localidade</label><input class="control" id="edit-company-location" value="${escapeHtml(selected.company_location || "")}" maxlength="180"></div></div><p class="edit-note">As respostas originais do briefing permanecem preservadas abaixo. Aqui você corrige os dados que aparecem no painel, na proposta e na confirmação de envio.</p></section><section class="drawer-section"><h3>Leitura do briefing</h3><div class="answer-grid">${answerHtml}</div></section><section class="drawer-section"><h3>Avisos para a análise</h3><div class="alerts">${alerts.length ? alerts.map((a) => `<div class="alert ${a.level}">${escapeHtml(a.text)}</div>`).join("") : '<div class="alert low">Nenhum alerta crítico gerado pelas regras atuais.</div>'}</div></section><section class="drawer-section"><h3>Análise interna</h3><div class="field"><label>Status</label><select class="control" id="review-status">${STATUS.map((s) => `<option value="${s.value}" ${selected.status===s.value?"selected":""}>${s.label}</option>`).join("")}</select></div><div class="field" style="margin-top:12px"><label>Observações internas</label><textarea class="control" id="internal-notes">${escapeHtml(selected.internal_notes || "")}</textarea></div></section><section class="drawer-section"><h3>Calculadora da proposta</h3><p class="calc-explainer">A calculadora cruza a complexidade do briefing com o investimento informado. Cada pacote possui piso e teto próprios; acima do teto, o escopo precisa ser faseado ou migrar de modelo.</p><div class="budget-panel">${investmentHtml}</div><div class="calc-grid"><div class="field"><label>Modelo / pacote</label><select class="control" id="package-code">${packages.map((p) => `<option value="${p.code}" ${recommended===p.code?"selected":""}>${escapeHtml(p.label)}</option>`).join("")}</select><small id="package-price-band">${escapeHtml(priceBandHint)}</small></div><div class="field"><label>Valor-base interno</label><input class="control" id="base-price" type="number" min="0" step="50" value="${base}"></div><div class="field"><label>Adicionais</label><input class="control" id="extras" type="number" min="0" step="50" value="${currentProposal?.extras ?? 0}"></div><div class="field"><label>Desconto (%)</label><input class="control" id="discount" type="number" min="0" max="50" step=".01" value="${currentProposal?.discount_pct ?? 0}"></div><div class="field"><label>Tipo de desconto</label><select class="control" id="discount-type"><option value="">Sem identificação</option>${DISCOUNT_TYPES.map((type) => `<option value="${type}" ${savedCalc.discountType===type?"selected":""}>${type}</option>`).join("")}</select></div><div class="field"><label>Descrição da condição</label><input class="control" id="discount-description" value="${escapeHtml(savedCalc.discountDescription || "")}" placeholder="Ex.: condição válida neste mês"></div><div class="field"><label id="months-label">Contrato mínimo (meses)</label><input class="control" id="months" type="number" min="1" value="${currentProposal?.contract_months ?? packageInfo?.minimumMonths ?? 1}"></div>${hoursField}<div class="field"><label>Validade da proposta (dias)</label><input class="control" id="validity" type="number" min="1" value="${currentProposal?.validity_days ?? 15}"></div><div class="field calc-final-field"><label>Valor final editável</label><input class="control" id="final-price" type="number" min="0" step="50" value="${currentProposal?.final_unit ?? ""}"><small>O valor permanece dentro da faixa comercial definida para o modelo.</small></div></div><div class="calc-result" id="calc-result"></div></section><section class="drawer-section"><h3>Escopo e condições</h3><div class="field"><label>Entregas incluídas — uma por linha</label><textarea class="control" id="scope" style="min-height:160px">${escapeHtml(initialScope.join("\n"))}</textarea></div><div class="field" style="margin-top:12px"><label>Condições de pagamento</label><textarea class="control" id="payment-terms">${escapeHtml(currentProposal?.payment_terms || "Pagamento conforme cronograma definido na proposta.")}</textarea></div><div class="field" style="margin-top:12px"><label>Observações que aparecem na proposta</label><textarea class="control" id="public-notes">${escapeHtml(currentProposal?.public_notes || "")}</textarea></div></section>`;
+  const contentSection = document.getElementById("scope").closest(".drawer-section");
+  contentSection.querySelector("h3").textContent = "Conteúdo da proposta";
+  const scopeField = document.getElementById("scope").closest(".field");
+  const paymentDetailsField = document.getElementById("payment-terms").closest(".field");
+  if (!currentProposal) document.getElementById("payment-terms").value = "";
+  const introductionField = document.getElementById("public-notes").closest(".field");
+  introductionField.querySelector("label").textContent = "Introdução da solução";
+  introductionField.insertAdjacentHTML("beforeend", '<small class="field-help">Aparece na página 2, logo abaixo do nome da solução e antes do escopo incluído.</small>');
+  contentSection.insertBefore(introductionField, scopeField);
+  scopeField.querySelector("label").textContent = "Escopo incluído — uma entrega por linha e na ordem desejada";
+  scopeField.insertAdjacentHTML("beforeend", '<small class="field-help">A proposta numera as entregas nesta mesma ordem. Use “-” no início para criar um subitem sem nova numeração.</small>');
+  scopeField.insertAdjacentHTML("afterend", `<div class="field" style="margin-top:12px"><label>Vantagens desta proposta — uma por linha</label><textarea class="control" id="proposal-advantages" style="min-height:120px">${escapeHtml(initialAdvantages.join("\n"))}</textarea><small class="field-help">Escreva diferenciais concretos deste desenho para este cliente. Eles aparecem depois do escopo.</small></div><div class="bonus-builder"><div class="field"><label>Bônus de contratação</label><select class="control" id="bonus-choice">${bonusOptions.map(([code,label])=>`<option value="${code}" ${savedBonus.code===code?"selected":""}>${escapeHtml(label)}</option>`).join("")}</select></div><div id="bonus-fields" class="calc-grid"><div class="field"><label>Nome do bônus</label><input class="control" id="bonus-title" value="${escapeHtml(savedBonus.title || "")}" maxlength="140"></div><div class="field"><label>O que o cliente receberá</label><textarea class="control" id="bonus-description" maxlength="500">${escapeHtml(savedBonus.description || "")}</textarea></div></div><small class="field-help">O bônus só aparece no PDF quando você selecionar e confirmar o conteúdo.</small></div>`);
+  paymentDetailsField.querySelector("label").textContent = "Observações adicionais sobre o pagamento (opcional)";
+  paymentDetailsField.querySelector("textarea").placeholder = "Ex.: primeira cobrança em data diferente, condição válida até determinada data ou observação sobre emissão de nota.";
+  paymentDetailsField.insertAdjacentHTML("beforebegin", `<h4 class="drawer-subheading">Prazo e forma de pagamento</h4><div class="calc-grid payment-builder"><div class="field"><label>Forma de pagamento</label><select class="control" id="payment-method">${PAYMENT_METHODS.map(([value,label])=>`<option value="${value}" ${defaultPaymentMethod===value?"selected":""}>${label}</option>`).join("")}</select></div><div class="field" data-payment-panel="monthly"><label>Vencimento mensal</label><input class="control" id="payment-monthly-due" value="${escapeHtml(savedPayment.monthlyDue || "1º dia útil de cada mês")}"></div><div class="field" data-payment-panel="split"><label>Entrada (%)</label><input class="control" id="payment-entry-pct" type="number" min="0" max="100" value="${Number(savedPayment.entryPct ?? 50)}"></div><div class="field" data-payment-panel="split"><label>Na finalização (%)</label><input class="control" id="payment-final-pct" type="number" min="0" max="100" value="${Number(savedPayment.finalPct ?? 50)}"></div><div class="field" data-payment-panel="pix"><label>Desconto à vista no PIX (%)</label><input class="control" id="payment-pix-discount" type="number" min="0" max="50" step=".01" value="${Number(savedPayment.pixDiscount ?? currentProposal?.discount_pct ?? 0)}"><small class="field-help">Ao alterar, o desconto da proposta é atualizado para esta condição.</small></div><div class="field" data-payment-panel="card"><label>Número de parcelas</label><input class="control" id="payment-card-installments" type="number" min="1" max="24" value="${Number(savedPayment.cardInstallments ?? 1)}"></div><div class="field" data-payment-panel="card"><label>Tratamento das taxas</label><select class="control" id="payment-card-fees"><option value="client" ${savedPayment.cardFees!=="included"?"selected":""}>Acrescidas ao valor do cliente</option><option value="included" ${savedPayment.cardFees==="included"?"selected":""}>Já incluídas no valor final</option></select></div><div class="field" data-payment-panel="custom"><label>Nome da condição</label><input class="control" id="payment-custom-label" value="${escapeHtml(savedPayment.customLabel || "Condição personalizada")}" maxlength="120"></div></div>`);
+  let bonusInitialized = false;
+  const updateBonusFields = () => {
+    const code = document.getElementById("bonus-choice").value;
+    const preset = bonusPresets.find(([presetCode]) => presetCode === code);
+    document.getElementById("bonus-fields").classList.toggle("hidden", code === "none");
+    if (preset && bonusInitialized) {
+      document.getElementById("bonus-title").value = preset[1];
+      document.getElementById("bonus-description").value = preset[2];
+    } else if (code === "none") {
+      document.getElementById("bonus-title").value = "";
+      document.getElementById("bonus-description").value = "";
+    }
+    bonusInitialized = true;
+  };
+  const updatePaymentFields = () => {
+    const method = document.getElementById("payment-method").value;
+    document.querySelectorAll("[data-payment-panel]").forEach((field) => field.classList.toggle("hidden", field.dataset.paymentPanel !== method));
+  };
+  document.getElementById("bonus-choice").addEventListener("change", updateBonusFields);
+  document.getElementById("payment-method").addEventListener("change", updatePaymentFields);
+  document.getElementById("payment-pix-discount").addEventListener("input", (event) => {
+    document.getElementById("discount").value = event.target.value;
+    document.getElementById("discount-type").value = "Condição comercial";
+    document.getElementById("discount-description").value = "Pagamento à vista via PIX";
+    manualFinal = false;
+    recalc();
+  });
+  updateBonusFields();
+  updatePaymentFields();
   let manualFinal = Boolean(savedCalc.manualFinal);
   const recalc = () => {
     const rule = pricingRules.find((r) => r.service_slug === service.slug && r.package_code === document.getElementById("package-code").value);
@@ -282,7 +363,7 @@ function openSubmission(id) {
     const scopeMode = ["adequar","fasear"].includes(budgetStrategy) ? "prioritized" : "integral";
     const result = calculateProposal({ service, answers, packageCode:document.getElementById("package-code").value, basePrice:document.getElementById("base-price").value, extras:document.getElementById("extras").value, discount:document.getElementById("discount").value, months:document.getElementById("months").value, finalOverride:manualFinal ? document.getElementById("final-price").value : null, scopeMode });
     if (!manualFinal) document.getElementById("final-price").value = result.finalUnit;
-    document.getElementById("months-label").textContent = result.monthly ? "Contrato mínimo (meses)" : "Prazo de referência (meses)";
+    document.getElementById("months-label").textContent = result.monthly ? "Prazo mínimo do contrato (meses)" : "Duração do projeto (meses)";
     const discountName = document.getElementById("discount-type").value || "Desconto";
     const hours = Number(document.getElementById("monthly-hours")?.value || 0);
     document.getElementById("calc-result").innerHTML = `<div class="calc-line"><span>Valor de referência</span><strong>${currency(result.subtotal)}</strong></div>${result.discountValue ? `<div class="calc-line"><span>${escapeHtml(discountName)} (${result.discountPct.toLocaleString("pt-BR") }%)</span><strong>− ${currency(result.discountValue)}</strong></div>` : ""}<div class="calc-total"><span>${result.monthly ? "Mensalidade final" : "Investimento final"}</span><strong>${currency(result.finalUnit)}</strong></div>${result.ceilingApplied ? `<div class="calc-condition">O teto comercial de ${currency(result.priceBand.max)} foi aplicado. Se o escopo integral exigir mais capacidade, divida em fases ou selecione outro modelo.</div>` : ""}${result.monthly ? `<div class="calc-condition">${hours ? `${hours} horas mensais. ` : ""}Contrato mínimo de ${result.months} meses, renovação automática e aviso prévio de 30 dias. A recorrência não é somada como valor total.</div>` : ""}`;
@@ -382,7 +463,23 @@ async function saveProposal() {
   if (!selected) return;
   await rest(`cali_submissions?id=eq.${selected.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(editableSubmissionPayload())});
   const service = SERVICES[selected.service_slug], existing = latestProposal(selected.id), calculation = drawer._recalc();
-  const calculatorData = { ...calculation, monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim(), budgetStrategy:document.getElementById("budget-strategy")?.value || "manter", investmentAnswer:investmentContextFor(service, selected.answers || {}) };
+  const payment = {
+    method:document.getElementById("payment-method").value,
+    monthlyDue:document.getElementById("payment-monthly-due").value.trim(),
+    entryPct:Number(document.getElementById("payment-entry-pct").value || 0),
+    finalPct:Number(document.getElementById("payment-final-pct").value || 0),
+    pixDiscount:Number(document.getElementById("payment-pix-discount").value || 0),
+    cardInstallments:Number(document.getElementById("payment-card-installments").value || 1),
+    cardFees:document.getElementById("payment-card-fees").value,
+    customLabel:document.getElementById("payment-custom-label").value.trim(),
+  };
+  if (payment.method === "split" && payment.entryPct + payment.finalPct !== 100) throw new Error("Na condição de entrada + finalização, os percentuais precisam somar 100%.");
+  const bonusCode = document.getElementById("bonus-choice").value;
+  const bonus = bonusCode === "none" ? null : { code:bonusCode, title:document.getElementById("bonus-title").value.trim(), description:document.getElementById("bonus-description").value.trim() };
+  if (bonus && (!bonus.title || !bonus.description)) throw new Error("Preencha o nome e a descrição do bônus ou selecione “Sem bônus”.");
+  const advantages = document.getElementById("proposal-advantages").value.split("\n").map((item)=>item.trim()).filter(Boolean).slice(0,4);
+  if (!advantages.length) throw new Error("Informe ao menos uma vantagem concreta desta proposta.");
+  const calculatorData = { ...calculation, monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim(), budgetStrategy:document.getElementById("budget-strategy")?.value || "manter", investmentAnswer:investmentContextFor(service, selected.answers || {}), advantages, bonus, payment };
   const payload = { submission_id:selected.id, service_slug:selected.service_slug, version:existing?.version || 1, package_code:document.getElementById("package-code").value, base_price:Number(document.getElementById("base-price").value)||0, extras:Number(document.getElementById("extras").value)||0, discount_pct:Math.min(50, calculation.discountPct), contract_months:Number(document.getElementById("months").value)||1, validity_days:Number(document.getElementById("validity").value)||15, subtotal:calculation.subtotal, final_unit:calculation.finalUnit, total_value:calculation.finalUnit, calculator_data:calculatorData, scope_items:document.getElementById("scope").value.split("\n").map((x)=>x.trim()).filter(Boolean), payment_terms:document.getElementById("payment-terms").value, public_notes:document.getElementById("public-notes").value, status:"rascunho", updated_at:new Date().toISOString() };
   let saved;
   if (existing) saved = await rest(`cali_proposals?id=eq.${existing.id}`, {method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});

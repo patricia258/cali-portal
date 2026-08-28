@@ -73,10 +73,14 @@ const profiles = {
       "Operação de recrutamento, abertura de vagas ou busca de candidatos.",
       "Execução sem participação do cliente, acesso aos dados e aprovações necessárias.",
     ],
-    advantages: [
-      "Acesso direto a uma atuação sênior sem ampliar a estrutura fixa da empresa.",
-      "Prioridades compatíveis com a capacidade contratada, sem prometer todas as frentes ao mesmo tempo.",
-      "Condução direta por Patrícia Lima, sem repasses ou camadas intermediárias.",
+    advantages: (ctx) => ctx.packageCode === "FULL" ? [
+      "Até duas prioridades avançam simultaneamente, com encontros quinzenais e decisões registradas a cada ciclo.",
+      "A visita mensal possui pauta e resultado definidos, evitando presença sem finalidade ou atuação operacional difusa.",
+      "Indicadores, responsáveis e próximos movimentos ficam conectados em um único roadmap de implantação.",
+    ] : [
+      "Uma prioridade central recebe foco até ganhar estrutura, responsáveis e rotina de acompanhamento.",
+      "As decisões de pessoas são preparadas com leitura sênior, sem transformar a CALI em RH operacional da empresa.",
+      "O roadmap preserva as demais necessidades e define quando cada uma pode entrar sem sobrecarregar o ciclo.",
     ],
     bonus: ["Kit de governança de pessoas", "Agenda executiva mensal e modelo simples de acompanhamento das prioridades de 90 dias, incluídos sem custo adicional."],
     nextSteps: [
