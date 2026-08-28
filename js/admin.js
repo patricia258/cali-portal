@@ -532,8 +532,13 @@ async function saveProposal() {
   if (!advantages.length) throw new Error("Informe ao menos uma vantagem concreta desta proposta.");
   const lines = (id) => document.getElementById(id).value.split("\n").map((item)=>item.trim()).filter(Boolean);
   const cycles = lines("proposal-cycles").map((line) => {
-    const [title="", focus="", objective="", duration=""] = line.split("|").map((item)=>item.trim());
-    return { title, focus, objective, duration };
+    const raw = line.replace(/^\s*[-–—]\s*/, "");
+    if (raw.includes("|")) {
+      const [title="", focus="", objective="", duration=""] = raw.split("|").map((item)=>item.trim());
+      return { title, focus, objective, duration };
+    }
+    const compact = raw.match(/^(Ciclo\s+\d+)\s*(?:\(([^)]+)\))?\s*:\s*(.+)$/i);
+    return compact ? {title:compact[1], duration:compact[2] || "", focus:compact[3], objective:""} : {title:raw,focus:"",objective:"",duration:""};
   }).filter((cycle)=>cycle.title);
   const includeMap = document.getElementById("mapa-include").checked;
   const mapaPeople = { include:includeMap, score:Number(document.getElementById("mapa-score").value || 0), quadrant:document.getElementById("mapa-quadrant").value, sourceId:document.getElementById("mapa-score").dataset.sourceId || null };
