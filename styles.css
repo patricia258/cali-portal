@@ -413,6 +413,11 @@ html,.home-body{background:var(--marfim)}
   .proposal-page:last-child{break-after:auto!important;page-break-after:auto!important}
   .proposal-head{display:flex!important;position:relative!important;min-height:19mm!important}
   .proposal-commercial-page{padding-bottom:22mm!important}
+  .proposal-commercial-facts{grid-template-columns:repeat(3,1fr)!important}
+  .proposal-payment-grid{grid-template-columns:1fr 1fr!important}
+  .proposal-next-steps{grid-template-columns:repeat(3,1fr)!important}
+  .proposal-bonus{grid-template-columns:105px 1fr!important}
+  .proposal-closing{align-items:flex-end!important;flex-direction:row!important}
   .proposal-commercial-page .signature{position:static!important;padding:0!important;background:transparent!important}
   .proposal-page-flow{height:auto!important;min-height:297mm!important;overflow:visible!important;break-inside:auto!important;page-break-inside:auto!important}
   .proposal-footer{left:17mm!important;right:17mm!important;bottom:10mm!important}
