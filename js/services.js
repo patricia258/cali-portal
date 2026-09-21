@@ -412,7 +412,7 @@ export const SERVICES = {
         ]},
         {id:"participantes",label:"Quantidade estimada de participantes",type:"number",min:1,required:true,span:3},
         {id:"turmas",label:"Número de grupos / turmas",type:"number",min:1,value:1,required:true,span:3},
-        {id:"formato",label:"Formato desejado",type:"select",required:true,span:6,options:[option("online","Online"),option("presencial","Presencial"),option("hibrido","Híbrido")]},
+        {id:"formato",label:"Formato desejado",type:"select",required:true,span:6,options:[option("online","Remoto (Google Meet)"),option("presencial","Presencial"),option("hibrido","Híbrido")]},
         {id:"local_estado",label:"Estado da realização",type:"select",required:true,span:3,options:BRAZIL_STATES,showWhen:{field:"formato",in:["presencial","hibrido"]}},
         {id:"local_cidade",label:"Cidade da realização",type:"text",required:true,span:3,maxlength:120,placeholder:"Ex.: Curitiba",showWhen:{field:"formato",in:["presencial","hibrido"]}},
         {id:"local_cep",label:"CEP do local",type:"text",required:true,span:3,maxlength:9,inputmode:"numeric",cep:true,placeholder:"00000-000",showWhen:{field:"formato",in:["presencial","hibrido"]}},
