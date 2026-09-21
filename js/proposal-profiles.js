@@ -331,14 +331,14 @@ const profiles = {
   },
 
   treinamentos: {
-    contextIds: ["tipo_contratacao", "campanha_calendario", "tema", "publico", "participantes", "turmas", "formato", "nivel_interacao", "encontros", "carga_horaria", "data_desejada"],
+    contextIds: ["tipo_contratacao", "campanha_calendario", "recorrencia_esperada", "tema", "publico", "participantes", "formato", "nivel_interacao", "encontros", "carga_horaria", "data_desejada"],
     contextLabels: {
       tipo_contratacao: "Tipo de contratação",
       campanha_calendario: "Campanha ou data",
+      recorrencia_esperada: "Recorrência esperada",
       tema: "Tema principal",
       publico: "Público participante",
-      participantes: "Participantes por turma",
-      turmas: "Número de turmas",
+      participantes: "Participantes estimados",
       formato: "Formato da realização",
       nivel_interacao: "Nível de interação",
       encontros: "Número de encontros",
@@ -353,10 +353,10 @@ const profiles = {
     },
     needsTitle: "Resultado de aprendizagem esperado",
     solutionCopy: {
-      PALESTRA: "Uma palestra estratégica desenhada para o contexto da empresa, com conteúdo objetivo, provocação responsável e conexão prática com o negócio.",
-      WORKSHOP: "Uma oficina aplicada, de até quatro horas, para trabalhar uma competência prioritária com exercício, discussão e ferramenta prática.",
-      TREINAMENTO: "Um programa compacto de até três encontros, com conteúdo aplicado, participação ativa e prática conectada aos desafios reais do público.",
-      PROGRAMA: "Uma trilha de desenvolvimento construída em etapas, com prática entre encontros, evolução acompanhada e conexão com os desafios de liderança.",
+      PALESTRA: "Uma palestra estratégica desenhada para o contexto da empresa, com duração de 60 ou 90 minutos, conteúdo objetivo e interação compatível com o tempo disponível.",
+      WORKSHOP: "Uma oficina aplicada, de 2 a 4 horas, para trabalhar uma competência prioritária com exercício, discussão e ferramenta prática.",
+      TREINAMENTO: "Um treinamento personalizado em 2 ou 3 encontros, com conteúdo aplicado, participação ativa e prática conectada aos desafios reais do público.",
+      PROGRAMA: "Uma trilha estruturada de 4 a 10 encontros para desenvolvimento de lideranças, com prática entre etapas, evolução acompanhada e conexão com desafios reais de gestão.",
     },
     process: () => [
       ["Diagnóstico rápido", "Alinhamento da dor, do público, do contexto e do resultado esperado."],
@@ -365,19 +365,23 @@ const profiles = {
       ["Aplicação", "Orientação prática e, quando contratado, acompanhamento após o encontro."],
     ],
     operating: (ctx) => {
+      const grouped = ctx.packageCode === "TREINAMENTO" || ctx.packageCode === "PROGRAMA";
       const classCount = Number(ctx.answers.turmas || 0);
       const meetingCount = Number(ctx.answers.encontros || 0);
-      const classes = classCount ? `${classCount} ${classCount === 1 ? "turma" : "turmas"}` : "Número de turmas acordado";
+      const participantCount = ctx.answerText("participantes") || "o público definido";
+      const classes = classCount ? `${classCount} ${classCount === 1 ? "grupo/turma" : "grupos/turmas"}` : "Quantidade de grupos acordada";
       const meetings = meetingCount ? `${meetingCount} ${meetingCount === 1 ? "encontro" : "encontros"}` : "Número de encontros acordado";
       const location = ctx.answers.local_execucao ? ` em ${ctx.answers.local_execucao}` : "";
+      const audienceLine = grouped ? `${classes}, com até ${participantCount} participantes por grupo/turma.` : `Público estimado de ${participantCount} participantes.`;
+      const meetingsLine = grouped ? `${meetings}, com duração de ${String(ctx.answerText("carga_horaria") || "duração definida").toLowerCase()} por encontro.` : `Encontro único, com duração de ${String(ctx.answerText("carga_horaria") || "duração definida").toLowerCase()}.`;
       return [
-        `${classes}, com até ${ctx.answerText("participantes") || "o limite definido"} participantes por turma.`,
-        `${meetings}, com duração de ${String(ctx.answerText("carga_horaria") || "duração definida").toLowerCase()} por encontro.`,
+        audienceLine,
+        meetingsLine,
         `Formato ${String(ctx.answerText("formato") || "definido em proposta").toLowerCase()}${location}.`,
         `Participação do público: ${String(ctx.answerText("nivel_interacao") || "nível de interação definido no briefing").toLowerCase()}.`,
         "A empresa garante infraestrutura, acesso, pontualidade e comunicação com os participantes.",
-        "Gravação, reprodução ou reutilização do conteúdo depende de autorização e licenciamento expressos.",
-        "O preço considera duração, nível de interação, formato, localidade, número de turmas, participantes, personalização e materiais previstos.",
+        "Gravação, reprodução e reutilização do conteúdo não fazem parte do escopo.",
+        "O preço considera duração, nível de interação, formato, localidade, público, personalização, materiais e, quando aplicável, número de encontros e grupos.",
       ];
     },
     commercial: () => [
@@ -385,11 +389,11 @@ const profiles = {
       "O pagamento deve ser concluído conforme a condição acordada antes da realização.",
       "Cancelamento até 15 dias antes do início permite reembolso de 50%; após esse prazo, não há reembolso.",
       "Remarcações devem ser solicitadas com pelo menos 10 dias de antecedência; prazos menores podem gerar taxa.",
-      "Deslocamento, hospedagem, materiais físicos e licenciamento de gravação só estão incluídos quando descritos.",
-      "O conteúdo e os materiais CALI são protegidos por direitos autorais.",
+      "Deslocamento, hospedagem e materiais físicos só estão incluídos quando descritos.",
+      "O conteúdo e os materiais CALI são protegidos por direitos autorais e não podem ser gravados, reproduzidos ou reutilizados.",
     ],
     outOfScope: [
-      "Gravação, distribuição ou reprodução do conteúdo sem autorização expressa.",
+      "Gravação, distribuição, reprodução ou reutilização do conteúdo.",
       "Infraestrutura, plataforma, sala, equipamentos ou tradução não descritos.",
       "Atendimento clínico ou aconselhamento individual de participantes.",
       "Mudança de tema, público ou formato após aprovação sem revisão de escopo.",
