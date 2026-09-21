@@ -96,6 +96,8 @@ const LEGACY_INVESTMENT_BANDS = {
     { value:"15mais", label:"Acima de R$ 15 mil", min:15000, max:null },
   ],
   treinamentos: [
+    { value:"25a5", label:"R$ 2,5 mil a R$ 5 mil", min:2500, max:5000 },
+    { value:"5mais", label:"Acima de R$ 5 mil", min:5000, max:null },
     { value:"ate3", label:"Até R$ 3 mil", min:0, max:3000 },
     { value:"3a6", label:"R$ 3 mil a R$ 6 mil", min:3000, max:6000 },
     { value:"6a12", label:"R$ 6 mil a R$ 12 mil", min:6000, max:12000 },
