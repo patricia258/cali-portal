@@ -71,8 +71,8 @@ function fieldHtml(field) {
 stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 
 function valueFor(field) {
-  if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked`)].map((element) => element.value);
-  if (field.type === "radio") return form.querySelector(`[name="${field.id}"]:checked`)?.value || "";
+  if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked:not(:disabled)`)].map((element) => element.value);
+  if (field.type === "radio") return form.querySelector(`[name="${field.id}"]:checked:not(:disabled)`)?.value || "";
   if (field.type === "checkbox") return Boolean(form.elements[field.id]?.checked);
   if (field.type === "indicator_matrix") {
     return [...form.querySelectorAll(`[name="${field.id}__selected"]:checked`)].map((element) => {
