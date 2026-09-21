@@ -137,7 +137,7 @@ const normalizeCycle = (cycle) => {
   return compact ? {title:compact[1], duration:compact[2] || "", focus:compact[3], objective:""} : {...structured,title:raw};
 };
 const cycles = list(calc.cycles).map(normalizeCycle).filter((cycle)=>cycle.title);
-const cadence = trainingLegacy ? profile.operating.slice(0,4) : (list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
+const cadence = trainingLegacy ? profile.operating.slice(0,4) : (list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item)));
 const caliResponsibilities = trainingLegacy ? ["Realizar o briefing final e customizar o conteúdo conforme público, objetivo e contexto.","Conduzir a facilitação no formato e duração contratados.","Entregar os materiais previstos no escopo aprovado."] : (list(calc.caliResponsibilities).length ? calc.caliResponsibilities : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."]);
 const clientResponsibilities = trainingLegacy ? ["Confirmar público, agenda, sponsor e informações necessárias ao briefing.","Disponibilizar sala, equipamentos, acessos e infraestrutura quando aplicável.","Comunicar os participantes e garantir condições para início pontual da ação."] : (list(calc.clientResponsibilities).length ? calc.clientResponsibilities : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."]);
 const outOfScope = list(calc.outOfScope).length ? calc.outOfScope : profile.outOfScope;
