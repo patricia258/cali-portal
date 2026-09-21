@@ -329,43 +329,56 @@ export const SERVICES = {
   treinamentos: {
     slug:"treinamentos",code:"TRN",title:"Treinamentos & Palestras",kicker:"Conteúdo sob medida, conectado ao contexto real",intro:"Palestras, workshops, treinamentos e programas de liderança desenhados conforme objetivo, público, nível de interação e contexto da empresa.",
     packages:[
-      {code:"PALESTRA",label:"Palestra Estratégica",description:"Encontro único, normalmente de 60 a 90 minutos, com conteúdo objetivo e interação compatível com o tempo disponível."},
+      {code:"PALESTRA",label:"Palestra Estratégica",description:"Encontro único de 60 ou 90 minutos, com conteúdo objetivo e interação compatível com o tempo disponível."},
       {code:"WORKSHOP",label:"Workshop Aplicado",description:"Oficina prática de 2 a 4 horas, com exercícios ou dinâmica conectados ao contexto real."},
-      {code:"TREINAMENTO",label:"Treinamento Personalizado",description:"Desenvolvimento de uma competência prioritária em mais de um encontro, com prática entre etapas."},
-      {code:"PROGRAMA",label:"Programa de Liderança Sob Medida",description:"Trilha estruturada de desenvolvimento, normalmente entre 4 e 10 encontros, com evolução acompanhada."},
+      {code:"TREINAMENTO",label:"Treinamento Personalizado",description:"Desenvolvimento de uma competência prioritária em 2 ou 3 encontros, com prática entre etapas."},
+      {code:"PROGRAMA",label:"Programa de Liderança Sob Medida",description:"Trilha estruturada de 4 a 10 encontros, com evolução acompanhada."},
     ],
     sections:[
       {title:"Contato",fields:COMMON_CONTACT},
       {title:"Empresa",description:"Informações para dimensionar público, logística e contexto da contratação.",fields:COMMON_COMPANY_TRAINING},
-      {title:"Objetivo e tipo de contratação",description:"Primeiro entendemos o que precisa acontecer; o formato pode ser confirmado ou recomendado pela CALI.",fields:[
-        {id:"tipo_contratacao",label:"O que você está buscando?",type:"radio",required:true,options:[
-          option("campanha","Palestra para uma campanha ou data do calendário","Referência: R$ 1,8 mil a R$ 2,5 mil, conforme duração, público, formato e personalização."),
-          option("palestra_tema","Palestra sobre um tema específico","Referência: R$ 1,8 mil a R$ 2,5 mil, conforme duração, público, formato e personalização."),
-          option("workshop","Workshop aplicado","Referência: R$ 2,8 mil a R$ 3,8 mil, conforme duração, dinâmica e número de participantes."),
-          option("treinamento","Treinamento de desenvolvimento","Referência: R$ 4 mil a R$ 5 mil para o desenho-base; mais encontros ou turmas podem ampliar o investimento."),
-          option("programa_lideranca","Programa / trilha de desenvolvimento de lideranças","Referência: a partir de R$ 5,5 mil; o valor varia principalmente conforme número de encontros, público e profundidade."),
-          option("recomendar","Ainda não sei — quero que a CALI recomende","Tudo bem. A CALI cruza objetivo, público, duração e nível de interação para indicar o formato e a faixa mais coerentes."),
+      {title:"Objetivo e tipo de contratação",description:"Escolha a solução que mais se aproxima do que você busca. O desenho final considera duração, público-alvo, formato, nível de interação, personalização, localidade e demais necessidades da ação.",fields:[
+        {id:"tipo_contratacao",label:"O que você está buscando?",type:"radio",required:true,help:"Você não precisa montar o formato sozinho. As opções abaixo definem os limites iniciais e a CALI ajusta o desenho final conforme o contexto.",options:[
+          option("palestra","Palestra Estratégica"),
+          option("workshop","Workshop Aplicado"),
+          option("treinamento","Treinamento Personalizado"),
+          option("programa_lideranca","Programa / trilha de desenvolvimento de lideranças"),
+          option("recomendar","Ainda não sei — quero que a CALI recomende"),
         ]},
-        {id:"campanha_calendario",label:"Qual é a campanha ou data?",type:"select",required:true,span:6,showWhen:{field:"tipo_contratacao",equals:"campanha"},options:[
-          option("outubro_rosa","Outubro Rosa"),
-          option("setembro_amarelo","Setembro Amarelo"),
+        {id:"campanha_vinculada",label:"Esta palestra está ligada a uma campanha ou data do calendário?",type:"radio",required:true,showWhen:{field:"tipo_contratacao",equals:"palestra"},options:[option("sim","Sim"),option("nao","Não")]},
+        {id:"campanha_calendario",label:"Qual é a campanha ou data?",type:"select",required:true,span:6,showWhen:{field:"campanha_vinculada",equals:"sim"},options:[
+          option("janeiro_branco","Janeiro Branco"),
+          option("kickoff","Kickoff / início do ano"),
           option("dia_mulher","Dia da Mulher"),
           option("abril_verde_sipat","Abril Verde / SIPAT"),
-          option("consciencia_negra","Consciência Negra"),
-          option("kickoff","Kickoff / início do ano"),
           option("dia_trabalho","Dia do Trabalho"),
+          option("dia_maes","Dia das Mães"),
+          option("orgulho_lgbtqia","Mês do Orgulho LGBTQIA+"),
+          option("agosto_lilas","Agosto Lilás"),
+          option("dia_pais","Dia dos Pais"),
+          option("setembro_amarelo","Setembro Amarelo"),
+          option("outubro_rosa","Outubro Rosa"),
+          option("dia_criancas","Dia das Crianças"),
+          option("novembro_azul","Novembro Azul"),
+          option("consciencia_negra","Consciência Negra"),
           option("black_friday","Black Friday / alta temporada"),
-          option("fechamento_ano","Fechamento de ano / retenção"),
+          option("fechamento_ano","Fechamento de ano / Natal"),
           option("outro","Outra campanha ou data"),
         ]},
         {id:"campanha_outro",label:"Qual campanha ou data?",type:"text",required:true,span:6,maxlength:160,showWhen:{field:"campanha_calendario",equals:"outro"}},
+        {id:"recorrencia_esperada",label:"Você imagina uma ação pontual ou uma jornada com mais encontros?",type:"select",required:true,span:6,showWhen:{field:"tipo_contratacao",equals:"recomendar"},options:[
+          option("unica","Uma ação única"),
+          option("2a3","Dois ou três encontros"),
+          option("4mais","Quatro ou mais encontros"),
+          option("nao_sei","Ainda não sei"),
+        ]},
         {id:"tema_status",label:"O tema já está definido?",type:"radio",required:true,options:[option("definido","Sim, quero indicar o tema"),option("recomendar","Quero que a CALI recomende o tema")]},
         {id:"tema",label:"Tema principal ou título desejado",type:"text",required:true,maxlength:220,showWhen:{field:"tema_status",equals:"definido"}},
         {id:"contexto",label:"Qual contexto motivou esta contratação?",type:"textarea",required:true,maxlength:1800,placeholder:"Ex.: campanha interna, semana de saúde, convenção, mudança de liderança, necessidade de desenvolver uma competência ou outro contexto."},
         {id:"objetivo",label:"O que precisa estar diferente depois do encontro ou da trilha?",type:"textarea",required:true,maxlength:1800},
       ]},
-      {title:"Público e desenho",description:"O nível de interação, o tamanho do público e a duração precisam conversar entre si.",fields:[
-        {id:"publico",label:"Quem participará?",type:"checkboxes",required:true,options:[
+      {title:"Público e desenho",description:"As próximas perguntas mudam conforme o tipo de solução escolhido. Você verá apenas o que faz sentido para esse formato.",fields:[
+        {id:"publico",label:"Quem participará?",type:"checkboxes",required:true,help:"Se selecionar “Toda a empresa”, os demais públicos ficam indisponíveis para evitar combinações contraditórias.",options:[
           option("empresa","Toda a empresa"),option("liderancas","Lideranças"),option("diretoria","Diretoria ou C-level"),option("rh","Time de RH"),
           option("operacional","Equipe operacional"),option("especialistas","Especialistas ou técnicos"),option("area","Uma área específica"),option("misto","Público misto"),
         ]},
@@ -373,14 +386,13 @@ export const SERVICES = {
           option("nao_aplica","Não se aplica / público amplo"),option("primeira_lideranca","Primeira liderança"),
           option("gestao","Coordenação e gerência"),option("executiva","Diretoria e C-level"),option("misto","Misto"),
         ]},
-        {id:"participantes",label:"Participantes por turma",type:"number",min:1,required:true,span:3},
-        {id:"turmas",label:"Número de turmas",type:"number",min:1,value:1,required:true,span:3},
+        {id:"participantes",label:"Quantidade estimada de participantes",type:"number",min:1,required:true,span:3},
+        {id:"turmas",label:"Número de grupos / turmas",type:"number",min:1,value:1,required:true,span:3},
         {id:"formato",label:"Formato desejado",type:"select",required:true,span:6,options:[option("online","Online"),option("presencial","Presencial"),option("hibrido","Híbrido")]},
         {id:"local_execucao",label:"Cidade e estado da realização",type:"text",required:true,span:6,maxlength:180,showWhen:{field:"formato",in:["presencial","hibrido"]}},
-        {id:"encontros",label:"Número estimado de encontros",type:"number",min:1,value:1,required:true,span:3},
+        {id:"encontros",label:"Número de encontros",type:"number",min:1,value:1,required:true,span:3},
         {id:"carga_horaria",label:"Duração por encontro",type:"select",required:true,span:3,options:[
           option("1","60 min"),option("1.5","90 min"),option("2","2 horas"),option("3","3 horas"),option("4","4 horas"),
-          option("8","Dia inteiro"),option("recomendar","Quero que a CALI recomende"),
         ]},
         {id:"nivel_interacao",label:"Como você imagina a participação do público?",type:"radio",required:true,options:[
           option("expositivo","Conteúdo expositivo, sem dinâmica"),option("perguntas","Conteúdo + perguntas ao final"),
@@ -390,17 +402,16 @@ export const SERVICES = {
         {id:"materiais",label:"Materiais físicos personalizados",type:"radio",required:true,options:[option("nao","Não"),option("sim","Sim")]},
         {id:"followup",label:"Deseja encontro de acompanhamento?",type:"radio",required:true,options:[option("nao","Não"),option("sim","Sim")]},
         {id:"acessibilidade",label:"Há necessidade de acessibilidade, tradução ou adaptação de materiais?",type:"textarea",span:6,maxlength:600},
-        {id:"gravacao",label:"Pretende gravar ou reutilizar o conteúdo?",type:"radio",required:true,options:[option("nao","Não"),option("sim","Sim"),option("avaliar","A avaliar")]},
       ]},
-      {title:"Momento da contratação",description:"Essas informações ajudam a transformar o briefing em uma proposta viável e comparável.",fields:[
+      {title:"Momento da contratação",description:"Agora eu preciso entender o momento da decisão e a faixa de investimento que a empresa considera possível.",fields:[
         {id:"decisao_evento",label:"Em que etapa está a contratação?",type:"select",required:true,span:6,options:[option("aprovada","Aprovada e com orçamento"),option("aprovada_sem_orcamento","Aprovada, orçamento em definição"),option("cotacao","Cotação ou comparação de fornecedores"),option("ideia","Ainda é uma ideia inicial")]},
         {id:"data_desejada",label:"Data ou período desejado",type:"text",required:true,span:6,maxlength:180},
-        investmentField("treinamentos","Qual faixa de investimento a empresa considera para esta contratação?","budget","Referências atuais: palestra entre R$ 1,8 e R$ 2,5 mil; workshop entre R$ 2,8 e R$ 3,8 mil; treinamento entre R$ 4 e R$ 5 mil; programa de liderança a partir de R$ 5,5 mil. São faixas orientativas: duração, turmas, público, formato, deslocamento, personalização e materiais podem alterar o valor final."),
+        investmentField("treinamentos","Qual faixa de investimento a empresa considera para esta contratação?","budget","Use uma faixa aproximada. Esta resposta serve para entendermos a disponibilidade de investimento; o valor final será definido pela CALI a partir do escopo e do desenho da solução."),
         {id:"observacoes",label:"Existe alguma restrição, sensibilidade ou informação importante para o desenho?",type:"textarea",maxlength:1600},
       ]},
     ],
-    alerts(a){const x=[]; const participants=Number(a.participantes||0),hours=Number(a.carga_horaria||0); if(participants>150)x.push({level:"high",text:"Público acima de 150 pessoas: tratar como evento ou convenção e revisar desenho, infraestrutura e interação."}); else if(participants>40)x.push({level:"medium",text:"Acima de 40 pessoas, o formato tende a funcionar melhor como palestra ou facilitação de auditório, com interação mais controlada."}); if(a.nivel_interacao==="dinamica"&&hours>0&&hours<=1)x.push({level:"high",text:"60 minutos com dinâmica prática tende a comprometer conteúdo e participação; ampliar a duração ou reduzir a dinâmica."}); if(a.nivel_interacao==="dinamica"&&participants>40)x.push({level:"medium",text:"Dinâmica prática com público acima de 40 pessoas exige desenho específico, apoio de facilitação ou divisão em grupos."}); if(a.tipo_contratacao==="programa_lideranca"&&Number(a.encontros||0)<4)x.push({level:"medium",text:"Programas de liderança normalmente são estruturados em 4 a 10 encontros; revise a quantidade antes da proposta."}); if(["presencial","hibrido"].includes(a.formato)&&a.local_execucao&&!String(a.local_execucao).toLowerCase().includes("curitiba"))x.push({level:"medium",text:"Prever deslocamento e eventual hospedagem conforme a cidade da realização."}); if(a.data_desejada&&/próxima semana|semana que vem/i.test(a.data_desejada))x.push({level:"high",text:"Antecedência abaixo das quatro semanas recomendadas."}); if(a.gravacao==="sim")x.push({level:"medium",text:"Definir direito de uso, prazo, audiência e valor de licenciamento da gravação."}); return x;},
-    notices(a){const x=[]; const participants=Number(a.participantes||0),hours=Number(a.carga_horaria||0); if(participants>150)x.push({level:"attention",text:"Para públicos acima de 150 pessoas, o desenho muda para lógica de evento ou convenção; a proposta considera palco, interação e estrutura disponíveis."}); else if(participants>40)x.push({level:"attention",text:"Entre 40 e 150 pessoas, a interação costuma ser mais eficiente em formato de auditório, com perguntas, enquetes ou provocações guiadas."}); if(a.nivel_interacao==="dinamica"&&hours>0&&hours<=1)x.push({level:"attention",text:"Se você quer dinâmica prática, 60 minutos costuma ser pouco. Posso recomendar uma duração mais adequada sem transformar a palestra em workshop por acidente."}); if(a.gravacao==="sim")x.push({level:"info",text:"Gravação e reutilização precisam constar no escopo, incluindo audiência, período e direitos de uso."}); return x;},
+    alerts(a){const x=[]; const participants=Number(a.participantes||0),hours=Number(a.carga_horaria||0); if(participants>150)x.push({level:"high",text:"Público acima de 150 pessoas: revisar desenho, infraestrutura e nível de interação."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"medium",text:"Workshop com mais de 40 pessoas pode exigir divisão em grupos, apoio de facilitação ou adaptação da dinâmica."}); if(a.nivel_interacao==="dinamica"&&hours>0&&hours<=1.5)x.push({level:"medium",text:"Atividade prática em uma janela curta pode exigir revisão de duração para preservar a qualidade da aplicação."}); if(a.tipo_contratacao==="programa_lideranca"&&Number(a.encontros||0)<4)x.push({level:"medium",text:"Programas de liderança são estruturados entre 4 e 10 encontros; revise a quantidade antes da proposta."}); if(["presencial","hibrido"].includes(a.formato)&&a.local_execucao&&!String(a.local_execucao).toLowerCase().includes("curitiba"))x.push({level:"medium",text:"Prever deslocamento e eventual hospedagem conforme a cidade da realização."}); if(a.data_desejada&&/próxima semana|semana que vem/i.test(a.data_desejada))x.push({level:"high",text:"Antecedência abaixo das quatro semanas recomendadas."}); return x;},
+    notices(a){const x=[]; const participants=Number(a.participantes||0); if(participants>150)x.push({level:"attention",text:"Para públicos acima de 150 pessoas, o desenho considera escala, infraestrutura e formas de interação compatíveis com o evento."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"attention",text:"Em workshops com público maior, a dinâmica pode ser adaptada para manter participação e qualidade."}); return x;},
   },
   "marca-empregadora": {
     slug:"marca-empregadora",code:"EMP",title:"Marca Empregadora",kicker:"Atrair, engajar e sustentar a experiência",intro:"O diagnóstico considera percepção interna e externa, EVP, atração, ativação e sustentação.",
@@ -508,16 +519,17 @@ export function initialPackageFor(service, answers = {}) {
   }
   if (service.slug === "treinamentos") {
     const requested = String(answers.tipo_contratacao || "");
-    if (requested === "programa_lideranca") return "PROGRAMA";
-    if (requested === "treinamento") return "TREINAMENTO";
+    if (requested === "palestra" || requested === "campanha" || requested === "palestra_tema") return "PALESTRA";
     if (requested === "workshop") return "WORKSHOP";
-    if (requested === "campanha" || requested === "palestra_tema") return "PALESTRA";
-    const meetings = Number(answers.encontros || 1);
+    if (requested === "treinamento") return "TREINAMENTO";
+    if (requested === "programa_lideranca") return "PROGRAMA";
+    const recurrence = String(answers.recorrencia_esperada || "");
+    const meetings = Number(answers.encontros || (recurrence === "4mais" ? 4 : recurrence === "2a3" ? 2 : 1));
     const hours = Number(answers.carga_horaria || 1.5);
     const interaction = String(answers.nivel_interacao || "");
     const audience = Array.isArray(answers.publico) ? answers.publico : [];
-    if (meetings >= 4 && (audience.includes("liderancas") || audience.includes("diretoria"))) return "PROGRAMA";
-    if (meetings > 1) return "TREINAMENTO";
+    if (recurrence === "4mais" || (meetings >= 4 && (audience.includes("liderancas") || audience.includes("diretoria")))) return "PROGRAMA";
+    if (recurrence === "2a3" || meetings > 1) return "TREINAMENTO";
     if (interaction === "dinamica" || hours >= 2) return "WORKSHOP";
     return "PALESTRA";
   }
