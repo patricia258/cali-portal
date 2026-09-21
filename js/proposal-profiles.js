@@ -380,7 +380,7 @@ const profiles = {
         `Formato ${String(ctx.answerText("formato") || "definido em proposta").toLowerCase()}${location}.`,
         `Participação do público: ${String(ctx.answerText("nivel_interacao") || "nível de interação definido no briefing").toLowerCase()}.`,
         "A empresa garante infraestrutura, acesso, pontualidade e comunicação com os participantes.",
-        "Gravação, reprodução e reutilização do conteúdo não fazem parte do escopo.",
+        ctx.answers.formato === "online" ? "Realização via Google Meet, com gravação e transcrição da sessão mediante ciência dos participantes." : "A realização presencial considera o endereço informado e a infraestrutura disponibilizada pela empresa.",
         "O preço considera duração, nível de interação, formato, localidade, público, personalização, materiais e, quando aplicável, número de encontros e grupos.",
       ];
     },
@@ -389,11 +389,11 @@ const profiles = {
       "O pagamento deve ser concluído conforme a condição acordada antes da realização.",
       "Cancelamento até 15 dias antes do início permite reembolso de 50%; após esse prazo, não há reembolso.",
       "Remarcações devem ser solicitadas com pelo menos 10 dias de antecedência; prazos menores podem gerar taxa.",
-      "Deslocamento, hospedagem e materiais físicos só estão incluídos quando descritos.",
+      "Em realizações fora de Curitiba e Região Metropolitana, passagens, hospedagem, alimentação e deslocamentos locais são de responsabilidade da contratante e não integram o valor do serviço.",
       "O conteúdo e os materiais CALI são protegidos por direitos autorais e não podem ser gravados, reproduzidos ou reutilizados.",
     ],
     outOfScope: [
-      "Gravação, distribuição, reprodução ou reutilização do conteúdo.",
+      "Distribuição, publicação ou reutilização dos materiais e da gravação fora da finalidade contratada.",
       "Infraestrutura, plataforma, sala, equipamentos ou tradução não descritos.",
       "Atendimento clínico ou aconselhamento individual de participantes.",
       "Mudança de tema, público ou formato após aprovação sem revisão de escopo.",
