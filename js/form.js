@@ -59,7 +59,11 @@ function fieldHtml(field) {
   } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
   else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
   else control = `<input class="control" ${common} type="${field.type || "text"}" ${field.value !== undefined ? `value="${escapeHtml(field.value)}"` : ""}>`;
-  const condition = field.showWhen ? `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"` : "";
+  const condition = field.showWhen
+    ? Array.isArray(field.showWhen.in)
+      ? `data-show-field="${field.showWhen.field}" data-show-values="${escapeHtml(field.showWhen.in.join("|"))}"`
+      : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
+    : "";
   const label = field.type === "checkbox" ? "" : `<label for="f-${field.id}">${escapeHtml(field.label)} ${required}</label>`;
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
 }
@@ -87,7 +91,8 @@ function updateConditionalFields() {
   form.querySelectorAll("[data-show-field]").forEach((wrapper) => {
     const sourceField = service.sections.flatMap((section) => section.fields).find((field) => field.id === wrapper.dataset.showField);
     const sourceValue = sourceField ? valueFor(sourceField) : "";
-    const visible = String(sourceValue) === wrapper.dataset.showEquals;
+    const allowedValues = wrapper.dataset.showValues ? wrapper.dataset.showValues.split("|") : null;
+    const visible = allowedValues ? allowedValues.includes(String(sourceValue)) : String(sourceValue) === wrapper.dataset.showEquals;
     wrapper.classList.toggle("conditional-hidden", !visible);
     wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
     if (!visible) wrapper.classList.remove("invalid");
