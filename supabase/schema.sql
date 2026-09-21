@@ -139,6 +139,7 @@ insert into public.cali_pricing_rules(service_slug,package_code,package_label,ba
 ('treinamentos','PALESTRA','Palestra Estratégica',1800,1,'{"price_ceiling":2500}'::jsonb),
 ('treinamentos','WORKSHOP','Workshop Aplicado',3000,2,'{"price_ceiling":3800}'::jsonb),
 ('treinamentos','TREINAMENTO','Treinamento Personalizado',4200,3,'{"meetings_included":3,"price_ceiling":5000}'::jsonb),
+('treinamentos','PROGRAMA','Programa de Liderança Sob Medida',5500,4,'{"meetings_included":4}'::jsonb),
 ('marca-empregadora','PROJETO','Projeto de Marca Empregadora',3800,1,'{"price_ceiling":4000}'::jsonb),
 ('marca-empregadora','RECORRENTE','Sustentação Recorrente',3200,2,'{"minimum_months":4,"price_ceiling":4000}'::jsonb),
 ('solucao-personalizada','SOB_MEDIDA','Projeto sob medida',2800,1,'{"price_ceiling":3000}'::jsonb)
