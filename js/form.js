@@ -1,5 +1,5 @@
 import { CONFIG, functionUrl } from "/js/config.js";
-import { serviceFromPath } from "/js/services.js";
+import { serviceFromPath, trainingNeedsTravel } from "/js/services.js";
 
 const service = serviceFromPath();
 const form = document.getElementById("briefing-form");
@@ -35,7 +35,7 @@ function inputAttributes(field) {
     field.min !== undefined ? `min="${field.min}"` : "", field.max !== undefined ? `max="${field.max}"` : "",
     field.maxlength ? `maxlength="${field.maxlength}"` : "", field.autocomplete ? `autocomplete="${field.autocomplete}"` : "",
     field.inputmode ? `inputmode="${field.inputmode}"` : "", field.placeholder ? `placeholder="${escapeHtml(field.placeholder)}"` : "",
-    field.lettersOnly ? 'data-letters-only="true"' : "", field.phone ? 'data-phone="true"' : "",
+    field.lettersOnly ? 'data-letters-only="true"' : "", field.phone ? 'data-phone="true"' : "", field.cep ? 'data-cep="true"' : "",
   ].filter(Boolean).join(" ");
 }
 
@@ -137,6 +137,41 @@ function applyTrainingRules() {
   const grouped = type === "treinamento" || type === "programa_lideranca";
   const singleEvent = type === "palestra" || type === "workshop";
   const canEstimateAudience = Boolean(type);
+  const format = String(form.elements.formato?.value || "");
+  const locationAnswers = {
+    formato: format,
+    local_estado: String(form.elements.local_estado?.value || ""),
+    local_cidade: String(form.elements.local_cidade?.value || ""),
+  };
+  const needsTravel = trainingNeedsTravel(locationAnswers);
+  setFieldVisibility("deslocamento_ciente", needsTravel);
+  if (!needsTravel && form.elements.deslocamento_ciente) form.elements.deslocamento_ciente.checked = false;
+
+  const formatWrapper = form.querySelector('[data-field="formato"]');
+  if (formatWrapper) {
+    let note = formatWrapper.querySelector("[data-training-format-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingFormatNote = "true";
+      note.className = "context-notice info";
+      formatWrapper.appendChild(note);
+    }
+    if (format === "online") {
+      note.textContent = "Realização via Google Meet, com gravação e transcrição da sessão mediante ciência dos participantes.";
+      note.className = "context-notice info";
+      note.classList.remove("hidden");
+    } else if (needsTravel) {
+      note.textContent = "Fora de Curitiba e Região Metropolitana: passagens, hospedagem, alimentação e deslocamentos locais ficam por conta da empresa contratante e serão estimados na proposta.";
+      note.className = "context-notice attention";
+      note.classList.remove("hidden");
+    } else if (["presencial","hibrido"].includes(format)) {
+      note.textContent = "Atendimento presencial em Curitiba e Região Metropolitana sem cobrança de viagem interestadual. O endereço completo será usado para organizar a realização.";
+      note.className = "context-notice info";
+      note.classList.remove("hidden");
+    } else {
+      note.classList.add("hidden");
+    }
+  }
 
   setFieldVisibility("nivel_publico", canEstimateAudience && !isWholeCompany);
   if (isWholeCompany && form.elements.nivel_publico) form.elements.nivel_publico.value = "nao_aplica";
@@ -243,14 +278,15 @@ function validateStep() {
     const wrapper = form.querySelector(`[data-field="${field.id}"]`);
     if (!wrapper || wrapper.classList.contains("conditional-hidden")) return;
     const value = valueFor(field);
-    const missing = field.required && (Array.isArray(value) ? value.length === 0 : value === "");
+    const missing = field.required && (field.type === "checkbox" ? value !== true : (Array.isArray(value) ? value.length === 0 : value === ""));
     const invalidEmail = field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     const invalidUrl = field.type === "url" && value && !/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(value);
     const phoneDigits = field.phone ? String(value).replace(/\D/g, "") : "";
     const invalidPhone = field.phone && value && (phoneDigits.length < 10 || phoneDigits.length > 15);
     const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
+    const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
     const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
-    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidIndicator);
+    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator);
     wrapper.classList.toggle("invalid", isInvalid);
     const error = wrapper.querySelector(".field-error");
     if (error) {
@@ -258,6 +294,7 @@ function validateStep() {
       else if (invalidUrl) error.textContent = "Informe um link completo, começando por https://.";
       else if (invalidPhone) error.textContent = "Informe um WhatsApp válido, com DDD.";
       else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
+      else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
       else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
       else error.textContent = "Preencha este campo para continuar.";
     }
@@ -271,6 +308,27 @@ function collectAnswers() {
   const answers = Object.fromEntries(service.sections.flatMap((section) => section.fields).map((field) => [field.id, valueFor(field)]));
   if (service.slug === "treinamentos") {
     const type = String(answers.tipo_contratacao || "");
+    const format = String(answers.formato || "");
+    if (["presencial","hibrido"].includes(format)) {
+      const city = String(answers.local_cidade || "").trim();
+      const state = String(answers.local_estado || "").trim().toUpperCase();
+      answers.local_execucao = [city,state].filter(Boolean).join("/");
+      answers.local_endereco_completo = [
+        String(answers.local_logradouro || "").trim(),
+        String(answers.local_numero || "").trim(),
+        String(answers.local_complemento || "").trim(),
+        answers.local_execucao,
+        String(answers.local_cep || "").trim() ? `CEP ${String(answers.local_cep).trim()}` : "",
+      ].filter(Boolean).join(" · ");
+      answers.deslocamento_necessario = trainingNeedsTravel(answers);
+    } else {
+      answers.local_execucao = "";
+      answers.local_endereco_completo = "";
+      answers.deslocamento_necessario = false;
+      answers.deslocamento_ciente = false;
+      answers.plataforma_online = "Google Meet";
+      answers.gravacao_transcricao = true;
+    }
     const audience = Array.isArray(answers.publico) ? answers.publico : [];
     const grouped = type === "treinamento" || type === "programa_lideranca";
     if (audience.includes("empresa") && !grouped) answers.participantes = Number(answers.colaboradores || 0) || answers.participantes || "";
@@ -308,6 +366,7 @@ form.addEventListener("input", (event) => {
   const target = event.target;
   if (target.matches("[data-letters-only]")) target.value = target.value.replace(/[^\p{L}\p{M}\s'.-]/gu, "");
   if (target.matches("[data-phone]")) target.value = formatPhone(target.value);
+  if (target.matches("[data-cep]")) { const d=target.value.replace(/\D/g,"").slice(0,8); target.value=d.length>5?`${d.slice(0,5)}-${d.slice(5)}`:d; }
   if (target.type === "email") target.value = target.value.replace(/\s/g, "").toLowerCase();
   target.closest(".field")?.classList.remove("invalid");
   updateFormLogic();

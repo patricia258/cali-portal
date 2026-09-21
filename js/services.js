@@ -165,6 +165,30 @@ export const COMMON_COMPANY = [
 
 const COMMON_COMPANY_TRAINING = COMMON_COMPANY.filter((field) => !["modelo_trabalho", "momento_empresa"].includes(field.id));
 
+export const BRAZIL_STATES = [
+  option("AC","Acre"),option("AL","Alagoas"),option("AP","Amapá"),option("AM","Amazonas"),option("BA","Bahia"),
+  option("CE","Ceará"),option("DF","Distrito Federal"),option("ES","Espírito Santo"),option("GO","Goiás"),option("MA","Maranhão"),
+  option("MT","Mato Grosso"),option("MS","Mato Grosso do Sul"),option("MG","Minas Gerais"),option("PA","Pará"),option("PB","Paraíba"),
+  option("PR","Paraná"),option("PE","Pernambuco"),option("PI","Piauí"),option("RJ","Rio de Janeiro"),option("RN","Rio Grande do Norte"),
+  option("RS","Rio Grande do Sul"),option("RO","Rondônia"),option("RR","Roraima"),option("SC","Santa Catarina"),option("SP","São Paulo"),
+  option("SE","Sergipe"),option("TO","Tocantins"),
+];
+export const TRAINING_RMC_CITIES = [
+  "adrianopolis","agudos do sul","almirante tamandare","araucaria","balsa nova","bocaiuva do sul","campina grande do sul",
+  "campo do tenente","campo largo","campo magro","cerro azul","colombo","contenda","curitiba","doutor ulysses",
+  "fazenda rio grande","itaperucu","lapa","mandirituba","pien","pinhais","piraquara","quatro barras","quitandinha",
+  "rio branco do sul","rio negro","sao jose dos pinhais","tijucas do sul","tunas do parana"
+];
+const normalizeLocationName=(value="")=>String(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase().replace(/\s+/g," ");
+export function isTrainingRmcLocation(answers={}) {
+  const state=String(answers.local_estado||"").trim().toUpperCase();
+  const city=normalizeLocationName(answers.local_cidade||"");
+  return state==="PR" && TRAINING_RMC_CITIES.includes(city);
+}
+export function trainingNeedsTravel(answers={}) {
+  return ["presencial","hibrido"].includes(String(answers.formato||"")) && Boolean(answers.local_estado||answers.local_cidade||answers.local_execucao) && !isTrainingRmcLocation(answers);
+}
+
 export const SERVICES = {
   "assessoria-estrategica": {
     slug: "assessoria-estrategica",
@@ -389,7 +413,13 @@ export const SERVICES = {
         {id:"participantes",label:"Quantidade estimada de participantes",type:"number",min:1,required:true,span:3},
         {id:"turmas",label:"Número de grupos / turmas",type:"number",min:1,value:1,required:true,span:3},
         {id:"formato",label:"Formato desejado",type:"select",required:true,span:6,options:[option("online","Online"),option("presencial","Presencial"),option("hibrido","Híbrido")]},
-        {id:"local_execucao",label:"Cidade e estado da realização",type:"text",required:true,span:6,maxlength:180,showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_estado",label:"Estado da realização",type:"select",required:true,span:3,options:BRAZIL_STATES,showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_cidade",label:"Cidade da realização",type:"text",required:true,span:3,maxlength:120,placeholder:"Ex.: Curitiba",showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_cep",label:"CEP do local",type:"text",required:true,span:3,maxlength:9,inputmode:"numeric",cep:true,placeholder:"00000-000",showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_logradouro",label:"Endereço / logradouro",type:"text",required:true,span:6,maxlength:220,placeholder:"Rua, avenida, rodovia…",showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_numero",label:"Número da unidade / filial",type:"text",required:true,span:3,maxlength:30,placeholder:"Ex.: 850",showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"local_complemento",label:"Complemento",type:"text",span:3,maxlength:120,placeholder:"Sala, bloco, andar…",showWhen:{field:"formato",in:["presencial","hibrido"]}},
+        {id:"deslocamento_ciente",label:"Estou ciente de que, para realizações fora de Curitiba e Região Metropolitana, passagens, hospedagem, alimentação e deslocamentos locais são de responsabilidade da empresa contratante e não estão incluídos no valor do serviço.",type:"checkbox",required:true},
         {id:"encontros",label:"Número de encontros",type:"number",min:1,value:1,required:true,span:3},
         {id:"carga_horaria",label:"Duração por encontro",type:"select",required:true,span:3,options:[
           option("1","60 min"),option("1.5","90 min"),option("2","2 horas"),option("3","3 horas"),option("4","4 horas"),
@@ -410,8 +440,8 @@ export const SERVICES = {
         {id:"observacoes",label:"Existe alguma restrição, sensibilidade ou informação importante para o desenho?",type:"textarea",maxlength:1600},
       ]},
     ],
-    alerts(a){const x=[]; const participants=Number(a.participantes||0),hours=Number(a.carga_horaria||0); if(participants>150)x.push({level:"high",text:"Público acima de 150 pessoas: revisar desenho, infraestrutura e nível de interação."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"medium",text:"Workshop com mais de 40 pessoas pode exigir divisão em grupos, apoio de facilitação ou adaptação da dinâmica."}); if(a.nivel_interacao==="dinamica"&&hours>0&&hours<=1.5)x.push({level:"medium",text:"Atividade prática em uma janela curta pode exigir revisão de duração para preservar a qualidade da aplicação."}); if(a.tipo_contratacao==="programa_lideranca"&&Number(a.encontros||0)<4)x.push({level:"medium",text:"Programas de liderança são estruturados entre 4 e 10 encontros; revise a quantidade antes da proposta."}); if(["presencial","hibrido"].includes(a.formato)&&a.local_execucao&&!String(a.local_execucao).toLowerCase().includes("curitiba"))x.push({level:"medium",text:"Prever deslocamento e eventual hospedagem conforme a cidade da realização."}); if(a.data_desejada&&/próxima semana|semana que vem/i.test(a.data_desejada))x.push({level:"high",text:"Antecedência abaixo das quatro semanas recomendadas."}); return x;},
-    notices(a){const x=[]; const participants=Number(a.participantes||0); if(participants>150)x.push({level:"attention",text:"Para públicos acima de 150 pessoas, o desenho considera escala, infraestrutura e formas de interação compatíveis com o evento."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"attention",text:"Em workshops com público maior, a dinâmica pode ser adaptada para manter participação e qualidade."}); return x;},
+    alerts(a){const x=[]; const participants=Number(a.participantes||0),hours=Number(a.carga_horaria||0); if(participants>150)x.push({level:"high",text:"Público acima de 150 pessoas: revisar desenho, infraestrutura e nível de interação."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"medium",text:"Workshop com mais de 40 pessoas pode exigir divisão em grupos, apoio de facilitação ou adaptação da dinâmica."}); if(a.nivel_interacao==="dinamica"&&hours>0&&hours<=1.5)x.push({level:"medium",text:"Atividade prática em uma janela curta pode exigir revisão de duração para preservar a qualidade da aplicação."}); if(a.tipo_contratacao==="programa_lideranca"&&Number(a.encontros||0)<4)x.push({level:"medium",text:"Programas de liderança são estruturados entre 4 e 10 encontros; revise a quantidade antes da proposta."}); if(trainingNeedsTravel(a))x.push({level:"medium",text:"Realização fora de Curitiba e Região Metropolitana: prever estimativa de passagens, hospedagem, alimentação e deslocamentos locais por conta da contratante."}); if(a.data_desejada&&/próxima semana|semana que vem/i.test(a.data_desejada))x.push({level:"high",text:"Antecedência abaixo das quatro semanas recomendadas."}); return x;},
+    notices(a){const x=[]; const participants=Number(a.participantes||0); if(a.formato==="online")x.push({level:"info",text:"No formato online, a realização acontece via Google Meet, com gravação e transcrição da sessão mediante ciência dos participantes."}); if(trainingNeedsTravel(a))x.push({level:"attention",text:"Esta localidade fica fora de Curitiba e da Região Metropolitana. Passagens, hospedagem, alimentação e deslocamentos locais ficam por conta da empresa contratante e serão estimados na proposta."}); if(participants>150)x.push({level:"attention",text:"Para públicos acima de 150 pessoas, o desenho considera escala, infraestrutura e formas de interação compatíveis com o evento."}); else if(participants>40&&a.tipo_contratacao==="workshop")x.push({level:"attention",text:"Em workshops com público maior, a dinâmica pode ser adaptada para manter participação e qualidade."}); return x;},
   },
   "marca-empregadora": {
     slug:"marca-empregadora",code:"EMP",title:"Marca Empregadora",kicker:"Atrair, engajar e sustentar a experiência",intro:"O diagnóstico considera percepção interna e externa, EVP, atração, ativação e sustentação.",
