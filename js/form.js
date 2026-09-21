@@ -99,6 +99,118 @@ function updateConditionalFields() {
   });
 }
 
+function setFieldVisibility(fieldId, visible) {
+  const wrapper = form.querySelector(`[data-field="${fieldId}"]`);
+  if (!wrapper) return;
+  wrapper.classList.toggle("conditional-hidden", !visible);
+  wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
+  if (!visible) wrapper.classList.remove("invalid");
+}
+
+function setFieldLabel(fieldId, text) {
+  const label = form.querySelector(`[data-field="${fieldId}"] > label`);
+  if (!label) return;
+  const required = service.sections.flatMap((section) => section.fields).find((field) => field.id === fieldId)?.required;
+  label.innerHTML = `${escapeHtml(text)} ${required ? '<span class="required">*</span>' : ''}`;
+}
+
+function setSelectOptions(fieldId, options) {
+  const select = form.elements[fieldId];
+  if (!select || select.tagName !== "SELECT") return;
+  const previous = String(select.value || "");
+  select.innerHTML = `<option value="">Selecione</option>${options.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("")}`;
+  if (options.some(([value]) => String(value) === previous)) select.value = previous;
+}
+
+function applyTrainingRules() {
+  if (service.slug !== "treinamentos") return;
+  const type = form.querySelector('[name="tipo_contratacao"]:checked')?.value || "";
+  const audienceInputs = [...form.querySelectorAll('[name="publico"]')];
+  const wholeCompany = audienceInputs.find((input) => input.value === "empresa");
+  if (wholeCompany?.checked) {
+    audienceInputs.filter((input) => input !== wholeCompany).forEach((input) => { input.checked = false; input.disabled = true; });
+  } else {
+    audienceInputs.filter((input) => input !== wholeCompany).forEach((input) => { input.disabled = false; });
+  }
+
+  const isWholeCompany = Boolean(wholeCompany?.checked);
+  const grouped = type === "treinamento" || type === "programa_lideranca";
+  const singleEvent = type === "palestra" || type === "workshop";
+  const canEstimateAudience = Boolean(type);
+
+  setFieldVisibility("nivel_publico", canEstimateAudience && !isWholeCompany);
+  if (isWholeCompany && form.elements.nivel_publico) form.elements.nivel_publico.value = "nao_aplica";
+
+  const participantVisible = canEstimateAudience && (grouped || !isWholeCompany);
+  setFieldVisibility("participantes", participantVisible);
+  setFieldLabel("participantes", grouped ? "Participantes por grupo / turma" : "Quantidade estimada de participantes");
+
+  setFieldVisibility("turmas", grouped);
+  setFieldLabel("turmas", "Número de grupos / turmas");
+  if (!grouped && form.elements.turmas) form.elements.turmas.value = "1";
+
+  const meetings = form.elements.encontros;
+  if (type === "treinamento") {
+    setFieldVisibility("encontros", true);
+    setFieldLabel("encontros", "Número de encontros (2 a 3)");
+    meetings.min = "2"; meetings.max = "3";
+    if (!meetings.value || Number(meetings.value) < 2 || Number(meetings.value) > 3) meetings.value = "2";
+  } else if (type === "programa_lideranca") {
+    setFieldVisibility("encontros", true);
+    setFieldLabel("encontros", "Número de encontros (4 a 10)");
+    meetings.min = "4"; meetings.max = "10";
+    if (!meetings.value || Number(meetings.value) < 4 || Number(meetings.value) > 10) meetings.value = "4";
+  } else {
+    setFieldVisibility("encontros", false);
+    if (meetings) meetings.value = "1";
+  }
+
+  const durationOptions = {
+    palestra: [["1","60 min"],["1.5","90 min"]],
+    workshop: [["2","2 horas"],["3","3 horas"],["4","4 horas"]],
+    treinamento: [["1.5","90 min"],["2","2 horas"],["3","3 horas"],["4","4 horas"]],
+    programa_lideranca: [["1.5","90 min"],["2","2 horas"]],
+  };
+  if (durationOptions[type]) {
+    setFieldVisibility("carga_horaria", true);
+    setSelectOptions("carga_horaria", durationOptions[type]);
+  } else {
+    setFieldVisibility("carga_horaria", false);
+  }
+
+  const interactionWrapper = form.querySelector('[data-field="nivel_interacao"]');
+  if (interactionWrapper) {
+    let note = interactionWrapper.querySelector("[data-training-dynamic-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingDynamicNote = "true";
+      note.className = "context-notice attention";
+      interactionWrapper.appendChild(note);
+    }
+    const dynamic = form.querySelector('[name="nivel_interacao"]:checked')?.value === "dinamica";
+    note.textContent = "Atividades práticas podem exigir revisão da duração prevista. O desenho considera quantidade de participantes, objetivo da dinâmica e tempo necessário para aplicação com qualidade.";
+    note.classList.toggle("hidden", !dynamic);
+  }
+
+  const audienceWrapper = form.querySelector('[data-field="publico"]');
+  if (audienceWrapper) {
+    let note = audienceWrapper.querySelector("[data-training-audience-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingAudienceNote = "true";
+      note.className = "context-notice info";
+      audienceWrapper.appendChild(note);
+    }
+    note.textContent = "Como você selecionou toda a empresa, usaremos o número de colaboradores informado anteriormente como referência de público.";
+    note.classList.toggle("hidden", !(isWholeCompany && !grouped));
+  }
+}
+
+function updateFormLogic() {
+  updateConditionalFields();
+  applyTrainingRules();
+}
+
 function updateContextNotices() {
   const answers = collectAnswers();
   const notices = service.notices?.(answers) || [];
@@ -120,7 +232,7 @@ function showStep(index, shouldScroll = true) {
   submitButton.classList.toggle("hidden", !finalStep);
   document.getElementById("consent-wrap").classList.toggle("hidden", !finalStep);
   feedback.textContent = "";
-  updateConditionalFields();
+  updateFormLogic();
   updateContextNotices();
   if (shouldScroll) window.scrollTo({ top: Math.max(0, document.querySelector(".form-layout").offsetTop - 96), behavior: "smooth" });
 }
@@ -156,7 +268,24 @@ function validateStep() {
 }
 
 function collectAnswers() {
-  return Object.fromEntries(service.sections.flatMap((section) => section.fields).map((field) => [field.id, valueFor(field)]));
+  const answers = Object.fromEntries(service.sections.flatMap((section) => section.fields).map((field) => [field.id, valueFor(field)]));
+  if (service.slug === "treinamentos") {
+    const type = String(answers.tipo_contratacao || "");
+    const audience = Array.isArray(answers.publico) ? answers.publico : [];
+    const grouped = type === "treinamento" || type === "programa_lideranca";
+    if (audience.includes("empresa") && !grouped) answers.participantes = Number(answers.colaboradores || 0) || answers.participantes || "";
+    if (type === "palestra" || type === "workshop") {
+      answers.encontros = 1;
+      answers.turmas = 1;
+    }
+    if (type === "recomendar") {
+      const recurrence = String(answers.recorrencia_esperada || "");
+      answers.encontros = recurrence === "4mais" ? 4 : recurrence === "2a3" ? 2 : 1;
+      answers.turmas = 1;
+      if (!answers.carga_horaria) answers.carga_horaria = answers.nivel_interacao === "dinamica" ? 2 : (recurrence === "4mais" ? 2 : 1.5);
+    }
+  }
+  return answers;
 }
 
 function formatPhone(value) {
@@ -181,13 +310,13 @@ form.addEventListener("input", (event) => {
   if (target.matches("[data-phone]")) target.value = formatPhone(target.value);
   if (target.type === "email") target.value = target.value.replace(/\s/g, "").toLowerCase();
   target.closest(".field")?.classList.remove("invalid");
-  updateConditionalFields();
+  updateFormLogic();
   updateContextNotices();
 });
 
 form.addEventListener("change", (event) => {
   const target = event.target;
-  updateConditionalFields();
+  updateFormLogic();
   updateContextNotices();
   if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
   const matrix = target.closest(".indicator-matrix");
@@ -225,5 +354,5 @@ form.addEventListener("submit", async (event) => {
 });
 
 showStep(0, false);
-updateConditionalFields();
+updateFormLogic();
 updateContextNotices();
