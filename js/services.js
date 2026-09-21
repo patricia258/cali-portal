@@ -339,12 +339,12 @@ export const SERVICES = {
       {title:"Empresa",description:"Informações para dimensionar público, logística e contexto da contratação.",fields:COMMON_COMPANY_TRAINING},
       {title:"Objetivo e tipo de contratação",description:"Primeiro entendemos o que precisa acontecer; o formato pode ser confirmado ou recomendado pela CALI.",fields:[
         {id:"tipo_contratacao",label:"O que você está buscando?",type:"radio",required:true,options:[
-          option("campanha","Palestra para uma campanha ou data do calendário"),
-          option("palestra_tema","Palestra sobre um tema específico"),
-          option("workshop","Workshop aplicado"),
-          option("treinamento","Treinamento de desenvolvimento"),
-          option("programa_lideranca","Programa / trilha de desenvolvimento de lideranças"),
-          option("recomendar","Ainda não sei — quero que a CALI recomende"),
+          option("campanha","Palestra para uma campanha ou data do calendário","Referência: R$ 1,8 mil a R$ 2,5 mil, conforme duração, público, formato e personalização."),
+          option("palestra_tema","Palestra sobre um tema específico","Referência: R$ 1,8 mil a R$ 2,5 mil, conforme duração, público, formato e personalização."),
+          option("workshop","Workshop aplicado","Referência: R$ 2,8 mil a R$ 3,8 mil, conforme duração, dinâmica e número de participantes."),
+          option("treinamento","Treinamento de desenvolvimento","Referência: R$ 4 mil a R$ 5 mil para o desenho-base; mais encontros ou turmas podem ampliar o investimento."),
+          option("programa_lideranca","Programa / trilha de desenvolvimento de lideranças","Referência: a partir de R$ 5,5 mil; o valor varia principalmente conforme número de encontros, público e profundidade."),
+          option("recomendar","Ainda não sei — quero que a CALI recomende","Tudo bem. A CALI cruza objetivo, público, duração e nível de interação para indicar o formato e a faixa mais coerentes."),
         ]},
         {id:"campanha_calendario",label:"Qual é a campanha ou data?",type:"select",required:true,span:6,showWhen:{field:"tipo_contratacao",equals:"campanha"},options:[
           option("outubro_rosa","Outubro Rosa"),
