@@ -331,15 +331,18 @@ const profiles = {
   },
 
   treinamentos: {
-    contextIds: ["tema", "publico", "participantes", "turmas", "formato", "encontros", "carga_horaria", "data_desejada"],
+    contextIds: ["tipo_contratacao", "campanha_calendario", "tema", "publico", "participantes", "turmas", "formato", "nivel_interacao", "encontros", "carga_horaria", "data_desejada"],
     contextLabels: {
+      tipo_contratacao: "Tipo de contratação",
+      campanha_calendario: "Campanha ou data",
       tema: "Tema principal",
       publico: "Público participante",
       participantes: "Participantes por turma",
       turmas: "Número de turmas",
       formato: "Formato da realização",
+      nivel_interacao: "Nível de interação",
       encontros: "Número de encontros",
-      carga_horaria: "Carga por encontro",
+      carga_horaria: "Duração por encontro",
       data_desejada: "Data ou período desejado",
     },
     priorityIds: ["objetivo", "contexto", "acessibilidade"],
@@ -366,13 +369,15 @@ const profiles = {
       const meetingCount = Number(ctx.answers.encontros || 0);
       const classes = classCount ? `${classCount} ${classCount === 1 ? "turma" : "turmas"}` : "Número de turmas acordado";
       const meetings = meetingCount ? `${meetingCount} ${meetingCount === 1 ? "encontro" : "encontros"}` : "Número de encontros acordado";
+      const location = ctx.answers.local_execucao ? ` em ${ctx.answers.local_execucao}` : "";
       return [
         `${classes}, com até ${ctx.answerText("participantes") || "o limite definido"} participantes por turma.`,
-        `${meetings}, com carga de ${String(ctx.answerText("carga_horaria") || "duração definida").toLowerCase()} por encontro.`,
-        `Formato ${String(ctx.answerText("formato") || "definido em proposta").toLowerCase()}.`,
+        `${meetings}, com duração de ${String(ctx.answerText("carga_horaria") || "duração definida").toLowerCase()} por encontro.`,
+        `Formato ${String(ctx.answerText("formato") || "definido em proposta").toLowerCase()}${location}.`,
+        `Participação do público: ${String(ctx.answerText("nivel_interacao") || "nível de interação definido no briefing").toLowerCase()}.`,
         "A empresa garante infraestrutura, acesso, pontualidade e comunicação com os participantes.",
         "Gravação, reprodução ou reutilização do conteúdo depende de autorização e licenciamento expressos.",
-        "O preço considera carga horária, formato, localidade, número de turmas, participantes, personalização e materiais previstos.",
+        "O preço considera duração, nível de interação, formato, localidade, número de turmas, participantes, personalização e materiais previstos.",
       ];
     },
     commercial: () => [
@@ -392,7 +397,7 @@ const profiles = {
     advantages: [
       "Conteúdo construído a partir da realidade da empresa, sem material genérico de prateleira.",
       "Facilitação conduzida ao vivo por Patrícia, com experiência executiva em RH.",
-      "Formato escolhido pela mudança esperada — palestra, workshop ou treinamento — e não apenas pela duração.",
+      "Formato escolhido pela mudança esperada — palestra, workshop, treinamento ou programa — e não apenas pela duração.",
     ],
     bonus: ["Plano de aplicação pós-encontro", "Uma página para o sponsor orientar a aplicação do conteúdo e acompanhar os primeiros compromissos do público."],
     nextSteps: [
