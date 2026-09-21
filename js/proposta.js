@@ -31,7 +31,9 @@ if (!proposal || !submission || !service) { root.innerHTML='<div class="empty">P
 const packageInfo = service.packages?.find((p)=>p.code===proposal.package_code);
 const packageLabel = packageInfo?.label || proposal.package_code;
 const validity = new Date(proposal.updated_at || proposal.created_at); validity.setDate(validity.getDate() + Number(proposal.validity_days || 15));
-const fields = flattenFields(service), answers = submission.answers || {};
+const calc = proposal.calculator_data || {};
+const fields = flattenFields(service), baseAnswers = submission.answers || {};
+const answers = service.slug === "treinamentos" ? {...baseAnswers,...(calc.proposalAnswers || {})} : baseAnswers;
 const fieldById = (id) => fields.find((field) => field.id === id);
 const legacyAnswerLabels = { tempo_rh:{"5a10":"5 a 10 anos"}, momento:{novo_desafio:"Novo desafio profissional"}, objetivos:{visao_negocio:"Visão de negócio"} };
 const readableAnswer = (field, value, id="") => legacyAnswerLabels[id]?.[value] || field?.options?.find((item) => item.value === value)?.label || value;
@@ -43,7 +45,6 @@ const answerText = (id) => {
   if (Array.isArray(value)) return value.map((item) => readableAnswer(field, item, id)).join(", ");
   return readableAnswer(field, value, id);
 };
-const calc = proposal.calculator_data || {};
 const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
 const referencePrice = Number(proposal.subtotal || calc.subtotal || proposal.final_unit || 0);
 const discountValue = Math.max(0, referencePrice - Number(proposal.final_unit || 0));
@@ -52,6 +53,52 @@ const minimumMonths = Number(proposal.contract_months || packageInfo?.minimumMon
 const monthlyHours = Number(calc.monthlyHours || packageInfo?.suggestedHours || 0);
 const profile = proposalProfile({ service, packageCode: proposal.package_code, packageLabel, answers, answerText, minimumMonths, monthlyHours });
 const firstName = String(submission.contact_name || "").trim().split(/\s+/)[0] || "Olá";
+const isTraining = service.slug === "treinamentos";
+const trainingRequested = isTraining && String(baseAnswers.tipo_contratacao || "") !== "recomendar";
+const trainingLegacy = isTraining && Number(calc.trainingEditorialVersion || 0) < 1;
+const trainingScopeDefaults = {
+  PALESTRA:["Reunião breve de briefing com o sponsor","Palestra estratégica de 60 ou 90 minutos","Conteúdo contextualizado ao público, ao tema e ao contexto da empresa","Facilitação ao vivo por Patrícia Lima","Material-síntese de apoio, quando previsto no desenho"],
+  WORKSHOP:["Reunião de briefing com o sponsor","Workshop aplicado de 2 a 4 horas","Conteúdo, exercícios ou dinâmica conectados ao contexto real","Facilitação ao vivo por Patrícia Lima","Material de apoio e compromissos de aplicação"],
+  TREINAMENTO:["Reunião de briefing e desenho da competência prioritária","Treinamento personalizado em 2 ou 3 encontros","Conteúdo, exercícios e prática entre os encontros","Facilitação ao vivo por Patrícia Lima","Síntese de aplicação e próximos compromissos"],
+  PROGRAMA:["Reunião de briefing e definição da trilha de liderança","Programa estruturado de 4 a 10 encontros","Conteúdo aplicado a desafios reais de liderança","Prática e acompanhamento de evolução entre etapas","Síntese final com compromissos e próximos movimentos"],
+};
+function trainingNarrative() {
+  const type=answerText("tipo_contratacao") || packageLabel;
+  const campaign=answerText("campanha_calendario");
+  const theme=String(answers.tema || "").trim();
+  const audience=answerText("publico");
+  const format=answerText("formato");
+  const duration=answerText("carga_horaria");
+  const interaction=answerText("nivel_interacao");
+  const context=String(answers.contexto || "").trim();
+  const objective=String(answers.objetivo || "").trim();
+  const accessibility=String(answers.acessibilidade || "").trim();
+  const notes=String(answers.observacoes || "").trim();
+  const summary=[
+    `A solicitação é para ${String(type).toLowerCase()}${campaign ? `, vinculada a ${campaign}` : ""}.`,
+    theme ? `Tema informado: ${theme}.` : "",
+    audience ? `Público: ${audience}.` : "",
+    format ? `Formato: ${format}${answers.local_execucao ? ` em ${answers.local_execucao}` : ""}.` : "",
+    duration ? `Duração prevista por encontro: ${duration}.` : "",
+  ].filter(Boolean).join(" ");
+  const reading=interaction
+    ? `O desenho será ajustado para ${String(interaction).toLowerCase()}, respeitando a duração contratada, o perfil do público e o objetivo informado no briefing.`
+    : "O desenho será ajustado ao público, à duração e ao objetivo informado no briefing, preservando clareza e aplicabilidade.";
+  const expected=[
+    theme ? `Conteúdo customizado para o tema “${theme}” e para o contexto informado.` : "Conteúdo customizado a partir do contexto e do objetivo informados no briefing.",
+    audience ? `Linguagem e exemplos adequados ao público: ${audience}.` : "",
+    interaction ? `Participação do público em formato compatível com: ${String(interaction).toLowerCase()}.` : "",
+  ].filter(Boolean);
+  return {
+    contextSummary:summary,
+    painPoints:[context,accessibility,notes].filter(Boolean).slice(0,3),
+    executiveReading:reading,
+    whyNow:campaign ? `A ação está vinculada a ${campaign} e será preparada para fazer sentido dentro desse contexto, sem recorrer a conteúdo genérico.` : "A proposta responde ao contexto e ao objetivo registrados no briefing, com um desenho proporcional ao formato solicitado.",
+    cycleObjective:objective || "Entregar uma ação de desenvolvimento conectada ao contexto da empresa e ao público participante.",
+    expectedResults:expected,
+  };
+}
+const trainingDefaults = isTraining ? trainingNarrative() : null;
 
 function defaultContextNarrative() {
   const company = submission.company_name || "A empresa";
@@ -62,20 +109,20 @@ function defaultContextNarrative() {
   const readings=profile.contextIds.slice(0,5).map((id)=>answerText(id)?`${String(profile.contextLabels[id]||fieldById(id)?.label||id).toLowerCase()}: ${answerText(id)}`:"").filter(Boolean);
   return `${company} compartilhou um contexto que reúne ${readings.join("; ") || "necessidades que pedem organização, direção e uma sequência viável de implantação"}. Esta proposta parte do briefing recebido e considera as decisões que precisam ser sustentadas pela liderança.`;
 }
-const contextSummary = calc.contextSummary || defaultContextNarrative();
+const contextSummary = trainingLegacy ? trainingDefaults.contextSummary : (calc.contextSummary || defaultContextNarrative());
 const briefingPriorities = [answerText(profile.priorityIds[0]), ...list(answers.frentes).map((value)=>readableAnswer(fieldById("frentes"),value,"frentes"))].filter(Boolean);
-const painPoints = list(calc.painPoints).length ? calc.painPoints : (briefingPriorities.length ? briefingPriorities.slice(0,4) : profile.priorityIds.map((id)=>answerText(id)).filter(Boolean).slice(0,4));
-const executiveReading = calc.executiveReading || "A leitura inicial indica que o trabalho deve começar pelas prioridades que criam base para as demais necessidades avançarem com consistência.";
-const solutionCopy = proposal.public_notes || profile.solutionCopy || packageInfo?.description || service.intro;
-const whyNow = calc.whyNow || "A recomendação concentra energia no que precisa avançar agora, com critérios claros e uma condução compatível com a capacidade real de implantação da empresa.";
-const cycleObjective = calc.cycleObjective || "Transformar a prioridade central em decisões, responsáveis e movimentos aplicáveis ao negócio.";
-const expectedResults = list(calc.expectedResults).length ? calc.expectedResults : ["Prioridades organizadas e compreendidas pela liderança", "Decisões apoiadas por critérios mais claros", "Próximos movimentos registrados em roadmap"];
+const painPoints = trainingLegacy ? trainingDefaults.painPoints : (list(calc.painPoints).length ? calc.painPoints : (briefingPriorities.length ? briefingPriorities.slice(0,4) : profile.priorityIds.map((id)=>answerText(id)).filter(Boolean).slice(0,4)));
+const executiveReading = trainingLegacy ? trainingDefaults.executiveReading : (calc.executiveReading || "A leitura inicial indica que o trabalho deve começar pelas prioridades que criam base para as demais necessidades avançarem com consistência.");
+const solutionCopy = trainingLegacy ? (profile.solutionCopy || packageInfo?.description || service.intro) : (proposal.public_notes || profile.solutionCopy || packageInfo?.description || service.intro);
+const whyNow = trainingLegacy ? trainingDefaults.whyNow : (calc.whyNow || "A recomendação concentra energia no que precisa avançar agora, com critérios claros e uma condução compatível com a capacidade real de implantação da empresa.");
+const cycleObjective = trainingLegacy ? trainingDefaults.cycleObjective : (calc.cycleObjective || "Transformar a prioridade central em decisões, responsáveis e movimentos aplicáveis ao negócio.");
+const expectedResults = trainingLegacy ? trainingDefaults.expectedResults : (list(calc.expectedResults).length ? calc.expectedResults : ["Prioridades organizadas e compreendidas pela liderança", "Decisões apoiadas por critérios mais claros", "Próximos movimentos registrados em roadmap"]);
 const concreteAdvantages = [
   "Mais de 15 anos de experiência em Recursos Humanos e atuação em mais de 110 empresas, aplicados à leitura de riscos, dependências e prioridades deste contexto.",
   "Condução direta por Patrícia Lima, com repertório de diretoria e CHRO, sem repasses ou camadas intermediárias.",
   profile.advantages?.[0] || "Método conectado ao negócio, com decisões, responsáveis e próximos movimentos claramente organizados.",
 ];
-const advantages = Number(calc.editorialVersion || 0) >= 2 && list(calc.advantages).length ? calc.advantages : concreteAdvantages;
+const advantages = isTraining ? (trainingLegacy ? profile.advantages : (list(calc.advantages).length ? calc.advantages : profile.advantages)) : (Number(calc.editorialVersion || 0) >= 2 && list(calc.advantages).length ? calc.advantages : concreteAdvantages);
 const roadmapItems = list(calc.roadmapItems);
 const normalizeCycle = (cycle) => {
   const structured = {
@@ -90,9 +137,9 @@ const normalizeCycle = (cycle) => {
   return compact ? {title:compact[1], duration:compact[2] || "", focus:compact[3], objective:""} : {...structured,title:raw};
 };
 const cycles = list(calc.cycles).map(normalizeCycle).filter((cycle)=>cycle.title);
-const cadence = list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
-const caliResponsibilities = list(calc.caliResponsibilities).length ? calc.caliResponsibilities : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."];
-const clientResponsibilities = list(calc.clientResponsibilities).length ? calc.clientResponsibilities : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."];
+const cadence = trainingLegacy ? profile.operating.slice(0,4) : (list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
+const caliResponsibilities = trainingLegacy ? ["Realizar o briefing final e customizar o conteúdo conforme público, objetivo e contexto.","Conduzir a facilitação no formato e duração contratados.","Entregar os materiais previstos no escopo aprovado."] : (list(calc.caliResponsibilities).length ? calc.caliResponsibilities : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."]);
+const clientResponsibilities = trainingLegacy ? ["Confirmar público, agenda, sponsor e informações necessárias ao briefing.","Disponibilizar sala, equipamentos, acessos e infraestrutura quando aplicável.","Comunicar os participantes e garantir condições para início pontual da ação."] : (list(calc.clientResponsibilities).length ? calc.clientResponsibilities : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."]);
 const outOfScope = list(calc.outOfScope).length ? calc.outOfScope : profile.outOfScope;
 const roadmapNote = "Patrícia analisa todas as prioridades mencionadas no briefing e organiza um roadmap por impacto, dependência e sequência de implantação. Algumas necessidades podem não aparecer no escopo deste primeiro ciclo porque foram priorizadas para uma etapa posterior. Elas não serão desconsideradas e poderão entrar em novos ciclos conforme a evolução do trabalho.";
 
@@ -107,18 +154,22 @@ function mapFromRow(row) {
   const score=d1*.25+d2*.30+d3*.20+d4*.25,maturity=mean([d1,d2,d3]);
   return {include:true,score:Number(score.toFixed(1)),quadrant:maturity<5?(d4<5?"Embrionário":"Frágil"):(d4<5?"Em Estruturação":"Estratégico")};
 }
-let mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
-if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
-  const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
-  const rows = await optionalRest(`mapa_respostas?c_email=ilike.${email}&select=id,protocolo,created_at,diagnostico_v2&order=created_at.desc&limit=1`);
-  mapaPeople = mapFromRow(rows?.[0]);
+let mapaPeople = null;
+if (service.slug === "assessoria-estrategica") {
+  mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
+  if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
+    const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
+    const rows = await optionalRest(`mapa_respostas?c_email=ilike.${email}&select=id,protocolo,created_at,diagnostico_v2&order=created_at.desc&limit=1`);
+    mapaPeople = mapFromRow(rows?.[0]);
+  }
 }
 const quadrantClass = {"Embrionário":"embrionario","Frágil":"fragil","Em Estruturação":"estruturacao","Estratégico":"estrategico"}[mapaPeople?.quadrant] || "fragil";
 const mapHtml = mapaPeople?.include && Number(mapaPeople.score) > 0 ? `<aside class="proposal-map-result"><div><span>Resultado do Mapa de People</span><strong>${Number(mapaPeople.score).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})}<small>/10</small></strong></div><div class="map-quadrant ${quadrantClass}"><span>Quadrante atual</span><strong>${escapeHtml(mapaPeople.quadrant)}</strong></div></aside>` : "";
 
 let scopeNumber=0;
 const scopeGroups=[];
-for (const raw of list(proposal.scope_items)) {
+const scopeSource = trainingLegacy ? (trainingScopeDefaults[proposal.package_code] || trainingScopeDefaults.PALESTRA) : list(proposal.scope_items);
+for (const raw of scopeSource) {
   const isSub=/^\s*[-–—]\s*/.test(raw), text=String(raw).replace(/^\s*[-–—]\s*/,"");
   if (isSub && scopeGroups.length) scopeGroups.at(-1).subitems.push(text);
   else { scopeNumber+=1; scopeGroups.push({number:scopeNumber,text,subitems:[]}); }
@@ -143,12 +194,31 @@ const whatsappUrl=`https://wa.me/5541987791933?text=${whatsText}`;
 const pages=[];
 const header=()=>`<header class="proposal-head"><img src="${ASSETS.logoBordo}" alt="CALI — HR for Business"><div><strong>${escapeHtml(submission.protocol)}</strong><span>${new Date(proposal.updated_at||proposal.created_at).toLocaleDateString("pt-BR")} · válida até ${validity.toLocaleDateString("pt-BR")}</span></div></header>`;
 const addPage=(role,content,classes="")=>pages.push({role,content,classes});
-addPage("Contexto",`<div class="proposal-kicker">Proposta preparada para</div><h1 class="proposal-greeting">Olá, <span>${escapeHtml(firstName)}</span>.<br>Sua proposta chegou.</h1><div class="proposal-client"><span>Empresa</span><strong>${escapeHtml(submission.company_name||"Não informada")}</strong></div><section class="proposal-section"><div class="section-label">01 · O ponto de partida</div><h2>O que entendemos</h2><p class="proposal-lead">${escapeHtml(contextSummary)}</p></section>${painPoints.length?`<section class="proposal-section"><h3>Dores iniciais</h3>${linesHtml(painPoints,"proposal-pain-list")}</section>`:""}${mapHtml}<aside class="proposal-reading"><span>Leitura estratégica</span><p>${escapeHtml(executiveReading)}</p></aside>`,`proposal-context-page`);
-addPage("Solução",`<div class="proposal-kicker">Solução recomendada</div><h1>${escapeHtml(packageLabel)}</h1><p class="proposal-service-label">${escapeHtml(service.title)}</p><section class="proposal-section proposal-solution-intro"><p class="proposal-lead">${escapeHtml(solutionCopy)}</p></section><div class="proposal-solution-grid"><section><span>Por que agora</span><p>${escapeHtml(whyNow)}</p></section><section><span>Objetivo do ciclo</span><p>${escapeHtml(cycleObjective)}</p></section></div><section class="proposal-section"><h2>O que este trabalho deve colocar em movimento</h2>${linesHtml(expectedResults,"proposal-result-list")}</section><section class="proposal-section"><h2>Por que a CALI neste contexto</h2><div class="proposal-advantage-grid">${advantages.map((item,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><p>${escapeHtml(item)}</p></div>`).join("")}</div></section>`,`proposal-solution-page`);
-addPage("Entrega",`<div class="proposal-kicker">Escopo contratado</div><h1>Escopo incluído</h1><p class="proposal-page-intro">As entregas abaixo seguem exatamente a ordem definida para esta proposta.</p>${scopeChunkHtml(scopeGroups)}<section class="proposal-section proposal-working"><h2>Cadência</h2>${linesHtml(cadence,"proposal-simple-list")}</section><section class="proposal-section"><h2>Responsabilidades</h2><div class="proposal-responsibility-grid"><div><span>A CALI conduz</span>${linesHtml(caliResponsibilities,"proposal-simple-list")}</div><div><span>O cliente fornece</span>${linesHtml(clientResponsibilities,"proposal-simple-list")}</div></div></section>`,`proposal-delivery-page`);
-if(cycles.length) addPage("Ciclos",`<div class="proposal-kicker">Sequência de implantação</div><h1>Ciclos e fases de implantação</h1><div class="proposal-cycle-list">${cycles.map((cycle,cycleIndex)=>`<section><span>${String(cycleIndex+1).padStart(2,"0")}</span><div><div class="proposal-cycle-heading"><h2>${escapeHtml(cycle.title)}</h2>${cycle.duration?`<small>${escapeHtml(cycle.duration)}</small>`:""}</div>${cycle.focus?`<strong>${escapeHtml(cycle.focus)}</strong>`:""}${cycle.objective?`<p>${escapeHtml(cycle.objective)}</p>`:""}</div></section>`).join("")}</div>${roadmapHtml()}${outOfScopeHtml()}`,`proposal-cycles-page`);
-else addPage("Roadmap",`<div class="proposal-kicker">Organização do trabalho</div><h1>Roadmap e limites</h1>${roadmapHtml()}${outOfScopeHtml()}`,`proposal-cycles-page proposal-limits-page`);
-addPage("Investimento",`<div class="proposal-kicker">Condições comerciais</div><h1>Investimento e próximos passos</h1><section class="proposal-investment"><div><span>${monthly?"Mensalidade de referência":"Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue?`<div class="proposal-discount"><span>${escapeHtml(calc.discountType||"Condição comercial")}${calc.discountDescription?` · ${escapeHtml(calc.discountDescription)}`:""}</span><strong>− ${currency(discountValue)}</strong></div>`:""}<div class="proposal-final-price"><span>${monthly?"Mensalidade final":"Investimento final"}</span><strong>${currency(proposal.final_unit)}</strong></div></section><div class="proposal-commercial-facts">${monthlyHours?`<div><span>Capacidade</span><strong>Até ${monthlyHours} horas por mês</strong></div>`:""}<div><span>${monthly?"Prazo mínimo":"Duração prevista"}</span><strong>${minimumMonths} ${minimumMonths===1?"mês":"meses"}</strong></div><div><span>Natureza</span><strong>${monthly?"Atuação recorrente e fracionada":"Projeto com início e fim"}</strong></div></div><section class="proposal-section"><h2>Forma de pagamento</h2><div class="proposal-payment-grid">${paymentRowsHtml}</div>${proposal.payment_terms?`<p class="proposal-payment-note">${escapeHtml(proposal.payment_terms)}</p>`:""}</section>${bonusHtml}<section class="proposal-section"><h2>Próximos passos</h2><div class="proposal-next-steps">${nextStepsHtml}</div></section><div class="proposal-closing"><section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI RH</div></section><a class="proposal-whatsapp" href="${whatsappUrl}" target="_blank" rel="noopener">Vamos conversar sobre a proposta?</a></div>`,`proposal-commercial-page`);
+if (isTraining) {
+  const requestedLabel = trainingRequested ? "Solução solicitada" : "Solução recomendada";
+  const trainingConditions = (list(calc.commercialConditions).length ? calc.commercialConditions : profile.commercial).filter((item)=>!/proposta é válida|pagamento deve/i.test(String(item)));
+  const trainingMeetings = Number(answers.encontros || 1);
+  const trainingDuration = answerText("carga_horaria") || "duração definida";
+  const trainingFormat = answerText("formato") || "formato definido";
+  const realization = trainingMeetings === 1 ? "Encontro único" : `${trainingMeetings} encontros`;
+
+  addPage("Briefing",`<div class="proposal-kicker">Proposta preparada para</div><h1 class="proposal-greeting">Olá, <span>${escapeHtml(firstName)}</span>.<br>Sua proposta chegou.</h1><div class="proposal-client"><span>Empresa</span><strong>${escapeHtml(submission.company_name||"Não informada")}</strong></div><section class="proposal-section"><div class="section-label">01 · Briefing da ação</div><h2>O que foi solicitado</h2><p class="proposal-lead">${escapeHtml(contextSummary)}</p></section>${painPoints.length?`<section class="proposal-section"><h3>Contexto e pontos do briefing</h3>${linesHtml(painPoints,"proposal-pain-list")}</section>`:""}`,`proposal-context-page`);
+
+  addPage("Solução",`<div class="proposal-kicker">${requestedLabel}</div><h1>${escapeHtml(packageLabel)}</h1><p class="proposal-service-label">${escapeHtml(service.title)}</p><section class="proposal-section proposal-solution-intro"><p class="proposal-lead">${escapeHtml(solutionCopy)}</p></section><div class="proposal-solution-grid"><section><span>Objetivo da ação</span><p>${escapeHtml(cycleObjective)}</p></section><section><span>Como será conduzida</span><p>${escapeHtml(executiveReading)}</p></section></div><section class="proposal-section"><h2>Como esta entrega será desenhada</h2>${linesHtml(expectedResults,"proposal-result-list")}</section><section class="proposal-section"><h2>Por que a CALI para esta ação</h2><div class="proposal-advantage-grid">${advantages.map((item,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><p>${escapeHtml(item)}</p></div>`).join("")}</div></section>`,`proposal-solution-page`);
+
+  addPage("Escopo",`<div class="proposal-kicker">Escopo da contratação</div><h1>O que está incluído</h1><p class="proposal-page-intro">Estes itens compõem a entrega contratada para esta ação.</p>${scopeChunkHtml(scopeGroups)}<section class="proposal-section proposal-working"><h2>Formato e realização</h2>${linesHtml(cadence.slice(0,4),"proposal-simple-list")}</section><section class="proposal-section"><h2>Responsabilidades</h2><div class="proposal-responsibility-grid"><div><span>A CALI conduz</span>${linesHtml(caliResponsibilities,"proposal-simple-list")}</div><div><span>O cliente garante</span>${linesHtml(clientResponsibilities,"proposal-simple-list")}</div></div></section>`,`proposal-delivery-page`);
+
+  addPage("Limites",`<div class="proposal-kicker">Condições da contratação</div><h1>Realização e limites</h1><section class="proposal-section"><h2>Condições de execução</h2>${linesHtml(trainingConditions.slice(0,6),"proposal-simple-list")}</section>${outOfScopeHtml()}`,`proposal-cycles-page proposal-limits-page`);
+
+  addPage("Investimento",`<div class="proposal-kicker">Condições comerciais</div><h1>Investimento e próximos passos</h1><section class="proposal-investment">${discountValue?`<div><span>Investimento de referência</span><strong>${currency(referencePrice)}</strong></div>`:""}${discountValue?`<div class="proposal-discount"><span>${escapeHtml(calc.discountType||"Condição comercial")}${calc.discountDescription?` · ${escapeHtml(calc.discountDescription)}`:""}</span><strong>− ${currency(discountValue)}</strong></div>`:""}<div class="proposal-final-price"><span>Investimento final</span><strong>${currency(proposal.final_unit)}</strong></div></section><div class="proposal-commercial-facts"><div><span>Realização</span><strong>${escapeHtml(realization)}</strong></div><div><span>Duração</span><strong>${escapeHtml(trainingDuration)}${trainingMeetings>1?" por encontro":""}</strong></div><div><span>Formato</span><strong>${escapeHtml(trainingFormat)}</strong></div></div><section class="proposal-section"><h2>Forma de pagamento</h2><div class="proposal-payment-grid">${paymentRowsHtml}</div>${proposal.payment_terms?`<p class="proposal-payment-note">${escapeHtml(proposal.payment_terms)}</p>`:""}</section>${bonusHtml}<section class="proposal-section"><h2>Próximos passos</h2><div class="proposal-next-steps">${nextStepsHtml}</div></section><div class="proposal-closing"><section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI RH</div></section><a class="proposal-whatsapp" href="${whatsappUrl}" target="_blank" rel="noopener">Vamos conversar sobre a proposta?</a></div>`,`proposal-commercial-page`);
+} else {
+  addPage("Contexto",`<div class="proposal-kicker">Proposta preparada para</div><h1 class="proposal-greeting">Olá, <span>${escapeHtml(firstName)}</span>.<br>Sua proposta chegou.</h1><div class="proposal-client"><span>Empresa</span><strong>${escapeHtml(submission.company_name||"Não informada")}</strong></div><section class="proposal-section"><div class="section-label">01 · O ponto de partida</div><h2>O que entendemos</h2><p class="proposal-lead">${escapeHtml(contextSummary)}</p></section>${painPoints.length?`<section class="proposal-section"><h3>Dores iniciais</h3>${linesHtml(painPoints,"proposal-pain-list")}</section>`:""}${mapHtml}<aside class="proposal-reading"><span>Leitura estratégica</span><p>${escapeHtml(executiveReading)}</p></aside>`,`proposal-context-page`);
+  addPage("Solução",`<div class="proposal-kicker">Solução recomendada</div><h1>${escapeHtml(packageLabel)}</h1><p class="proposal-service-label">${escapeHtml(service.title)}</p><section class="proposal-section proposal-solution-intro"><p class="proposal-lead">${escapeHtml(solutionCopy)}</p></section><div class="proposal-solution-grid"><section><span>Por que agora</span><p>${escapeHtml(whyNow)}</p></section><section><span>Objetivo do ciclo</span><p>${escapeHtml(cycleObjective)}</p></section></div><section class="proposal-section"><h2>O que este trabalho deve colocar em movimento</h2>${linesHtml(expectedResults,"proposal-result-list")}</section><section class="proposal-section"><h2>Por que a CALI neste contexto</h2><div class="proposal-advantage-grid">${advantages.map((item,index)=>`<div><span>${String(index+1).padStart(2,"0")}</span><p>${escapeHtml(item)}</p></div>`).join("")}</div></section>`,`proposal-solution-page`);
+  addPage("Entrega",`<div class="proposal-kicker">Escopo contratado</div><h1>Escopo incluído</h1><p class="proposal-page-intro">As entregas abaixo seguem exatamente a ordem definida para esta proposta.</p>${scopeChunkHtml(scopeGroups)}<section class="proposal-section proposal-working"><h2>Cadência</h2>${linesHtml(cadence,"proposal-simple-list")}</section><section class="proposal-section"><h2>Responsabilidades</h2><div class="proposal-responsibility-grid"><div><span>A CALI conduz</span>${linesHtml(caliResponsibilities,"proposal-simple-list")}</div><div><span>O cliente fornece</span>${linesHtml(clientResponsibilities,"proposal-simple-list")}</div></div></section>`,`proposal-delivery-page`);
+  if(cycles.length) addPage("Ciclos",`<div class="proposal-kicker">Sequência de implantação</div><h1>Ciclos e fases de implantação</h1><div class="proposal-cycle-list">${cycles.map((cycle,cycleIndex)=>`<section><span>${String(cycleIndex+1).padStart(2,"0")}</span><div><div class="proposal-cycle-heading"><h2>${escapeHtml(cycle.title)}</h2>${cycle.duration?`<small>${escapeHtml(cycle.duration)}</small>`:""}</div>${cycle.focus?`<strong>${escapeHtml(cycle.focus)}</strong>`:""}${cycle.objective?`<p>${escapeHtml(cycle.objective)}</p>`:""}</div></section>`).join("")}</div>${roadmapHtml()}${outOfScopeHtml()}`,`proposal-cycles-page`);
+  else addPage("Roadmap",`<div class="proposal-kicker">Organização do trabalho</div><h1>Roadmap e limites</h1>${roadmapHtml()}${outOfScopeHtml()}`,`proposal-cycles-page proposal-limits-page`);
+  addPage("Investimento",`<div class="proposal-kicker">Condições comerciais</div><h1>Investimento e próximos passos</h1><section class="proposal-investment"><div><span>${monthly?"Mensalidade de referência":"Investimento de referência"}</span><strong>${currency(referencePrice)}</strong></div>${discountValue?`<div class="proposal-discount"><span>${escapeHtml(calc.discountType||"Condição comercial")}${calc.discountDescription?` · ${escapeHtml(calc.discountDescription)}`:""}</span><strong>− ${currency(discountValue)}</strong></div>`:""}<div class="proposal-final-price"><span>${monthly?"Mensalidade final":"Investimento final"}</span><strong>${currency(proposal.final_unit)}</strong></div></section><div class="proposal-commercial-facts">${monthlyHours?`<div><span>Capacidade</span><strong>Até ${monthlyHours} horas por mês</strong></div>`:""}<div><span>${monthly?"Prazo mínimo":"Duração prevista"}</span><strong>${minimumMonths} ${minimumMonths===1?"mês":"meses"}</strong></div><div><span>Natureza</span><strong>${monthly?"Atuação recorrente e fracionada":"Projeto com início e fim"}</strong></div></div><section class="proposal-section"><h2>Forma de pagamento</h2><div class="proposal-payment-grid">${paymentRowsHtml}</div>${proposal.payment_terms?`<p class="proposal-payment-note">${escapeHtml(proposal.payment_terms)}</p>`:""}</section>${bonusHtml}<section class="proposal-section"><h2>Próximos passos</h2><div class="proposal-next-steps">${nextStepsHtml}</div></section><div class="proposal-closing"><section class="signature"><div class="signature-name">Patrícia Lima</div><div class="signature-role">People Advisory Executive · CALI RH</div></section><a class="proposal-whatsapp" href="${whatsappUrl}" target="_blank" rel="noopener">Vamos conversar sobre a proposta?</a></div>`,`proposal-commercial-page`);
+}
 
 root.innerHTML=`<div class="proposal-document">${pages.map((page,index)=>`<article class="proposal-page ${page.classes}">${header()}<main>${page.content}</main><footer class="proposal-footer"><span>Patrícia Lima · CALI RH · patricia@calirh.com</span><span>${String(index+1).padStart(2,"0")} / ${String(pages.length).padStart(2,"0")}</span></footer></article>`).join("")}</div>`;
 
