@@ -399,9 +399,9 @@ const profiles = {
       "Mudança de tema, público ou formato após aprovação sem revisão de escopo.",
     ],
     advantages: [
-      "Conteúdo construído a partir da realidade da empresa, sem material genérico de prateleira.",
-      "Facilitação conduzida ao vivo por Patrícia, com experiência executiva em RH.",
-      "Formato escolhido pela mudança esperada — palestra, workshop, treinamento ou programa — e não apenas pela duração.",
+      "Conteúdo customizado a partir do briefing, do público e do contexto real da ação.",
+      "Condução direta por Patrícia Lima, conectando repertório executivo de RH a exemplos e situações aplicáveis ao público.",
+      "Duração, interação e dinâmica desenhadas para o formato contratado, sem prometer uma profundidade incompatível com o tempo disponível.",
     ],
     bonus: ["Plano de aplicação pós-encontro", "Uma página para o sponsor orientar a aplicação do conteúdo e acompanhar os primeiros compromissos do público."],
     nextSteps: [
