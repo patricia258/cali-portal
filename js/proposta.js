@@ -31,7 +31,9 @@ if (!proposal || !submission || !service) { root.innerHTML='<div class="empty">P
 const packageInfo = service.packages?.find((p)=>p.code===proposal.package_code);
 const packageLabel = packageInfo?.label || proposal.package_code;
 const validity = new Date(proposal.updated_at || proposal.created_at); validity.setDate(validity.getDate() + Number(proposal.validity_days || 15));
-const fields = flattenFields(service), answers = submission.answers || {};
+const calc = proposal.calculator_data || {};
+const fields = flattenFields(service), baseAnswers = submission.answers || {};
+const answers = service.slug === "treinamentos" ? {...baseAnswers,...(calc.proposalAnswers || {})} : baseAnswers;
 const fieldById = (id) => fields.find((field) => field.id === id);
 const legacyAnswerLabels = { tempo_rh:{"5a10":"5 a 10 anos"}, momento:{novo_desafio:"Novo desafio profissional"}, objetivos:{visao_negocio:"Visão de negócio"} };
 const readableAnswer = (field, value, id="") => legacyAnswerLabels[id]?.[value] || field?.options?.find((item) => item.value === value)?.label || value;
@@ -43,7 +45,6 @@ const answerText = (id) => {
   if (Array.isArray(value)) return value.map((item) => readableAnswer(field, item, id)).join(", ");
   return readableAnswer(field, value, id);
 };
-const calc = proposal.calculator_data || {};
 const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
 const referencePrice = Number(proposal.subtotal || calc.subtotal || proposal.final_unit || 0);
 const discountValue = Math.max(0, referencePrice - Number(proposal.final_unit || 0));
@@ -52,6 +53,51 @@ const minimumMonths = Number(proposal.contract_months || packageInfo?.minimumMon
 const monthlyHours = Number(calc.monthlyHours || packageInfo?.suggestedHours || 0);
 const profile = proposalProfile({ service, packageCode: proposal.package_code, packageLabel, answers, answerText, minimumMonths, monthlyHours });
 const firstName = String(submission.contact_name || "").trim().split(/\s+/)[0] || "Olá";
+const isTraining = service.slug === "treinamentos";
+const trainingRequested = isTraining && String(baseAnswers.tipo_contratacao || "") !== "recomendar";
+const trainingLegacy = isTraining && Number(calc.trainingEditorialVersion || 0) < 1;
+const trainingScopeDefaults = {
+  PALESTRA:["Reunião breve de briefing com o sponsor","Palestra estratégica de 60 ou 90 minutos","Conteúdo contextualizado ao público, ao tema e ao contexto da empresa","Facilitação ao vivo por Patrícia Lima","Material-síntese de apoio, quando previsto no desenho"],
+  WORKSHOP:["Reunião de briefing com o sponsor","Workshop aplicado de 2 a 4 horas","Conteúdo, exercícios ou dinâmica conectados ao contexto real","Facilitação ao vivo por Patrícia Lima","Material de apoio e compromissos de aplicação"],
+  TREINAMENTO:["Reunião de briefing e desenho da competência prioritária","Treinamento personalizado em 2 ou 3 encontros","Conteúdo, exercícios e prática entre os encontros","Facilitação ao vivo por Patrícia Lima","Síntese de aplicação e próximos compromissos"],
+  PROGRAMA:["Reunião de briefing e definição da trilha de liderança","Programa estruturado de 4 a 10 encontros","Conteúdo aplicado a desafios reais de liderança","Prática e acompanhamento de evolução entre etapas","Síntese final com compromissos e próximos movimentos"],
+};
+function trainingNarrative() {
+  const type=answerText("tipo_contratacao") || packageLabel;
+  const campaign=answerText("campanha_calendario");
+  const theme=String(answers.tema || "").trim();
+  const audience=answerText("publico");
+  const format=answerText("formato");
+  const duration=answerText("carga_horaria");
+  const interaction=answerText("nivel_interacao");
+  const context=String(answers.contexto || "").trim();
+  const objective=String(answers.objetivo || "").trim();
+  const accessibility=String(answers.acessibilidade || "").trim();
+  const summary=[
+    `A solicitação é para ${String(type).toLowerCase()}${campaign ? `, vinculada a ${campaign}` : ""}.`,
+    theme ? `Tema informado: ${theme}.` : "",
+    audience ? `Público: ${audience}.` : "",
+    format ? `Formato: ${format}${answers.local_execucao ? ` em ${answers.local_execucao}` : ""}.` : "",
+    duration ? `Duração prevista por encontro: ${duration}.` : "",
+  ].filter(Boolean).join(" ");
+  const reading=interaction
+    ? `O desenho será ajustado para ${String(interaction).toLowerCase()}, respeitando a duração contratada, o perfil do público e o objetivo informado no briefing.`
+    : "O desenho será ajustado ao público, à duração e ao objetivo informado no briefing, preservando clareza e aplicabilidade.";
+  const expected=[
+    theme ? `Conteúdo customizado para o tema “${theme}” e para o contexto informado.` : "Conteúdo customizado a partir do contexto e do objetivo informados no briefing.",
+    audience ? `Linguagem e exemplos adequados ao público: ${audience}.` : "",
+    interaction ? `Participação do público em formato compatível com: ${String(interaction).toLowerCase()}.` : "",
+  ].filter(Boolean);
+  return {
+    contextSummary:summary,
+    painPoints:[context,objective,accessibility].filter(Boolean).slice(0,3),
+    executiveReading:reading,
+    whyNow:campaign ? `A ação está vinculada a ${campaign} e será preparada para fazer sentido dentro desse contexto, sem recorrer a conteúdo genérico.` : "A proposta responde ao contexto e ao objetivo registrados no briefing, com um desenho proporcional ao formato solicitado.",
+    cycleObjective:objective || "Entregar uma ação de desenvolvimento conectada ao contexto da empresa e ao público participante.",
+    expectedResults:expected,
+  };
+}
+const trainingDefaults = isTraining ? trainingNarrative() : null;
 
 function defaultContextNarrative() {
   const company = submission.company_name || "A empresa";
@@ -62,20 +108,20 @@ function defaultContextNarrative() {
   const readings=profile.contextIds.slice(0,5).map((id)=>answerText(id)?`${String(profile.contextLabels[id]||fieldById(id)?.label||id).toLowerCase()}: ${answerText(id)}`:"").filter(Boolean);
   return `${company} compartilhou um contexto que reúne ${readings.join("; ") || "necessidades que pedem organização, direção e uma sequência viável de implantação"}. Esta proposta parte do briefing recebido e considera as decisões que precisam ser sustentadas pela liderança.`;
 }
-const contextSummary = calc.contextSummary || defaultContextNarrative();
+const contextSummary = trainingLegacy ? trainingDefaults.contextSummary : (calc.contextSummary || defaultContextNarrative());
 const briefingPriorities = [answerText(profile.priorityIds[0]), ...list(answers.frentes).map((value)=>readableAnswer(fieldById("frentes"),value,"frentes"))].filter(Boolean);
-const painPoints = list(calc.painPoints).length ? calc.painPoints : (briefingPriorities.length ? briefingPriorities.slice(0,4) : profile.priorityIds.map((id)=>answerText(id)).filter(Boolean).slice(0,4));
-const executiveReading = calc.executiveReading || "A leitura inicial indica que o trabalho deve começar pelas prioridades que criam base para as demais necessidades avançarem com consistência.";
+const painPoints = trainingLegacy ? trainingDefaults.painPoints : (list(calc.painPoints).length ? calc.painPoints : (briefingPriorities.length ? briefingPriorities.slice(0,4) : profile.priorityIds.map((id)=>answerText(id)).filter(Boolean).slice(0,4)));
+const executiveReading = trainingLegacy ? trainingDefaults.executiveReading : (calc.executiveReading || "A leitura inicial indica que o trabalho deve começar pelas prioridades que criam base para as demais necessidades avançarem com consistência.");
 const solutionCopy = proposal.public_notes || profile.solutionCopy || packageInfo?.description || service.intro;
-const whyNow = calc.whyNow || "A recomendação concentra energia no que precisa avançar agora, com critérios claros e uma condução compatível com a capacidade real de implantação da empresa.";
-const cycleObjective = calc.cycleObjective || "Transformar a prioridade central em decisões, responsáveis e movimentos aplicáveis ao negócio.";
-const expectedResults = list(calc.expectedResults).length ? calc.expectedResults : ["Prioridades organizadas e compreendidas pela liderança", "Decisões apoiadas por critérios mais claros", "Próximos movimentos registrados em roadmap"];
+const whyNow = trainingLegacy ? trainingDefaults.whyNow : (calc.whyNow || "A recomendação concentra energia no que precisa avançar agora, com critérios claros e uma condução compatível com a capacidade real de implantação da empresa.");
+const cycleObjective = trainingLegacy ? trainingDefaults.cycleObjective : (calc.cycleObjective || "Transformar a prioridade central em decisões, responsáveis e movimentos aplicáveis ao negócio.");
+const expectedResults = trainingLegacy ? trainingDefaults.expectedResults : (list(calc.expectedResults).length ? calc.expectedResults : ["Prioridades organizadas e compreendidas pela liderança", "Decisões apoiadas por critérios mais claros", "Próximos movimentos registrados em roadmap"]);
 const concreteAdvantages = [
   "Mais de 15 anos de experiência em Recursos Humanos e atuação em mais de 110 empresas, aplicados à leitura de riscos, dependências e prioridades deste contexto.",
   "Condução direta por Patrícia Lima, com repertório de diretoria e CHRO, sem repasses ou camadas intermediárias.",
   profile.advantages?.[0] || "Método conectado ao negócio, com decisões, responsáveis e próximos movimentos claramente organizados.",
 ];
-const advantages = Number(calc.editorialVersion || 0) >= 2 && list(calc.advantages).length ? calc.advantages : concreteAdvantages;
+const advantages = isTraining ? (trainingLegacy ? profile.advantages : (list(calc.advantages).length ? calc.advantages : profile.advantages)) : (Number(calc.editorialVersion || 0) >= 2 && list(calc.advantages).length ? calc.advantages : concreteAdvantages);
 const roadmapItems = list(calc.roadmapItems);
 const normalizeCycle = (cycle) => {
   const structured = {
@@ -90,9 +136,9 @@ const normalizeCycle = (cycle) => {
   return compact ? {title:compact[1], duration:compact[2] || "", focus:compact[3], objective:""} : {...structured,title:raw};
 };
 const cycles = list(calc.cycles).map(normalizeCycle).filter((cycle)=>cycle.title);
-const cadence = list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
-const caliResponsibilities = list(calc.caliResponsibilities).length ? calc.caliResponsibilities : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."];
-const clientResponsibilities = list(calc.clientResponsibilities).length ? calc.clientResponsibilities : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."];
+const cadence = trainingLegacy ? profile.operating.slice(0,4) : (list(calc.cadence).length ? calc.cadence : profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
+const caliResponsibilities = trainingLegacy ? ["Realizar o briefing final e customizar o conteúdo conforme público, objetivo e contexto.","Conduzir a facilitação no formato e duração contratados.","Entregar os materiais previstos no escopo aprovado."] : (list(calc.caliResponsibilities).length ? calc.caliResponsibilities : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."]);
+const clientResponsibilities = trainingLegacy ? ["Confirmar público, agenda, sponsor e informações necessárias ao briefing.","Disponibilizar sala, equipamentos, acessos e infraestrutura quando aplicável.","Comunicar os participantes e garantir condições para início pontual da ação."] : (list(calc.clientResponsibilities).length ? calc.clientResponsibilities : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."]);
 const outOfScope = list(calc.outOfScope).length ? calc.outOfScope : profile.outOfScope;
 const roadmapNote = "Patrícia analisa todas as prioridades mencionadas no briefing e organiza um roadmap por impacto, dependência e sequência de implantação. Algumas necessidades podem não aparecer no escopo deste primeiro ciclo porque foram priorizadas para uma etapa posterior. Elas não serão desconsideradas e poderão entrar em novos ciclos conforme a evolução do trabalho.";
 
@@ -107,18 +153,22 @@ function mapFromRow(row) {
   const score=d1*.25+d2*.30+d3*.20+d4*.25,maturity=mean([d1,d2,d3]);
   return {include:true,score:Number(score.toFixed(1)),quadrant:maturity<5?(d4<5?"Embrionário":"Frágil"):(d4<5?"Em Estruturação":"Estratégico")};
 }
-let mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
-if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
-  const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
-  const rows = await optionalRest(`mapa_respostas?c_email=ilike.${email}&select=id,protocolo,created_at,diagnostico_v2&order=created_at.desc&limit=1`);
-  mapaPeople = mapFromRow(rows?.[0]);
+let mapaPeople = null;
+if (service.slug === "assessoria-estrategica") {
+  mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
+  if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
+    const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
+    const rows = await optionalRest(`mapa_respostas?c_email=ilike.${email}&select=id,protocolo,created_at,diagnostico_v2&order=created_at.desc&limit=1`);
+    mapaPeople = mapFromRow(rows?.[0]);
+  }
 }
 const quadrantClass = {"Embrionário":"embrionario","Frágil":"fragil","Em Estruturação":"estruturacao","Estratégico":"estrategico"}[mapaPeople?.quadrant] || "fragil";
 const mapHtml = mapaPeople?.include && Number(mapaPeople.score) > 0 ? `<aside class="proposal-map-result"><div><span>Resultado do Mapa de People</span><strong>${Number(mapaPeople.score).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})}<small>/10</small></strong></div><div class="map-quadrant ${quadrantClass}"><span>Quadrante atual</span><strong>${escapeHtml(mapaPeople.quadrant)}</strong></div></aside>` : "";
 
 let scopeNumber=0;
 const scopeGroups=[];
-for (const raw of list(proposal.scope_items)) {
+const scopeSource = trainingLegacy ? (trainingScopeDefaults[proposal.package_code] || trainingScopeDefaults.PALESTRA) : list(proposal.scope_items);
+for (const raw of scopeSource) {
   const isSub=/^\s*[-–—]\s*/.test(raw), text=String(raw).replace(/^\s*[-–—]\s*/,"");
   if (isSub && scopeGroups.length) scopeGroups.at(-1).subitems.push(text);
   else { scopeNumber+=1; scopeGroups.push({number:scopeNumber,text,subitems:[]}); }
