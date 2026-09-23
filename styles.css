@@ -424,3 +424,8 @@ html,.home-body{background:var(--marfim)}
   .proposal-footer{left:17mm!important;right:17mm!important;bottom:10mm!important}
   @page{size:A4;margin:0}
 }
+
+/* CALI Build · equipe interna e seleção em lote */
+.team-rows{display:grid;gap:12px}.team-row{position:relative;display:grid;grid-template-columns:1fr 1fr .85fr auto;gap:12px;align-items:end;padding:14px;border:1px solid #e5dcd7;border-radius:9px;background:#fdfcfb}.team-row label{display:block;margin-bottom:6px;color:#716568;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.team-row .control{min-height:44px;padding:10px 11px}.team-remove{width:36px;height:36px;margin-bottom:4px;border:1px solid #dfd2cc;border-radius:50%;background:#fff;color:var(--bordo);font-size:20px;line-height:1;cursor:pointer}.team-remove:hover{border-color:var(--bordo);background:#fff7f4}.team-add{justify-self:start;border:0;background:transparent;color:var(--bordo);font-size:11px;font-weight:800;cursor:pointer;padding:6px 0}.team-add:hover{text-decoration:underline}.choice-select-all{grid-column:1/-1;background:#f7f0eb;border-color:rgba(181,140,82,.5)}.choice-select-all .choice-copy strong{color:var(--bordo)}
+@media(max-width:820px){.team-row{grid-template-columns:1fr 1fr}.team-row>div:nth-child(3){grid-column:1/-1}.team-remove{position:absolute;right:10px;top:10px;margin:0}.team-row>div:first-child{padding-right:38px}}
+@media(max-width:520px){.team-row{grid-template-columns:1fr}.team-row>div:nth-child(3){grid-column:auto}}
