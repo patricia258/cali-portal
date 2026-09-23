@@ -4,7 +4,7 @@ create table if not exists public.cali_submissions (
   id uuid primary key default gen_random_uuid(),
   protocol text not null unique,
   service_slug text not null check (service_slug = any (array[
-    'assessoria-estrategica','mentoria-rh','diagnostico-executivo','cultura-direcao',
+    'assessoria-estrategica','cali-build','mentoria-rh','diagnostico-executivo','cultura-direcao',
     'shadowing-lideranca','treinamentos','marca-empregadora','solucao-personalizada'
   ])),
   status text not null default 'novo' check (status = any (array[
@@ -130,6 +130,8 @@ using ((select auth.uid()) is not null and lower((select auth.jwt()) ->> 'email'
 insert into public.cali_pricing_rules(service_slug,package_code,package_label,base_price,sort_order,config) values
 ('assessoria-estrategica','PARTNER','CALI PARTNER',3900,1,'{"minimum_months":8,"hours_min":8,"hours_max":12,"price_ceiling":5800,"visit_included":0}'::jsonb),
 ('assessoria-estrategica','FULL','CALI FULL',6500,2,'{"minimum_months":12,"hours_min":14,"hours_max":18,"price_ceiling":8000,"visit_included":1}'::jsonb),
+('cali-build','ESSENCIAL','CALI Build Essencial',3900,1,'{"minimum_months":4,"hours_min":8,"hours_max":12,"pricing_model":"complexity_scaled"}'::jsonb),
+('cali-build','COMPLETO','CALI Build Completo',5200,2,'{"minimum_months":6,"hours_min":14,"hours_max":18,"pricing_model":"complexity_scaled"}'::jsonb),
 ('mentoria-rh','ESSENCIAL','Programa Essencial',1500,1,'{"meetings":3,"price_ceiling":1800}'::jsonb),
 ('mentoria-rh','AMPLIADO','Programa Ampliado',2200,2,'{"meetings":5,"price_ceiling":2400}'::jsonb),
 ('diagnostico-executivo','ESSENCIAL','Leitura Essencial',2800,1,'{"interviews_included":3,"price_ceiling":3000}'::jsonb),
