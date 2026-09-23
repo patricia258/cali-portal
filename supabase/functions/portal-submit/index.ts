@@ -16,7 +16,7 @@ const SERVICE_LABELS: Record<string,string> = {
   "assessoria-estrategica":"Assessoria Estratégica Mensal","mentoria-rh":"Mentoria para Profissionais de RH",
   "diagnostico-executivo":"Diagnóstico Executivo de People","cultura-direcao":"Projeto de Cultura e Direção",
   "shadowing-lideranca":"Shadowing de Liderança",treinamentos:"Treinamentos & Palestras","marca-empregadora":"Marca Empregadora",
-  "solucao-personalizada":"Solução Personalizada",
+  "cali-build":"CALI Build — Estruturação Assistida de RH","solucao-personalizada":"Solução Personalizada",
 };
 
 function cors(request: Request) {
@@ -31,7 +31,17 @@ function portalUrl(request: Request) {
 function response(request:Request, body:unknown, status=200){return new Response(JSON.stringify(body),{status,headers:{...cors(request),"Content-Type":"application/json; charset=utf-8"}})}
 function esc(value:unknown){return String(value??"").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]??c))}
 function clean(value:unknown,max=4000){return String(value??"").trim().slice(0,max)}
-function protocol(slug:string){const code={"assessoria-estrategica":"AEM","mentoria-rh":"MRH","diagnostico-executivo":"DEP","cultura-direcao":"PCD","shadowing-lideranca":"SHL",treinamentos:"TRN","marca-empregadora":"EMP","solucao-personalizada":"SOB"}[slug]||"SOL";const day=new Date().toISOString().slice(0,10).replaceAll("-","");return `CALI-${code}-${day}-${crypto.randomUUID().slice(0,6).toUpperCase()}`}
+function sanitizeAnswer(value:unknown,depth=0):unknown{
+  if(depth>3)return clean(value,300);
+  if(typeof value==="number")return Number.isFinite(value)?value:0;
+  if(typeof value==="boolean")return value;
+  if(Array.isArray(value))return value.slice(0,30).map((item)=>sanitizeAnswer(item,depth+1));
+  if(value&&typeof value==="object"){
+    return Object.fromEntries(Object.entries(value as Record<string,unknown>).slice(0,20).map(([key,item])=>[clean(key,80),sanitizeAnswer(item,depth+1)]));
+  }
+  return clean(value,4000);
+}
+function protocol(slug:string){const code={"assessoria-estrategica":"AEM","cali-build":"BLD","mentoria-rh":"MRH","diagnostico-executivo":"DEP","cultura-direcao":"PCD","shadowing-lideranca":"SHL",treinamentos:"TRN","marca-empregadora":"EMP","solucao-personalizada":"SOB"}[slug]||"SOL";const day=new Date().toISOString().slice(0,10).replaceAll("-","");return `CALI-${code}-${day}-${crypto.randomUUID().slice(0,6).toUpperCase()}`}
 async function sendEmail(payload:Record<string,unknown>, key:string){if(!RESEND_API_KEY)return null;const res=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_API_KEY}`,"Content-Type":"application/json","Idempotency-Key":key},body:JSON.stringify(payload)});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(`Resend ${res.status}: ${JSON.stringify(data)}`);return data}
 function wrapper(content:string,preheader:string){return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light only"><title>${esc(preheader)}</title></head><body bgcolor="#F7F3EE" style="margin:0;background:#F7F3EE;font-family:Arial,sans-serif;color:#2B2B2B"><div style="display:none;max-height:0;overflow:hidden">${esc(preheader)}</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#F7F3EE"><tr><td style="padding:28px 14px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:auto;background:#fff;border:1px solid #EDE4DE;border-radius:14px;overflow:hidden"><tr><td bgcolor="#5A1E2D" style="padding:25px;text-align:center"><img src="${BRAND_LOGO_URL}" width="174" alt="CALI — HR for Business" style="display:block;width:174px;max-width:70%;height:auto;margin:0 auto;border:0"></td></tr><tr><td style="padding:34px 32px">${content}</td></tr><tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI · HR for Business · calirh.com · patricia@calirh.com</td></tr></table></td></tr></table></body></html>`}
 
@@ -45,7 +55,7 @@ Deno.serve(async(request)=>{
     if(!body.lgpd_aceite||!body.answers||typeof body.answers!=="object"||Array.isArray(body.answers))return response(request,{error:"Revise os dados obrigatórios."},400);
     const a=body.answers as Record<string,unknown>;const name=clean(a.nome,140),email=clean(a.email,254).toLowerCase();
     if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return response(request,{error:"Nome ou e-mail inválido."},400);
-    const safeAnswers=Object.fromEntries(Object.entries(a).slice(0,80).map(([k,v])=>[clean(k,80),Array.isArray(v)?v.slice(0,30).map(x=>clean(x,300)):typeof v==="number"?v:clean(v,4000)]));
+    const safeAnswers=Object.fromEntries(Object.entries(a).slice(0,80).map(([k,v])=>[clean(k,80),sanitizeAnswer(v)]));
     if(new TextEncoder().encode(JSON.stringify(safeAnswers)).byteLength>60_000)return response(request,{error:"As respostas ultrapassaram o limite permitido. Reduza os textos e tente novamente."},400);
     const record={protocol:protocol(slug),service_slug:slug,status:"novo",contact_name:name,contact_role:clean(a.cargo,140)||null,contact_email:email,contact_phone:clean(a.whatsapp,40)||null,contact_preference:clean(a.preferencia_contato,20)||null,company_name:clean(a.empresa,180)||null,company_segment:clean(a.segmento,160)||null,company_size:Number(a.colaboradores)||null,company_units:Number(a.unidades)||null,company_location:clean(a.localidade||a.cidade,180)||null,answers:safeAnswers,source_path:clean(body.source_path,160)||null,lgpd_accepted:true};
     const admin=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
