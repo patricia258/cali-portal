@@ -280,6 +280,7 @@ function technicalPackageFor(service, answers) {
 
 function packageForBudget(service, answers, investment) {
   const technical = technicalPackageFor(service, answers);
+  if (service.slug === "cali-build") return technical;
   if (!investment?.max) return technical;
   const currentPackageCodes = new Set((service.packages || []).map((item) => item.code));
   const technicalRule = pricingRules.find((rule) => rule.service_slug === service.slug && rule.package_code === technical);
