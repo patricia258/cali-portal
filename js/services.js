@@ -198,16 +198,16 @@ export const SERVICES = {
     intro: "Conte como a gestão de pessoas funciona hoje. A partir das respostas, estruturamos o modelo mais coerente entre CALI PARTNER e CALI FULL.",
     accent: "bordo",
     packages: [
-      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.", minimumMonths: 6, suggestedHours: 10, hoursRange: "8 a 12" },
-      { code: "FULL", label: "CALI FULL", description: "Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.", minimumMonths: 6, suggestedHours: 16, hoursRange: "14 a 18" },
+      { code: "PARTNER", label: "CALI PARTNER", description: "Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.", minimumMonths: 8, suggestedHours: 10, hoursRange: "8 a 12" },
+      { code: "FULL", label: "CALI FULL", description: "Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.", minimumMonths: 12, suggestedHours: 16, hoursRange: "14 a 18" },
     ],
     sections: [
       { title: "Sobre você", description: "Quem conduz esta conversa com a CALI.", fields: COMMON_CONTACT },
       { title: "Sobre a empresa", description: "Contexto que define porte e complexidade.", fields: COMMON_COMPANY },
       { title: "A gestão de pessoas hoje", fields: [
         { id: "modelo_interesse", label: "Qual modelo parece mais próximo do que a empresa precisa hoje?", type: "radio", required: true, help: "Essa escolha não engessa a proposta: eu confirmo o melhor encaixe depois da leitura.", options: [
-          option("PARTNER", "CALI PARTNER", "8 a 12h/mês · uma prioridade central por ciclo · encontro mensal · 100% online · contrato mínimo de 6 meses."),
-          option("FULL", "CALI FULL", "14 a 18h/mês · até duas prioridades simultâneas · encontros quinzenais · 1 visita/mês com finalidade definida · contrato mínimo de 6 meses."),
+          option("PARTNER", "CALI PARTNER", "8 a 12h/mês · uma prioridade central por ciclo · encontro mensal · 100% online · contrato mínimo de 8 meses."),
+          option("FULL", "CALI FULL", "14 a 18h/mês · até duas prioridades simultâneas · encontros quinzenais · 1 visita/mês com finalidade definida · contrato mínimo de 12 meses."),
           option("RECOMENDAR", "Quero que a CALI recomende", "Eu comparo porte, maturidade, frentes, cadência e presencialidade para indicar o modelo mais coerente."),
         ] },
         { id: "rh_interno", label: "Existe RH interno?", type: "radio", required: true, options: [option("nao", "Não"), option("operacional", "Sim, predominantemente operacional"), option("estruturado", "Sim, já estruturado")] },
