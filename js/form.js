@@ -47,6 +47,20 @@ function indicatorMatrixHtml(field) {
     </div>`).join("")}</div>`;
 }
 
+function teamRowsHtml(field) {
+  const seniorityOptions = [
+    ["assistente","Assistente / estágio"],["junior","Júnior"],["pleno","Pleno"],["senior","Sênior"],
+    ["especialista","Especialista"],["coordenacao","Coordenação"],["gerencia","Gerência"],["direcao","Direção / CHRO"],["outro","Outro"]
+  ];
+  const row = (index) => `<div class="team-row" data-team-row="${index}">
+    <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome"></div>
+    <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo"></div>
+    <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option>${seniorityOptions.map(([value,label])=>`<option value="${value}">${label}</option>`).join("")}</select></div>
+    <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>
+  </div>`;
+  return `<div class="team-rows" data-team-field="${field.id}" data-team-max="${field.maxItems || 20}">${row(0)}<button type="button" class="team-add" data-team-add>+ Adicionar outra pessoa</button></div>`;
+}
+
 function fieldHtml(field) {
   const required = field.required ? '<span class="required">*</span>' : "";
   const common = inputAttributes(field);
@@ -55,14 +69,17 @@ function fieldHtml(field) {
   else if (field.type === "select") control = `<select class="control" ${common}><option value="">Selecione</option>${field.options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select>`;
   else if (field.type === "radio" || field.type === "checkboxes") {
     const inputType = field.type === "radio" ? "radio" : "checkbox";
-    control = `<div class="choices">${field.options.map((item) => `<label class="choice"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}"><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
+    control = `<div class="choices">${field.options.map((item) => `<label class="choice ${item.selectAll ? "choice-select-all" : ""}"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}" ${item.selectAll ? 'data-select-all="true"' : ""}><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
   } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
   else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
+  else if (field.type === "team_rows") control = teamRowsHtml(field);
   else control = `<input class="control" ${common} type="${field.type || "text"}" ${field.value !== undefined ? `value="${escapeHtml(field.value)}"` : ""}>`;
   const condition = field.showWhen
     ? Array.isArray(field.showWhen.in)
       ? `data-show-field="${field.showWhen.field}" data-show-values="${escapeHtml(field.showWhen.in.join("|"))}"`
-      : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
+      : field.showWhen.includes !== undefined
+        ? `data-show-field="${field.showWhen.field}" data-show-includes="${escapeHtml(field.showWhen.includes)}"`
+        : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
     : "";
   const label = field.type === "checkbox" ? "" : `<label for="f-${field.id}">${escapeHtml(field.label)} ${required}</label>`;
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
@@ -71,7 +88,16 @@ function fieldHtml(field) {
 stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 
 function valueFor(field) {
-  if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked:not(:disabled)`)].map((element) => element.value);
+  if (field.type === "team_rows") {
+    const root = form.querySelector(`[data-team-field="${field.id}"]`);
+    if (!root) return [];
+    return [...root.querySelectorAll("[data-team-row]")].map((row) => {
+      const entry = {};
+      row.querySelectorAll("[data-team-key]").forEach((element) => { entry[element.dataset.teamKey] = String(element.value || "").trim(); });
+      return entry;
+    }).filter((entry) => Object.values(entry).some(Boolean));
+  }
+  if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked:not(:disabled):not([data-select-all])`)].map((element) => element.value);
   if (field.type === "radio") return form.querySelector(`[name="${field.id}"]:checked:not(:disabled)`)?.value || "";
   if (field.type === "checkbox") return Boolean(form.elements[field.id]?.checked);
   if (field.type === "indicator_matrix") {
@@ -92,7 +118,12 @@ function updateConditionalFields() {
     const sourceField = service.sections.flatMap((section) => section.fields).find((field) => field.id === wrapper.dataset.showField);
     const sourceValue = sourceField ? valueFor(sourceField) : "";
     const allowedValues = wrapper.dataset.showValues ? wrapper.dataset.showValues.split("|") : null;
-    const visible = allowedValues ? allowedValues.includes(String(sourceValue)) : String(sourceValue) === wrapper.dataset.showEquals;
+    const includeValue = wrapper.dataset.showIncludes;
+    const visible = allowedValues
+      ? allowedValues.includes(String(sourceValue))
+      : includeValue !== undefined
+        ? Array.isArray(sourceValue) && sourceValue.map(String).includes(String(includeValue))
+        : String(sourceValue) === wrapper.dataset.showEquals;
     wrapper.classList.toggle("conditional-hidden", !visible);
     wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
     if (!visible) wrapper.classList.remove("invalid");
@@ -112,6 +143,42 @@ function setFieldLabel(fieldId, text) {
   if (!label) return;
   const required = service.sections.flatMap((section) => section.fields).find((field) => field.id === fieldId)?.required;
   label.innerHTML = `${escapeHtml(text)} ${required ? '<span class="required">*</span>' : ''}`;
+}
+
+function makeTeamRow(index) {
+  const options = [["assistente","Assistente / estágio"],["junior","Júnior"],["pleno","Pleno"],["senior","Sênior"],["especialista","Especialista"],["coordenacao","Coordenação"],["gerencia","Gerência"],["direcao","Direção / CHRO"],["outro","Outro"]];
+  const wrapper = document.createElement("div");
+  wrapper.className = "team-row";
+  wrapper.dataset.teamRow = String(index);
+  wrapper.innerHTML = `
+    <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome"></div>
+    <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo"></div>
+    <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option>${options.map(([value,label])=>`<option value="${value}">${label}</option>`).join("")}</select></div>
+    <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>`;
+  return wrapper;
+}
+
+function syncTeamRowsWithCount() {
+  if (service.slug !== "cali-build") return;
+  const countInput = form.elements.pessoas_rh;
+  const root = form.querySelector('[data-team-field="equipe_rh"]');
+  if (!countInput || !root || root.closest(".conditional-hidden")) return;
+  const desired = Math.max(0, Math.min(Number(countInput.value || 0), Number(root.dataset.teamMax || 50)));
+  const addButton = root.querySelector("[data-team-add]");
+  let rows = [...root.querySelectorAll("[data-team-row]")];
+  while (rows.length < desired) {
+    const nextIndex = rows.length ? Math.max(...rows.map((row) => Number(row.dataset.teamRow || 0))) + 1 : 0;
+    root.insertBefore(makeTeamRow(nextIndex), addButton);
+    rows = [...root.querySelectorAll("[data-team-row]")];
+  }
+  while (rows.length > desired && rows.length > 0) {
+    const last = rows.at(-1);
+    const hasData = [...last.querySelectorAll("input,select")].some((element) => String(element.value || "").trim());
+    if (hasData) break;
+    last.remove();
+    rows = [...root.querySelectorAll("[data-team-row]")];
+  }
+  addButton?.classList.toggle("hidden", rows.length >= Number(root.dataset.teamMax || 50));
 }
 
 function setSelectOptions(fieldId, options) {
@@ -244,6 +311,7 @@ function applyTrainingRules() {
 function updateFormLogic() {
   updateConditionalFields();
   applyTrainingRules();
+  syncTeamRowsWithCount();
 }
 
 function updateContextNotices() {
@@ -286,7 +354,8 @@ function validateStep() {
     const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
     const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
     const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
-    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator);
+    const invalidTeam = field.type === "team_rows" && Array.isArray(value) && value.some((entry) => !entry.nome || !entry.cargo || !entry.senioridade);
+    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator || invalidTeam);
     wrapper.classList.toggle("invalid", isInvalid);
     const error = wrapper.querySelector(".field-error");
     if (error) {
@@ -296,6 +365,7 @@ function validateStep() {
       else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
       else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
       else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
+      else if (invalidTeam) error.textContent = "Preencha nome, cargo e senioridade de cada pessoa.";
       else error.textContent = "Preencha este campo para continuar.";
     }
     if (isInvalid) valid = false;
@@ -358,6 +428,33 @@ function formatPhone(value) {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
 
+form.addEventListener("click", (event) => {
+  const add = event.target.closest("[data-team-add]");
+  if (add) {
+    const root = add.closest("[data-team-field]");
+    const max = Number(root.dataset.teamMax || 50);
+    const rows = [...root.querySelectorAll("[data-team-row]")];
+    if (rows.length >= max) return;
+    const nextIndex = rows.length ? Math.max(...rows.map((row) => Number(row.dataset.teamRow || 0))) + 1 : 0;
+    root.insertBefore(makeTeamRow(nextIndex), add);
+    const countInput = form.elements.pessoas_rh;
+    if (countInput) countInput.value = String(root.querySelectorAll("[data-team-row]").length);
+    add.classList.toggle("hidden", root.querySelectorAll("[data-team-row]").length >= max);
+    return;
+  }
+  const remove = event.target.closest("[data-team-remove]");
+  if (remove) {
+    const root = remove.closest("[data-team-field]");
+    const row = remove.closest("[data-team-row]");
+    row?.remove();
+    const countInput = form.elements.pessoas_rh;
+    if (countInput) countInput.value = String(root.querySelectorAll("[data-team-row]").length);
+    root.querySelector("[data-team-add]")?.classList.remove("hidden");
+    updateFormLogic();
+    updateContextNotices();
+  }
+});
+
 startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); showStep(0); });
 backButton.addEventListener("click", () => showStep(current - 1));
 nextButton.addEventListener("click", () => { if (validateStep()) showStep(current + 1); });
@@ -369,12 +466,27 @@ form.addEventListener("input", (event) => {
   if (target.matches("[data-cep]")) { const d=target.value.replace(/\D/g,"").slice(0,8); target.value=d.length>5?`${d.slice(0,5)}-${d.slice(5)}`:d; }
   if (target.type === "email") target.value = target.value.replace(/\s/g, "").toLowerCase();
   target.closest(".field")?.classList.remove("invalid");
+  if (target.name === "pessoas_rh") syncTeamRowsWithCount();
   updateFormLogic();
   updateContextNotices();
 });
 
 form.addEventListener("change", (event) => {
   const target = event.target;
+
+  if (target.matches('[data-select-all]')) {
+    const wrapper = target.closest(".choices");
+    wrapper.querySelectorAll('input[type="checkbox"]:not([data-select-all])').forEach((input) => { input.checked = target.checked; });
+  } else if (target.type === "checkbox" && target.closest(".choices")) {
+    const wrapper = target.closest(".choices");
+    const selectAll = wrapper.querySelector('[data-select-all]');
+    if (selectAll) {
+      const regular = [...wrapper.querySelectorAll('input[type="checkbox"]:not([data-select-all])')];
+      selectAll.checked = regular.length > 0 && regular.every((input) => input.checked);
+      selectAll.indeterminate = regular.some((input) => input.checked) && !selectAll.checked;
+    }
+  }
+
   updateFormLogic();
   updateContextNotices();
   if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
