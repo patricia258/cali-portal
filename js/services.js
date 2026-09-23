@@ -8,6 +8,173 @@ const INVESTMENT_BANDS = {
     { value: "12mais", label: "Acima de R$ 12 mil", min: 12000, max: null },
     { value: "avaliar", label: "Prefiro avaliar pelo escopo", min: null, max: null },
   ]},
+  "cali-build": {
+    slug: "cali-build",
+    code: "BLD",
+    title: "CALI Build — Estruturação Assistida de RH",
+    kicker: "A CALI desenha. Seu RH constrói.",
+    intro: "Para empresas que já têm alguém de RH e precisam estruturar a área ou subsistemas com método, supervisão técnica e transferência de conhecimento.",
+    accent: "taupe",
+    boundaryTitle: "Build é construção assistida — não terceirização da execução.",
+    boundaryIntro: "A CALI entra com arquitetura, método, critérios, materiais-base, revisão e direção técnica. A implantação acontece dentro da empresa.",
+    boundaryItems: [
+      "O RH interno levanta dados, adapta materiais, executa as etapas e mantém os processos funcionando.",
+      "A CALI diagnostica, prioriza, ensina o método, revisa entregas, corrige rota e acompanha a qualidade da implantação.",
+      "Se a CALI precisar assumir a execução no lugar do RH interno, o enquadramento passa a ser CALI Full ou um escopo específico.",
+    ],
+    boundaryClosing: "O objetivo é deixar a estrutura implantada e o time interno capaz de sustentar o que foi construído.",
+    packages: [
+      { code: "ESSENCIAL", label: "CALI Build Essencial", description: "Uma frente principal por ciclo, com método, checkpoints e revisão técnica da execução interna.", minimumMonths: 4, suggestedHours: 10, hoursRange: "8 a 12" },
+      { code: "COMPLETO", label: "CALI Build Completo", description: "Implantação mais ampla ou múltiplas frentes conectadas, com maior cadência, revisão e governança executiva.", minimumMonths: 6, suggestedHours: 16, hoursRange: "14 a 18" },
+    ],
+    sections: [
+      { title: "Sobre você", description: "Quem conduz esta conversa com a CALI.", fields: COMMON_CONTACT },
+      { title: "Sobre a empresa", description: "Mantemos aqui apenas os dados-base necessários para dimensionar porte e complexidade.", fields: COMMON_COMPANY },
+      { title: "Mapa de People", description: "Se você já respondeu ao Mapa, aproveitamos essa leitura e evitamos repetir perguntas de maturidade.", fields: [
+        { id: "mapa_status", label: "Você já respondeu ao Mapa de People da CALI?", type: "radio", required: true, options: [
+          option("sim", "Sim, já respondi"),
+          option("nao", "Ainda não"),
+          option("nao_sei", "Não tenho certeza"),
+        ] },
+        { id: "mapa_protocolo", label: "Se tiver o protocolo do Mapa, informe aqui", type: "text", span: 6, maxlength: 80, showWhen: { field: "mapa_status", equals: "sim" }, placeholder: "Ex.: MP-2026-000000" },
+      ]},
+      { title: "A estrutura de RH hoje", description: "Aqui eu quero entender quem vai construir junto com a CALI — não repetir a leitura do Mapa.", fields: [
+        { id: "departamento_status", label: "Como o RH está estruturado hoje?", type: "radio", required: true, options: [
+          option("nao_existe", "Ainda não existe uma área formal de RH"),
+          option("implantacao", "A área está sendo criada agora"),
+          option("basico", "Existe, mas está concentrada no básico e no operacional"),
+          option("parcial", "Já existem alguns processos ou subsistemas estruturados"),
+          option("estruturado", "O RH já é estruturado, mas uma ou mais frentes precisam ser construídas ou revistas"),
+        ] },
+        { id: "pessoas_rh", label: "Quantas pessoas atuam hoje no RH?", type: "number", min: 0, max: 500, required: true, span: 4 },
+        { id: "lideranca_tecnica", label: "Hoje existe liderança técnica de RH?", type: "select", required: true, span: 8, options: [
+          option("nao", "Não"),
+          option("outra_area", "Parcialmente, acumulada por outra área"),
+          option("interna", "Sim, dentro do RH"),
+          option("externa", "Sim, com apoio externo"),
+        ] },
+        { id: "equipe_rh", label: "Quem faz parte do time que participará da implantação?", type: "team_rows", required: true, help: "Inclua nome, cargo, senioridade e a principal responsabilidade de cada pessoa que vai construir ou sustentar as entregas.", maxItems: 12 },
+        { id: "executor_interno", label: "Existe uma pessoa que poderá assumir a execução interna entre os checkpoints da CALI?", type: "radio", required: true, options: [
+          option("sim", "Sim, já está definido"),
+          option("em_definicao", "Ainda estamos definindo"),
+          option("nao", "Não temos alguém disponível hoje"),
+        ] },
+        { id: "executor_nome", label: "Quem será a principal pessoa responsável pela implantação?", type: "text", required: true, span: 6, maxlength: 140, showWhen: { field: "executor_interno", equals: "sim" } },
+        { id: "executor_cargo", label: "Cargo dessa pessoa", type: "text", required: true, span: 6, maxlength: 140, showWhen: { field: "executor_interno", equals: "sim" } },
+      ]},
+      { title: "O que precisa ser construído", description: "O Build pode organizar a função de RH como um todo ou concentrar a implantação em subsistemas específicos.", fields: [
+        { id: "escopo_build", label: "Qual é o tamanho da necessidade hoje?", type: "radio", required: true, options: [
+          option("rh_completo", "Estruturar o RH como um todo"),
+          option("frente", "Construir ou revisar uma frente específica"),
+          option("varias", "Construir várias frentes relacionadas"),
+          option("nao_sei", "Ainda não sei — quero a recomendação da CALI"),
+        ] },
+        { id: "frentes_build", label: "Quais frentes precisam ser construídas ou revistas?", type: "checkboxes", required: true, showWhen: { field: "escopo_build", in: ["frente","varias"] }, help: "Selecione o que realmente precisa entrar no desenho agora; o restante pode ficar no roadmap.", options: [
+          option("planejamento", "Planejamento estratégico de pessoas"),
+          option("desenho", "Estrutura, organograma e clareza de papéis"),
+          option("governanca", "Governança, políticas e processos"),
+          option("people_analytics", "Indicadores, People Analytics e dashboards"),
+          option("desempenho", "Gestão de desempenho e metas"),
+          option("clima", "Clima e engajamento"),
+          option("cultura", "Cultura, valores e rituais"),
+          option("cargos", "Cargos, carreira e remuneração"),
+          option("sucessao", "Sucessão e gestão de talentos"),
+          option("liderancas", "Desenvolvimento de lideranças"),
+          option("atracao", "Atração, seleção e onboarding"),
+          option("marca", "Marca empregadora e experiência do colaborador"),
+          option("comunicacao", "Comunicação interna"),
+          option("saude", "Saúde, riscos psicossociais e conformidade"),
+          option("relacoes", "Relações de trabalho e regras operacionais"),
+        ] },
+        { id: "ponto_partida", label: "Sobre o que será construído, em que estágio vocês estão?", type: "select", required: true, span: 6, options: [
+          option("zero", "Praticamente do zero"),
+          option("rascunho", "Há ideias ou materiais soltos"),
+          option("parcial", "Já existe algo implantado, mas incompleto"),
+          option("revisao", "Existe um processo, mas precisa ser redesenhado"),
+        ] },
+        { id: "urgencia", label: "Existe um prazo de negócio que precisamos considerar?", type: "select", required: true, span: 6, options: [
+          option("sem_prazo", "Não há data crítica"),
+          option("30", "Em até 30 dias"),
+          option("60", "Entre 30 e 60 dias"),
+          option("90", "Entre 60 e 90 dias"),
+          option("mais90", "Acima de 90 dias"),
+        ] },
+        { id: "resultado_esperado", label: "Ao final desta estruturação, o que precisa estar funcionando de verdade?", type: "textarea", required: true, maxlength: 1800, placeholder: "Ex.: processos básicos implantados, políticas aprovadas, indicadores rodando, líderes usando o ciclo de performance..." },
+      ]},
+      { title: "Capacidade de implantação", description: "O ritmo do Build depende da capacidade real do time interno para executar entre uma orientação e outra.", fields: [
+        { id: "capacidade_execucao", label: "Como você avalia a disponibilidade real do time para executar a implantação?", type: "radio", required: true, options: [
+          option("baixa", "Baixa — a rotina atual já consome quase toda a capacidade"),
+          option("media", "Média — conseguimos reservar blocos de tempo por semana"),
+          option("alta", "Alta — existe capacidade protegida para o projeto"),
+        ] },
+        { id: "horas_implantacao", label: "Quanto tempo por semana o responsável interno consegue dedicar ao Build?", type: "select", required: true, span: 6, options: [
+          option("ate2", "Até 2 horas"),
+          option("3a5", "3 a 5 horas"),
+          option("6a10", "6 a 10 horas"),
+          option("10mais", "Mais de 10 horas"),
+        ] },
+        { id: "autonomia_executor", label: "Qual o nível de autonomia dessa pessoa para propor e conduzir mudanças?", type: "select", required: true, span: 6, options: [
+          option("baixa", "Baixa — depende de aprovação para quase tudo"),
+          option("media", "Média — consegue conduzir parte das decisões"),
+          option("alta", "Alta — consegue tocar a implantação dentro das diretrizes aprovadas"),
+        ] },
+        { id: "dependencias", label: "Quais áreas precisarão participar ou aprovar partes da implantação?", type: "checkboxes", options: [
+          option("diretoria", "Diretoria"),
+          option("dp", "Departamento Pessoal"),
+          option("juridico", "Jurídico"),
+          option("contabilidade", "Contabilidade"),
+          option("sst", "Saúde e Segurança do Trabalho"),
+          option("ti", "Tecnologia / TI"),
+          option("marketing", "Marketing / Comunicação"),
+          option("financeiro", "Financeiro"),
+          option("outra", "Outra área"),
+        ] },
+        { id: "dependencias_outro", label: "Qual outra área?", type: "text", required: true, maxlength: 160, showWhen: { field: "dependencias", includes: "outra" } },
+        { id: "principal_bloqueio", label: "O que hoje mais pode travar essa implantação?", type: "textarea", maxlength: 1200, placeholder: "Campo opcional — pode ser tempo, decisão, dados, tecnologia, prioridade da liderança ou outro fator." },
+      ]},
+      { title: "Diretoria, formato e decisão", description: "Fechamos o briefing entendendo patrocínio, formato de acompanhamento e momento comercial.", fields: [
+        { id: "sponsor_status", label: "Como está o patrocínio da diretoria para esta estruturação?", type: "radio", required: true, options: [
+          option("aprovado", "A diretoria já aprovou a necessidade"),
+          option("apoia", "Apoia a ideia, mas ainda precisa aprovar escopo ou investimento"),
+          option("avaliando", "Está avaliando propostas antes de decidir"),
+          option("nao_claro", "Ainda não há patrocínio claro"),
+        ] },
+        { id: "sponsor_nome", label: "Nome do sponsor / principal patrocinador", type: "text", span: 6, maxlength: 140 },
+        { id: "sponsor_cargo", label: "Cargo do sponsor", type: "text", span: 6, maxlength: 140 },
+        { id: "decisores", label: "Quem participa da aprovação final?", type: "text", required: true, maxlength: 400 },
+        { id: "presencial", label: "Você imagina necessidade de algum encontro presencial durante o projeto?", type: "radio", required: true, options: [
+          option("nao", "Não — podemos conduzir 100% online"),
+          option("eventual", "Talvez, em um marco específico"),
+          option("mensal", "Sim, gostaria de avaliar uma visita mensal"),
+        ] },
+        { id: "presencial_objetivo", label: "Em que tipo de momento a presença faria diferença?", type: "textarea", maxlength: 600, showWhen: { field: "presencial", in: ["eventual","mensal"] }, placeholder: "Ex.: kickoff, workshop com diretoria, validação de processo, fechamento de ciclo." },
+        { id: "orcamento_status", label: "A empresa já definiu orçamento para esta estruturação?", type: "radio", required: true, options: [
+          option("conhece", "Sim, eu conheço o teto mensal"),
+          option("nao_compartilhado", "Existe orçamento, mas não foi compartilhado comigo"),
+          option("propostas", "A diretoria quer avaliar propostas primeiro"),
+          option("nao_definido", "Ainda não existe orçamento definido"),
+        ] },
+        { id: "budget_mensal", label: "Qual é o teto mensal aproximado disponível?", type: "number", required: true, min: 1, max: 1000000, span: 6, showWhen: { field: "orcamento_status", equals: "conhece" }, help: "Informe apenas uma referência aproximada. Esse valor não limita a análise técnica." },
+        { id: "prazo_inicio", label: "Quando gostaria de iniciar?", type: "select", required: true, span: 6, options: [option("imediato", "O quanto antes"), option("30", "Em até 30 dias"), option("60", "Entre 30 e 60 dias"), option("planejamento", "Estou planejando")] },
+        { id: "observacoes", label: "Algo importante que não perguntamos?", type: "textarea", maxlength: 1200 },
+      ]},
+    ],
+    alerts(answers) {
+      const alerts = [];
+      const fronts = answers.frentes_build || [];
+      if (answers.executor_interno !== "sim") alerts.push({ level: "high", text: "O CALI Build exige execução interna definida. Sem responsável interno, revisar enquadramento para CALI Full ou escopo específico." });
+      if (answers.capacidade_execucao === "baixa" || answers.horas_implantacao === "ate2") alerts.push({ level: "medium", text: "Capacidade interna baixa: reduzir simultaneidade, ampliar prazo ou aumentar cadência de acompanhamento." });
+      if (answers.escopo_build === "rh_completo" || fronts.length >= 3 || Number(answers.colaboradores || 0) > 200) alerts.push({ level: "medium", text: "Escopo e porte indicam avaliar CALI Build Completo." });
+      return alerts;
+    },
+    notices(a) {
+      const x = [];
+      if (a.mapa_status === "sim") x.push({ level: "info", text: "Ótimo. A CALI cruza este briefing com a leitura mais recente do seu Mapa de People e evita pedir novamente informações de maturidade que já estão registradas." });
+      if (a.executor_interno === "nao") x.push({ level: "attention", text: "No Build, a execução entre os checkpoints é obrigatoriamente interna. Se a CALI precisar assumir essa execução, o formato comercial muda para CALI Full ou um escopo específico." });
+      if (["eventual","mensal"].includes(a.presencial)) x.push({ level: "attention", text: "O CALI Build é desenhado para funcionar 100% online. Encontros presenciais podem ser contratados quando fizerem sentido. Deslocamentos, passagens, hospedagem, alimentação e demais custos de viagem são pagos antecipadamente pela contratante." });
+      return x;
+    },
+  },
   "mentoria-rh": { period: "por ciclo", options: [
     { value: "ate15", label: "Até R$ 1,5 mil", min: 0, max: 1500 },
     { value: "15a24", label: "R$ 1,5 mil a R$ 2,4 mil", min: 1500, max: 2400 },
@@ -54,6 +221,10 @@ export const PACKAGE_PRICE_BANDS = {
   "assessoria-estrategica": {
     PARTNER: { min: 3900, max: 5800 },
     FULL: { min: 6500, max: 8000 },
+  },
+  "cali-build": {
+    ESSENCIAL: { min: 4200, max: 6200 },
+    COMPLETO: { min: 5600, max: 7600 },
   },
   "mentoria-rh": {
     ESSENCIAL: { min: 1500, max: 1800 },
@@ -547,6 +718,12 @@ export function initialPackageFor(service, answers = {}) {
     if (fronts >= 5 || answers.frequencia === "semanal" || answers.presencial === "mensal" || answers.presencial === "mais") return "FULL";
     return "PARTNER";
   }
+  if (service.slug === "cali-build") {
+    const fronts = Array.isArray(answers.frentes_build) ? answers.frentes_build.length : 0;
+    const size = Number(answers.colaboradores || 0);
+    if (answers.escopo_build === "rh_completo" || answers.escopo_build === "varias" || fronts >= 3 || size > 200 || answers.capacidade_execucao === "baixa" || answers.horas_implantacao === "ate2") return "COMPLETO";
+    return "ESSENCIAL";
+  }
   if (service.slug === "treinamentos") {
     const requested = String(answers.tipo_contratacao || "");
     if (requested === "palestra" || requested === "campanha" || requested === "palestra_tema") return "PALESTRA";
@@ -588,6 +765,19 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
     factor = sizeFactor * frontFactor * cadenceFactor;
     breakdown.push(["Porte", sizeFactor], ["Frentes", frontFactor], ["Cadência", cadenceFactor]);
     const minimumMonths = packageCode === "FULL" ? 12 : 8;
+    months = Math.max(n(months, minimumMonths), minimumMonths);
+  } else if (service.slug === "cali-build") {
+    const size = n(answers.colaboradores, 20);
+    const sizeFactor = size <= 50 ? 1 : size <= 150 ? 1.10 : size <= 300 ? 1.20 : size <= 500 ? 1.32 : 1.45;
+    const scopeFactor = answers.escopo_build === "rh_completo" ? 1.18 : answers.escopo_build === "varias" ? 1.10 : answers.escopo_build === "nao_sei" ? 1.05 : 1;
+    const fronts = Array.isArray(answers.frentes_build) ? answers.frentes_build.length : 0;
+    const included = packageCode === "COMPLETO" ? 3 : 1;
+    const frontFactor = 1 + Math.max(0, fronts - included) * 0.05;
+    const capacityFactor = answers.capacidade_execucao === "baixa" ? 1.12 : answers.capacidade_execucao === "media" ? 1.05 : 1;
+    const teamFactor = n(answers.pessoas_rh, 0) <= 2 ? 1.05 : 1;
+    factor = sizeFactor * scopeFactor * frontFactor * capacityFactor * teamFactor;
+    breakdown.push(["Porte", sizeFactor], ["Amplitude", scopeFactor], ["Frentes", frontFactor], ["Capacidade interna", capacityFactor], ["Estrutura do RH", teamFactor]);
+    const minimumMonths = packageCode === "COMPLETO" ? 6 : 4;
     months = Math.max(n(months, minimumMonths), minimumMonths);
   } else if (service.slug === "treinamentos") {
     const groups = n(answers.turmas, 1);
@@ -636,14 +826,14 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
     breakdown.push(["Escopo priorizado", 1]);
   }
   const priceBand = PACKAGE_PRICE_BANDS[service.slug]?.[packageCode] || null;
-  const monthly = service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
+  const monthly = service.slug === "assessoria-estrategica" || service.slug === "cali-build" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
   const rawSubtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
   const subtotal = priceBand && rawSubtotal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, rawSubtotal)) : rawSubtotal;
   const discountValue = Math.round(subtotal * Math.min(Math.max(n(discount), 0), 50) / 100);
   const calculatedFinal = subtotal - discountValue;
   const hasOverride = finalOverride !== null && finalOverride !== "" && Number.isFinite(Number(finalOverride));
   const requestedFinal = hasOverride ? Math.max(0, Number(finalOverride)) : calculatedFinal;
-  const finalUnit = priceBand && requestedFinal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, requestedFinal)) : requestedFinal;
+  const finalUnit = service.slug === "cali-build" && hasOverride ? requestedFinal : (priceBand && requestedFinal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, requestedFinal)) : requestedFinal);
   const effectiveDiscountValue = Math.max(0, subtotal - finalUnit);
   const effectiveDiscountPct = subtotal ? Number(((effectiveDiscountValue / subtotal) * 100).toFixed(2)) : 0;
   // Serviços recorrentes são apresentados pela mensalidade. O prazo mínimo é uma
