@@ -91,6 +91,76 @@ const profiles = {
     ],
   },
 
+  "cali-build": {
+    contextIds: ["colaboradores","departamento_status","pessoas_rh","executor_interno","capacidade_execucao","horas_implantacao","sponsor_status","prazo_inicio"],
+    contextLabels: {
+      colaboradores: "Número de colaboradores",
+      departamento_status: "Estrutura atual de RH",
+      pessoas_rh: "Pessoas no RH",
+      executor_interno: "Responsável interno",
+      capacidade_execucao: "Capacidade de execução",
+      horas_implantacao: "Tempo semanal disponível",
+      sponsor_status: "Patrocínio da diretoria",
+      prazo_inicio: "Início desejado",
+    },
+    priorityIds: ["resultado_esperado","frentes_build","principal_bloqueio"],
+    priorityLabels: {
+      resultado_esperado: "Resultado que precisa estar funcionando",
+      frentes_build: "Frentes de implantação",
+      principal_bloqueio: "Principal bloqueio",
+    },
+    needsTitle: "O que precisa ser construído neste ciclo",
+    solutionCopy: {
+      ESSENCIAL: "Estruturação assistida para construir uma frente prioritária por ciclo, com método, materiais-base, checkpoints e revisão técnica da execução feita pelo RH interno.",
+      COMPLETO: "Estruturação assistida para implantar múltiplas frentes conectadas ou organizar a função de RH de forma mais ampla, com método, supervisão técnica e governança executiva.",
+    },
+    process: () => [
+      ["Diagnóstico de implantação", "Leitura do ponto de partida, capacidade interna, dependências e resultado esperado."],
+      ["Arquitetura e roadmap", "Definição da sequência de implantação, responsáveis, critérios e marcos de aprovação."],
+      ["Execução assistida", "O RH interno constrói e aplica; a CALI orienta o método e acompanha os checkpoints."],
+      ["Revisão e sustentação", "Correção técnica, validação das entregas, indicadores e transferência de conhecimento."],
+    ],
+    operating: (ctx) => ctx.packageCode === "COMPLETO" ? [
+      `Carga mensal contratada de ${ctx.monthlyHours || "14 a 18"} horas, incluindo diagnóstico, preparação, encontros, revisão e devolutivas.`,
+      "Até três frentes prioritárias podem avançar de forma coordenada por ciclo, conforme capacidade real do time interno.",
+      "Checkpoints técnicos quinzenais com o responsável interno e checkpoints executivos nos marcos de aprovação.",
+      "A CALI fornece arquitetura, método, templates, critérios e revisão; o RH interno executa a implantação entre os checkpoints.",
+      "Atuação 100% online por padrão. Encontros presenciais são contratados separadamente quando fizerem sentido.",
+    ] : [
+      `Carga mensal contratada de ${ctx.monthlyHours || "8 a 12"} horas, incluindo diagnóstico, preparação, encontros, revisão e devolutivas.`,
+      "Uma frente principal por ciclo, priorizada no kickoff e acompanhada até ganhar estrutura e rotina.",
+      "Checkpoints técnicos com o responsável interno para revisar entregas, corrigir rota e destravar decisões.",
+      "A CALI fornece arquitetura, método, templates, critérios e revisão; o RH interno executa a implantação entre os checkpoints.",
+      "Atuação 100% online por padrão. Encontros presenciais são contratados separadamente quando fizerem sentido.",
+    ],
+    commercial: (ctx) => [
+      `Contrato mínimo de ${ctx.minimumMonths} meses, organizado em ciclos de implantação.`,
+      "A mensalidade remunera a capacidade técnica contratada; o escopo e a sequência das frentes são revistos ao longo dos ciclos.",
+      "Após o período mínimo, a continuidade pode ser renovada conforme o roadmap e a necessidade de implantação.",
+      "Visitas presenciais, quando contratadas, têm finalidade definida e não substituem a execução interna.",
+      "Passagens, hospedagem, alimentação, deslocamentos locais e demais custos de viagem são pagos antecipadamente pela contratante.",
+    ],
+    outOfScope: [
+      "Execução operacional das etapas no lugar do RH interno. Se a CALI precisar assumir a implantação, o enquadramento deve migrar para CALI Full ou escopo específico.",
+      "Folha de pagamento, eSocial, encargos e rotinas contínuas de Departamento Pessoal.",
+      "Parecer jurídico trabalhista, defesa ou contencioso.",
+      "Operação contínua de recrutamento, comunicação interna ou demais processos após a implantação.",
+      "Garantia de prazo quando dados, aprovações ou execução interna não acontecem na cadência combinada.",
+    ],
+    advantages: [
+      "O RH interno aprende o método enquanto constrói as entregas, reduzindo dependência externa depois do ciclo.",
+      "Checkpoints técnicos evitam que políticas, processos e instrumentos avancem com erros de desenho ou sem aderência ao negócio.",
+      "Roadmap e critérios de qualidade preservam a sequência de implantação sem tentar fazer tudo ao mesmo tempo.",
+    ],
+    bonus: ["Kit de implantação CALI Build", "Quadro de implantação e checklist de qualidade para organizar frente, etapa, responsável, evidência, checkpoint e aprovação."],
+    nextSteps: [
+      ["Aprovação", "Confirmação do modelo, horas, mensalidade e primeiro ciclo."],
+      ["Contrato", "Formalização das condições e responsabilidades de execução."],
+      ["Kickoff", "Priorização das frentes, definição do responsável interno e cronograma do ciclo."],
+      ["Implantação assistida", "Execução interna com checkpoints, revisão técnica e validação dos marcos."],
+    ],
+  },
+
   "mentoria-rh": {
     contextIds: ["modalidade", "cargo_atual", "tempo_rh", "momento", "participantes", "frequencia", "duracao_sessao", "suporte"],
     contextLabels: {
