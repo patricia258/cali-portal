@@ -587,7 +587,8 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
     const cadenceFactor = answers.frequencia === "semanal" ? 1.14 : answers.frequencia === "quinzenal" ? 1.06 : 1;
     factor = sizeFactor * frontFactor * cadenceFactor;
     breakdown.push(["Porte", sizeFactor], ["Frentes", frontFactor], ["Cadência", cadenceFactor]);
-    months = Math.max(n(months, 6), 6);
+    const minimumMonths = packageCode === "FULL" ? 12 : 8;
+    months = Math.max(n(months, minimumMonths), minimumMonths);
   } else if (service.slug === "treinamentos") {
     const groups = n(answers.turmas, 1);
     const meetings = n(answers.encontros, 1);
