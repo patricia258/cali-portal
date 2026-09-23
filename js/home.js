@@ -4,6 +4,7 @@ if (location.hash.includes("type=recovery")) location.replace(`/redefinir-senha$
 
 const iconPaths = {
   "assessoria-estrategica": '<path d="M5 19V9l7-4 7 4v10M9 19v-6h6v6M4 19h16"/><path d="m9 8 3 2 3-2"/>',
+  "cali-build": '<path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5"/><path d="M8 10h8M12 4v6M6 13h12"/>',
   "mentoria-rh": '<circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4.4 3.1-6.5 7-6.5s6.2 2.1 7 6.5M18 5l1 1 2-2"/>',
   "diagnostico-executivo": '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4 4M8 11l2 2 4-5"/>',
   "cultura-direcao": '<path d="M4 18h16M6 18V9h12v9M9 9V6h6v3M9 13h.01M12 13h.01M15 13h.01"/>',
@@ -16,7 +17,7 @@ const iconPaths = {
 const grid = document.getElementById("service-grid");
 const arrowIcon = '<svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 grid.innerHTML = Object.values(SERVICES).map((service, index) => `
-  <article class="service-editorial-card ${service.slug === "solucao-personalizada" ? "service-editorial-custom" : ""} reveal">
+  <article class="service-editorial-card ${service.slug === "solucao-personalizada" ? "service-editorial-custom" : ""} ${service.slug === "cali-build" ? "service-editorial-build" : ""} reveal">
     <a class="service-card-primary" href="/servicos/${service.slug}">
       <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
       <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>
