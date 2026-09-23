@@ -47,6 +47,17 @@ function indicatorMatrixHtml(field) {
     </div>`).join("")}</div>`;
 }
 
+function teamRowsHtml(field) {
+  const row = (index) => `<div class="team-row" data-team-row="${index}">
+    <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome da pessoa"></div>
+    <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo atual"></div>
+    <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option><option value="estagio_assistencia">Estágio / Assistência</option><option value="junior">Júnior</option><option value="pleno">Pleno</option><option value="senior">Sênior</option><option value="especialista">Especialista</option><option value="coordenacao">Coordenação</option><option value="gerencia">Gerência</option><option value="direcao">Direção</option></select></div>
+    <div class="team-row-responsibility"><label>Principal responsabilidade</label><input class="control" data-team-key="responsabilidade" maxlength="240" placeholder="Ex.: DP, R&S, treinamento, generalista..."></div>
+    <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>
+  </div>`;
+  return `<div class="team-rows" data-team-field="${field.id}" data-team-max="${field.maxItems || 12}">${row(0)}<button type="button" class="team-add" data-team-add>+ Adicionar outra pessoa</button></div>`;
+}
+
 function fieldHtml(field) {
   const required = field.required ? '<span class="required">*</span>' : "";
   const common = inputAttributes(field);
@@ -58,11 +69,14 @@ function fieldHtml(field) {
     control = `<div class="choices">${field.options.map((item) => `<label class="choice"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}"><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
   } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
   else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
+  else if (field.type === "team_rows") control = teamRowsHtml(field);
   else control = `<input class="control" ${common} type="${field.type || "text"}" ${field.value !== undefined ? `value="${escapeHtml(field.value)}"` : ""}>`;
   const condition = field.showWhen
     ? Array.isArray(field.showWhen.in)
       ? `data-show-field="${field.showWhen.field}" data-show-values="${escapeHtml(field.showWhen.in.join("|"))}"`
-      : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
+      : field.showWhen.includes !== undefined
+        ? `data-show-field="${field.showWhen.field}" data-show-includes="${escapeHtml(field.showWhen.includes)}"`
+        : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
     : "";
   const label = field.type === "checkbox" ? "" : `<label for="f-${field.id}">${escapeHtml(field.label)} ${required}</label>`;
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
@@ -71,6 +85,15 @@ function fieldHtml(field) {
 stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 
 function valueFor(field) {
+  if (field.type === "team_rows") {
+    const root = form.querySelector(`[data-team-field="${field.id}"]`);
+    if (!root) return [];
+    return [...root.querySelectorAll("[data-team-row]")].map((row) => {
+      const entry = {};
+      row.querySelectorAll("[data-team-key]").forEach((element) => { entry[element.dataset.teamKey] = String(element.value || "").trim(); });
+      return entry;
+    }).filter((entry) => Object.values(entry).some(Boolean));
+  }
   if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked:not(:disabled)`)].map((element) => element.value);
   if (field.type === "radio") return form.querySelector(`[name="${field.id}"]:checked:not(:disabled)`)?.value || "";
   if (field.type === "checkbox") return Boolean(form.elements[field.id]?.checked);
@@ -92,7 +115,12 @@ function updateConditionalFields() {
     const sourceField = service.sections.flatMap((section) => section.fields).find((field) => field.id === wrapper.dataset.showField);
     const sourceValue = sourceField ? valueFor(sourceField) : "";
     const allowedValues = wrapper.dataset.showValues ? wrapper.dataset.showValues.split("|") : null;
-    const visible = allowedValues ? allowedValues.includes(String(sourceValue)) : String(sourceValue) === wrapper.dataset.showEquals;
+    const includeValue = wrapper.dataset.showIncludes;
+    const visible = allowedValues
+      ? allowedValues.includes(String(sourceValue))
+      : includeValue !== undefined
+        ? Array.isArray(sourceValue) && sourceValue.map(String).includes(String(includeValue))
+        : String(sourceValue) === wrapper.dataset.showEquals;
     wrapper.classList.toggle("conditional-hidden", !visible);
     wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
     if (!visible) wrapper.classList.remove("invalid");
@@ -286,7 +314,8 @@ function validateStep() {
     const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
     const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
     const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
-    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator);
+    const invalidTeam = field.type === "team_rows" && Array.isArray(value) && value.some((entry) => !entry.nome || !entry.cargo || !entry.senioridade);
+    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator || invalidTeam);
     wrapper.classList.toggle("invalid", isInvalid);
     const error = wrapper.querySelector(".field-error");
     if (error) {
@@ -296,6 +325,7 @@ function validateStep() {
       else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
       else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
       else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
+      else if (invalidTeam) error.textContent = "Preencha nome, cargo e senioridade de cada pessoa adicionada.";
       else error.textContent = "Preencha este campo para continuar.";
     }
     if (isInvalid) valid = false;
@@ -357,6 +387,41 @@ function formatPhone(value) {
   if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
+
+form.addEventListener("click", (event) => {
+  const add = event.target.closest("[data-team-add]");
+  if (add) {
+    const root = add.closest("[data-team-field]");
+    const max = Number(root.dataset.teamMax || 12);
+    const rows = root.querySelectorAll("[data-team-row]");
+    if (rows.length >= max) return;
+    const index = rows.length ? Math.max(...[...rows].map((row) => Number(row.dataset.teamRow || 0))) + 1 : 0;
+    const template = document.createElement("div");
+    template.innerHTML = `<div class="team-row" data-team-row="${index}">
+      <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome da pessoa"></div>
+      <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo atual"></div>
+      <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option><option value="estagio_assistencia">Estágio / Assistência</option><option value="junior">Júnior</option><option value="pleno">Pleno</option><option value="senior">Sênior</option><option value="especialista">Especialista</option><option value="coordenacao">Coordenação</option><option value="gerencia">Gerência</option><option value="direcao">Direção</option></select></div>
+      <div class="team-row-responsibility"><label>Principal responsabilidade</label><input class="control" data-team-key="responsabilidade" maxlength="240" placeholder="Ex.: DP, R&S, treinamento, generalista..."></div>
+      <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>
+    </div>`;
+    root.insertBefore(template.firstElementChild, add);
+    if (root.querySelectorAll("[data-team-row]").length >= max) add.classList.add("hidden");
+    return;
+  }
+  const remove = event.target.closest("[data-team-remove]");
+  if (remove) {
+    const root = remove.closest("[data-team-field]");
+    const rows = root.querySelectorAll("[data-team-row]");
+    if (rows.length <= 1) {
+      rows[0].querySelectorAll("input,select").forEach((element) => { element.value = ""; });
+    } else {
+      remove.closest("[data-team-row]").remove();
+    }
+    root.querySelector("[data-team-add]")?.classList.remove("hidden");
+    updateFormLogic();
+    updateContextNotices();
+  }
+});
 
 startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); showStep(0); });
 backButton.addEventListener("click", () => showStep(current - 1));
