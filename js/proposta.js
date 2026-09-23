@@ -45,7 +45,7 @@ const answerText = (id) => {
   if (Array.isArray(value)) return value.map((item) => readableAnswer(field, item, id)).join(", ");
   return readableAnswer(field, value, id);
 };
-const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
+const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || service.slug === "cali-build" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
 const referencePrice = Number(proposal.subtotal || calc.subtotal || proposal.final_unit || 0);
 const discountValue = Math.max(0, referencePrice - Number(proposal.final_unit || 0));
 const discountPct = referencePrice ? (discountValue / referencePrice) * 100 : 0;
@@ -106,6 +106,10 @@ function defaultContextNarrative() {
     const moment=answerText("momento_empresa"), people=answerText("colaboradores"), rh=answerText("rh_interno"), senior=answerText("lideranca_rh"), challenge=answerText("principal_desafio");
     return `${company} descreveu seu momento atual como ${String(moment || "uma etapa que exige organização").toLowerCase()}${people ? ` e informou uma estrutura de aproximadamente ${people} colaboradores` : ""}. ${rh ? `Sobre a estrutura atual de RH, o briefing registra: ${rh}.` : ""}${senior ? ` Em relação à liderança sênior de RH: ${senior}.` : ""}${challenge ? ` O desafio central compartilhado foi: ${challenge}.` : ""} Esta proposta transforma essas informações em uma sequência de trabalho compatível com a capacidade real de implantação.`;
   }
+  if (service.slug === "cali-build") {
+    const moment=answerText("momento_empresa"), people=answerText("colaboradores"), structure=answerText("estrutura_rh_status"), team=answerText("pessoas_rh"), scope=answerText("escopo_build"), objective=answerText("objetivo_primeiro_ciclo");
+    return `${company} descreveu seu momento atual como ${String(moment || "uma etapa de estruturação").toLowerCase()}${people ? ` e informou aproximadamente ${people} colaboradores` : ""}. ${structure ? `A estrutura atual de RH foi descrita como: ${structure}.` : ""}${team ? ` O time informado possui ${team} pessoa${Number(team)===1?"":"s"} em RH.` : ""}${scope ? ` A necessidade de estruturação é: ${String(scope).toLowerCase()}.` : ""}${objective ? ` O primeiro ciclo precisa avançar em: ${objective}.` : ""} O desenho considera a capacidade real de execução interna e organiza a implantação em ciclos supervisionados pela CALI.`;
+  }
   const readings=profile.contextIds.slice(0,5).map((id)=>answerText(id)?`${String(profile.contextLabels[id]||fieldById(id)?.label||id).toLowerCase()}: ${answerText(id)}`:"").filter(Boolean);
   return `${company} compartilhou um contexto que reúne ${readings.join("; ") || "necessidades que pedem organização, direção e uma sequência viável de implantação"}. Esta proposta parte do briefing recebido e considera as decisões que precisam ser sustentadas pela liderança.`;
 }
@@ -155,7 +159,7 @@ function mapFromRow(row) {
   return {include:true,score:Number(score.toFixed(1)),quadrant:maturity<5?(d4<5?"Embrionário":"Frágil"):(d4<5?"Em Estruturação":"Estratégico")};
 }
 let mapaPeople = null;
-if (service.slug === "assessoria-estrategica") {
+if (["assessoria-estrategica","cali-build"].includes(service.slug)) {
   mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
   if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
     const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
