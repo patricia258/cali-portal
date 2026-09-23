@@ -45,7 +45,7 @@ const answerText = (id) => {
   if (Array.isArray(value)) return value.map((item) => readableAnswer(field, item, id)).join(", ");
   return readableAnswer(field, value, id);
 };
-const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
+const monthly = Boolean(calc.monthly || service.slug === "assessoria-estrategica" || service.slug === "cali-build" || (service.slug === "marca-empregadora" && proposal.package_code === "RECORRENTE"));
 const referencePrice = Number(proposal.subtotal || calc.subtotal || proposal.final_unit || 0);
 const discountValue = Math.max(0, referencePrice - Number(proposal.final_unit || 0));
 const discountPct = referencePrice ? (discountValue / referencePrice) * 100 : 0;
@@ -155,7 +155,7 @@ function mapFromRow(row) {
   return {include:true,score:Number(score.toFixed(1)),quadrant:maturity<5?(d4<5?"Embrionário":"Frágil"):(d4<5?"Em Estruturação":"Estratégico")};
 }
 let mapaPeople = null;
-if (service.slug === "assessoria-estrategica") {
+if (["assessoria-estrategica","cali-build"].includes(service.slug)) {
   mapaPeople = Object.prototype.hasOwnProperty.call(calc,"mapaPeople") ? calc.mapaPeople : null;
   if (!Object.prototype.hasOwnProperty.call(calc,"mapaPeople")) {
     const email = encodeURIComponent(String(submission.contact_email || "").trim().toLowerCase());
