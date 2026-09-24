@@ -680,3 +680,18 @@ html,.home-body{background:var(--marfim)}
   .home-body .portal-carousel .portal-service-card{min-height:270px}
 }
 @media(prefers-reduced-motion:reduce){.home-body .portal-carousel .portal-service-card{transition:none}}
+
+/* Mesmo rodapé do site institucional. */
+.site-footer.cali-standard-footer,.home-body .site-footer.cali-standard-footer{background:#35121f;color:#f7f3ee;border:0;padding:48px 0 0}
+.cali-standard-footer .footer-container{max-width:1240px;margin:auto;padding-inline:clamp(24px,5vw,72px)}
+.cali-standard-footer .footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:25px;border-top:1px solid #ffffff35;padding-top:34px}
+.cali-standard-footer .footer-bottom img{width:100px;height:60px;object-fit:contain}
+.cali-standard-footer .footer-bottom>div:not(.social){display:flex;gap:22px;flex-wrap:wrap}
+.cali-standard-footer .footer-bottom a{font-size:13px;color:#f7f3eec9;text-decoration:none}
+.cali-standard-footer .footer-bottom a:hover{color:#e2b97e}
+.cali-standard-footer .footer-bottom .social{display:flex;align-items:center;gap:22px;flex:none}
+.cali-standard-footer .footer-bottom .social a{display:grid;place-items:center;width:26px;height:34px}
+.cali-standard-footer .footer-bottom .social svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cali-standard-footer .copyright{font-size:12px;color:#f7f3ee80;padding-top:32px;padding-bottom:35px}
+@media(max-width:850px){.cali-standard-footer .footer-bottom{align-items:start;flex-direction:column}.cali-standard-footer .footer-bottom>div:not(.social){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px;width:100%}}
+@media(max-width:560px){.site-footer.cali-standard-footer,.home-body .site-footer.cali-standard-footer{padding-top:32px}.cali-standard-footer .footer-bottom{gap:20px;padding-top:25px}.cali-standard-footer .copyright{padding-top:26px;padding-bottom:28px;line-height:1.5}}
