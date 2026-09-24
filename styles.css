@@ -435,3 +435,52 @@ html,.home-body{background:var(--marfim)}
 .team-rows{display:grid;gap:12px}.team-row{position:relative;display:grid;grid-template-columns:1fr 1fr .85fr auto;gap:12px;align-items:end;padding:14px;border:1px solid #e5dcd7;border-radius:9px;background:#fdfcfb}.team-row label{display:block;margin-bottom:6px;color:#716568;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.team-row .control{min-height:44px;padding:10px 11px}.team-remove{width:36px;height:36px;margin-bottom:4px;border:1px solid #dfd2cc;border-radius:50%;background:#fff;color:var(--bordo);font-size:20px;line-height:1;cursor:pointer}.team-remove:hover{border-color:var(--bordo);background:#fff7f4}.team-add{justify-self:start;border:0;background:transparent;color:var(--bordo);font-size:11px;font-weight:800;cursor:pointer;padding:6px 0}.team-add:hover{text-decoration:underline}.choice-select-all{grid-column:1/-1;background:#f7f0eb;border-color:rgba(181,140,82,.5)}.choice-select-all .choice-copy strong{color:var(--bordo)}
 @media(max-width:820px){.team-row{grid-template-columns:1fr 1fr}.team-row>div:nth-child(3){grid-column:1/-1}.team-remove{position:absolute;right:10px;top:10px;margin:0}.team-row>div:first-child{padding-right:38px}}
 @media(max-width:520px){.team-row{grid-template-columns:1fr}.team-row>div:nth-child(3){grid-column:auto}}
+
+
+/* CALI ecosystem floating topbar · 24/09/2026 */
+.topbar.ecosystem-topbar{
+  top:18px;left:22px;right:22px;width:auto;height:62px;
+  border:1px solid rgba(247,243,238,.14);border-radius:18px;
+  background:rgba(55,15,25,.78);box-shadow:0 15px 42px rgba(26,7,13,.16);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+}
+.topbar.ecosystem-topbar.is-scrolled,.topbar.ecosystem-topbar.topbar-solid{
+  height:62px;background:rgba(55,15,25,.88);
+}
+.topbar.ecosystem-topbar .topbar-inner{max-width:none;padding:0 18px 0 20px;gap:18px}
+.topbar.ecosystem-topbar .brand-image{width:126px}
+.topbar.ecosystem-topbar .brand-image img{max-height:34px}
+.ecosystem-topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px;min-width:0}
+.ecosystem-links{display:flex;align-items:center;gap:7px}
+.ecosystem-links a,.ecosystem-contact{
+  min-height:40px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 15px;border:1px solid rgba(247,243,238,.22);border-radius:10px;
+  color:#fff;text-decoration:none;font-size:10px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;
+  transition:transform .25s ease,background .25s ease,border-color .25s ease,color .25s ease;
+}
+.ecosystem-links a:first-child{border-color:rgba(181,140,82,.72);color:#dfbc80;background:rgba(181,140,82,.06)}
+.ecosystem-links a:hover,.ecosystem-contact:hover{transform:translateY(-1px);background:#fff;color:var(--bordo);border-color:#fff}
+.ecosystem-social{
+  gap:0;border:1px solid rgba(247,243,238,.14);border-radius:12px;overflow:hidden;
+  background:rgba(247,243,238,.025);
+}
+.ecosystem-social>a{
+  width:38px!important;height:38px!important;border:0!important;border-right:1px solid rgba(247,243,238,.11)!important;
+  border-radius:0!important;background:transparent!important;
+}
+.ecosystem-social>a:last-child{border-right:0!important}
+.ecosystem-social>a:hover{background:#fff!important;color:var(--bordo)!important;transform:none!important}
+.ecosystem-contact{padding-inline:18px}
+@media(max-width:900px){
+  .topbar.ecosystem-topbar{left:12px;right:12px;top:12px}
+  .ecosystem-contact{display:none}
+  .topbar.ecosystem-topbar .brand-image{width:104px}
+}
+@media(max-width:680px){
+  .topbar.ecosystem-topbar{height:58px;border-radius:16px}
+  .topbar.ecosystem-topbar .topbar-inner{padding:0 10px 0 13px;gap:8px}
+  .topbar.ecosystem-topbar .brand-image{width:78px}
+  .ecosystem-links a{min-height:36px;padding:0 10px;font-size:8px}
+  .ecosystem-social>a:nth-child(1),.ecosystem-social>a:nth-child(3),.ecosystem-social>a:nth-child(4){display:none}
+  .ecosystem-social>a{width:36px!important;height:36px!important;border-right:0!important}
+}
