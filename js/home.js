@@ -16,15 +16,36 @@ const iconPaths = {
 
 const grid = document.getElementById("service-grid");
 const arrowIcon = '<svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
-grid.innerHTML = Object.values(SERVICES).map((service, index) => `
+const homeCopy = {
+  "assessoria-estrategica": ["Assessoria Estratégica Mensal", "Direção sênior de RH para acompanhar prioridades e decisões da liderança."],
+  "cali-build": ["CALI Build", "Construímos o plano com o seu RH e orientamos a implantação feita pelo time interno."],
+  "mentoria-rh": ["Mentoria para profissionais de RH", "Desenvolvimento técnico para quem quer ganhar critério e espaço nas decisões."],
+  "diagnostico-executivo": ["Diagnóstico Executivo de People", "Uma leitura do cenário para identificar riscos e decidir por onde começar."],
+  "cultura-direcao": ["Cultura e Direção", "Alinhar o que a empresa espera ao que as lideranças praticam no dia a dia."],
+  "shadowing-lideranca": ["Shadowing de Liderança", "Observar situações reais e devolver caminhos concretos para a liderança."],
+  treinamentos: ["Treinamentos e Palestras", "Conteúdo desenhado para o público e a situação que a empresa precisa trabalhar."],
+  "marca-empregadora": ["Marca Empregadora", "Aproximar o que a empresa promete da experiência de quem trabalha nela."],
+  "solucao-personalizada": ["Solução Personalizada", "Seu desafio não cabe nas opções acima? Conte o que precisa resolver."],
+};
+const services = Object.values(SERVICES);
+const card = (service, index) => `
   <article class="service-editorial-card ${service.slug === "solucao-personalizada" ? "service-editorial-custom" : service.slug === "cali-build" ? "service-editorial-build" : ""} reveal">
     <a class="service-card-primary" href="/servicos/${service.slug}">
-      <div class="service-card-top"><span class="service-index">0${index + 1}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
-      <div><div class="service-code">${service.code}</div><h3>${service.title}</h3><p>${service.intro}</p></div>
+      <div class="service-card-top"><span class="service-index">${String(index + 1).padStart(2, "0")}</span><svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[service.slug]}</svg></div>
+      <div><h3>${homeCopy[service.slug][0]}</h3><p>${homeCopy[service.slug][1]}</p></div>
       <div class="service-card-bottom"><span>Iniciar briefing</span><span class="circle-arrow">${arrowIcon}</span></div>
     </a>
     ${index === 0 ? `<a class="service-site-link" href="https://calirh.com" target="_blank" rel="noreferrer">Conhecer este serviço no site <span>${arrowIcon}</span></a>` : ''}
-  </article>`).join("");
+  </article>`;
+grid.innerHTML = `
+  <div class="service-group">
+    <div class="service-group-head reveal"><span class="eyebrow">01 · ATUAÇÃO CONTÍNUA</span><h3>Direção e construção <em>com o seu RH.</em></h3><p>Para acompanhar decisões ou estruturar a área com execução interna.</p></div>
+    <div class="service-group-grid service-group-featured">${services.slice(0, 2).map(card).join("")}</div>
+  </div>
+  <div class="service-group">
+    <div class="service-group-head reveal"><span class="eyebrow">02 · DESAFIOS ESPECÍFICOS</span><h3>Uma resposta para <em>o que precisa mudar.</em></h3><p>Projetos e desenvolvimento com objetivo definido.</p></div>
+    <div class="service-group-grid">${services.slice(2).map((service, index) => card(service, index + 2)).join("")}</div>
+  </div>`;
 
 const topbar = document.getElementById("topbar");
 const updateHeader = () => topbar.classList.toggle("is-scrolled", window.scrollY > 28);
