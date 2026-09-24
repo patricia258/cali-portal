@@ -39,6 +39,7 @@ const focusCard = index => {
   carouselCards.forEach((element, i) => element.classList.toggle("is-current", i === index));
 };
 const goTo = (index, smooth = true) => {
+  if (index < 0 || index >= carouselCards.length) index = pageSize + ((index % pageSize + pageSize) % pageSize);
   focusCard(index);
   if (!smooth) {
     resetting = true;
