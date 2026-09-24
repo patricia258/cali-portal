@@ -515,8 +515,11 @@ form.addEventListener("submit", async (event) => {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || "Não foi possível enviar agora.");
     form.classList.add("hidden");
+    welcome.classList.add("hidden");
+    document.body.classList.add("submission-complete");
+    document.querySelector(".form-hero")?.classList.add("hidden");
     document.getElementById("success").classList.remove("hidden");
-    document.getElementById("protocol").textContent = result.protocol ? `Protocolo ${result.protocol}` : "";
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (error) {
     feedback.textContent = error instanceof TypeError ? "Não consegui concluir o envio. Verifique sua conexão e tente novamente." : (error instanceof Error ? error.message : "Não foi possível enviar agora.");
     submitButton.disabled = false;
