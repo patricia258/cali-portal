@@ -39,11 +39,11 @@ const card = (service, index) => `
   </article>`;
 grid.innerHTML = `
   <div class="service-group">
-    <div class="service-group-head reveal"><span class="eyebrow">01 · ATUAÇÃO CONTÍNUA</span><h3>Direção e construção <em>com o seu RH.</em></h3><p>Para acompanhar decisões ou estruturar a área com execução interna.</p></div>
+    <div class="service-group-head reveal"><span class="eyebrow">01 · ATUAÇÃO CONTÍNUA</span><h3>Acompanhamento ou <em>implantação assistida.</em></h3><p>Na assessoria, acompanhamos a liderança. No Build, orientamos o RH interno que executa.</p></div>
     <div class="service-group-grid service-group-featured">${services.slice(0, 2).map(card).join("")}</div>
   </div>
   <div class="service-group">
-    <div class="service-group-head reveal"><span class="eyebrow">02 · DESAFIOS ESPECÍFICOS</span><h3>Uma resposta para <em>o que precisa mudar.</em></h3><p>Projetos e desenvolvimento com objetivo definido.</p></div>
+    <div class="service-group-head reveal"><span class="eyebrow">02 · DESAFIOS ESPECÍFICOS</span><h3>Projetos para <em>um desafio definido.</em></h3><p>Há também mentoria para quem atua em RH.</p></div>
     <div class="service-group-grid">${services.slice(2).map((service, index) => card(service, index + 2)).join("")}</div>
   </div>`;
 
