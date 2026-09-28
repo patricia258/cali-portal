@@ -185,6 +185,7 @@ const outOfScopeHtml=()=>`<section class="proposal-section proposal-cycle-exclus
 const payment = calc.payment || {}, paymentRows=[];
 if(payment.method==="monthly") paymentRows.push(["Forma","Mensal recorrente"],["Vencimento",payment.monthlyDue||"1º dia útil de cada mês"]);
 else if(payment.method==="split"){const a=Number(payment.entryPct||50),b=Number(payment.finalPct||50);paymentRows.push([`Entrada · ${a}%`,currency(Number(proposal.final_unit)*a/100)],[`Finalização · ${b}%`,currency(Number(proposal.final_unit)*b/100)]);}
+else if(payment.method==="project_installments"){const installments=Math.max(2,Number(payment.projectInstallments||2));paymentRows.push(["Parcelamento do projeto",`${installments}x de ${currency(Number(proposal.final_unit)/installments)}`],["Vencimento",payment.projectInstallmentDue||"Mensais, com a primeira parcela no aceite"]);}
 else if(payment.method==="pix") paymentRows.push(["Forma","PIX à vista"],["Desconto aplicado",`${Number(payment.pixDiscount||discountPct).toLocaleString("pt-BR",{maximumFractionDigits:2})}%`]);
 else if(payment.method==="card") paymentRows.push(["Parcelamento",`Até ${Number(payment.cardInstallments||1)}x no cartão`],["Taxas",payment.cardFees==="included"?"Incluídas no valor final":"Acrescidas conforme a operadora"]);
 else paymentRows.push(["Forma",payment.customLabel || (monthly?"Mensal recorrente":"Conforme cronograma acordado")]);
