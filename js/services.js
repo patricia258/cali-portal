@@ -74,7 +74,7 @@ export const PACKAGE_PRICE_BANDS = {
     PROJETO: { min: 3800, max: 4000 },
     RECORRENTE: { min: 3200, max: 4000 },
   },
-  "solucao-personalizada": { SOB_MEDIDA: { min: 2800, max: 3000 } },
+  "solucao-personalizada": { SOB_MEDIDA: { min: 2800, max: null } },
 };
 
 const LEGACY_INVESTMENT_BANDS = {
@@ -799,16 +799,23 @@ export function calculateProposal({ service, answers, packageCode, basePrice, di
   const priceBand = PACKAGE_PRICE_BANDS[service.slug]?.[packageCode] || null;
   const monthly = service.slug === "assessoria-estrategica" || service.slug === "cali-build" || (service.slug === "marca-empregadora" && packageCode === "RECORRENTE");
   const rawSubtotal = Math.round((n(basePrice) * factor + n(extras)) / 50) * 50;
-  const subtotal = priceBand && rawSubtotal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, rawSubtotal)) : rawSubtotal;
+  const clampToBand = (value) => {
+    if (!priceBand || value <= 0) return value;
+    const minimum = Number.isFinite(Number(priceBand.min)) ? Number(priceBand.min) : 0;
+    const maximum = priceBand.max == null ? Infinity : Number(priceBand.max);
+    return Math.min(maximum, Math.max(minimum, value));
+  };
+  const subtotal = clampToBand(rawSubtotal);
   const discountValue = Math.round(subtotal * Math.min(Math.max(n(discount), 0), 50) / 100);
   const calculatedFinal = subtotal - discountValue;
   const hasOverride = finalOverride !== null && finalOverride !== "" && Number.isFinite(Number(finalOverride));
   const requestedFinal = hasOverride ? Math.max(0, Number(finalOverride)) : calculatedFinal;
-  const finalUnit = priceBand && requestedFinal > 0 ? Math.min(priceBand.max, Math.max(priceBand.min, requestedFinal)) : requestedFinal;
+  const finalUnit = clampToBand(requestedFinal);
   const effectiveDiscountValue = Math.max(0, subtotal - finalUnit);
   const effectiveDiscountPct = subtotal ? Number(((effectiveDiscountValue / subtotal) * 100).toFixed(2)) : 0;
   // Serviços recorrentes são apresentados pela mensalidade. O prazo mínimo é uma
   // condição contratual, não um total a ser somado na proposta.
   const total = finalUnit;
-  return { factor: Number(factor.toFixed(3)), subtotal, rawSubtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, scopeMode, breakdown, priceBand, ceilingApplied: Boolean(priceBand && rawSubtotal > priceBand.max) };
+  const ceilingApplied = Boolean(priceBand && priceBand.max != null && rawSubtotal > Number(priceBand.max));
+  return { factor: Number(factor.toFixed(3)), subtotal, rawSubtotal, discountValue: effectiveDiscountValue, discountPct: effectiveDiscountPct, finalUnit, total, months: n(months, 1), monthly, extras: n(extras), manualFinal: hasOverride, scopeMode, breakdown, priceBand, ceilingApplied };
 }
