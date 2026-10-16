@@ -711,3 +711,8 @@ html,.home-body{background:var(--marfim)}
 .form-legend{margin:10px 0 0;color:#8a7a72;font-size:12px;line-height:1.5}
 .form-legend .required{color:#a33a45;font-weight:800}
 @media(max-width:760px){.form-card .service-boundaries.boundary-step{grid-template-columns:1fr}.form-card .service-boundaries.boundary-step .boundary-actions{justify-content:stretch}.form-card .service-boundaries.boundary-step .boundary-actions .btn{width:100%}}
+/* 16/10 · rodada 2: negrito nos limites; topo compacto enquanto a pessoa preenche (todos os formulários). */
+.service-boundaries li strong{color:#5a1e2d;font-weight:700}
+body.briefing-active .form-hero{display:none!important}
+body.briefing-active .form-layout{margin-top:0!important;padding-top:clamp(112px,12vh,140px)!important}
+body.briefing-active.form-body{background:var(--marfim)!important}

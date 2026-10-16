@@ -23,7 +23,8 @@ document.getElementById("service-intro").textContent = service.intro;
 // Personalizada) o card vira a primeira tela, antes da carta de boas-vindas, e some quando a pessoa segue.
 const boundaries = document.getElementById("service-boundaries");
 if (service.boundaryItems?.length) {
-  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2><p>${escapeHtml(service.boundaryIntro)}</p></div><ul>${service.boundaryItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p><div class="boundary-actions"><button class="btn btn-primary" type="button" id="boundary-continue">Entendi, continuar →</button></div>`;
+  const withBold = (text) => escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2>${service.boundaryIntro ? `<p>${withBold(service.boundaryIntro)}</p>` : ""}</div><ul>${service.boundaryItems.map((item) => `<li>${withBold(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p><div class="boundary-actions"><button class="btn btn-primary" type="button" id="boundary-continue">Entendi, continuar →</button></div>`;
   boundaries.classList.remove("hidden");
   boundaries.classList.add("boundary-step");
   welcome.before(boundaries);
@@ -470,7 +471,8 @@ form.addEventListener("click", (event) => {
   }
 });
 
-startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); showStep(0); });
+// Durante o preenchimento o topo grande sai de cena (16/10/2026): fica só uma linha com o serviço e o link de volta.
+startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); document.body.classList.add("briefing-active"); showStep(0); window.scrollTo({ top: 0, behavior: "smooth" }); });
 backButton.addEventListener("click", () => showStep(current - 1));
 nextButton.addEventListener("click", () => { if (validateStep()) showStep(current + 1); });
 
