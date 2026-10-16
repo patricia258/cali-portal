@@ -695,3 +695,19 @@ html,.home-body{background:var(--marfim)}
 .cali-standard-footer .copyright{font-size:12px;color:#f7f3ee80;padding-top:32px;padding-bottom:35px}
 @media(max-width:850px){.cali-standard-footer .footer-bottom{align-items:start;flex-direction:column}.cali-standard-footer .footer-bottom>div:not(.social){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px;width:100%}}
 @media(max-width:560px){.site-footer.cali-standard-footer,.home-body .site-footer.cali-standard-footer{padding-top:32px}.cali-standard-footer .footer-bottom{gap:20px;padding-top:25px}.cali-standard-footer .copyright{padding-top:26px;padding-bottom:28px;line-height:1.5}}
+
+/* 16/10/2026 · pedido da Pati
+   1) "Antes de continuar" como primeira tela dentro do cartão do formulário (CALI Build e Solução Personalizada);
+   2) durante o preenchimento, só as perguntas: sem avisos soltos no meio das etapas;
+   3) obrigatório (*) × opcional ("Opcional") claro em todos os campos. */
+.form-card .service-boundaries.boundary-step{margin:0;padding:clamp(24px,3vw,36px);border:1px solid #e6d8ca;border-radius:16px;background:#fffdfa;box-shadow:none;grid-template-columns:.85fr 1.15fr;gap:22px 44px}
+.form-card .service-boundaries.boundary-step h2{color:#5a1e2d;font-size:clamp(26px,2.6vw,34px);line-height:1.12;margin:6px 0 12px}
+.form-card .service-boundaries.boundary-step p,.form-card .service-boundaries.boundary-step li{color:#554b49;font-size:15px;line-height:1.6}
+.form-card .service-boundaries.boundary-step .boundary-label{font-size:10px;color:#a9824f}
+.form-card .service-boundaries.boundary-step .boundary-closing{grid-column:1/-1;color:#5a1e2d}
+.form-card .service-boundaries.boundary-step .boundary-actions{grid-column:1/-1;display:flex;justify-content:flex-end;padding-top:6px}
+#steps .context-notice,#steps .form-context-notices{display:none!important}
+.optional-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:#f3ece6;color:#8a7a72;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle}
+.form-legend{margin:10px 0 0;color:#8a7a72;font-size:12px;line-height:1.5}
+.form-legend .required{color:#a33a45;font-weight:800}
+@media(max-width:760px){.form-card .service-boundaries.boundary-step{grid-template-columns:1fr}.form-card .service-boundaries.boundary-step .boundary-actions{justify-content:stretch}.form-card .service-boundaries.boundary-step .boundary-actions .btn{width:100%}}

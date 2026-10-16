@@ -19,10 +19,20 @@ document.title = `${service.title} · CALI`;
 document.getElementById("service-kicker").textContent = service.kicker;
 document.getElementById("service-title").textContent = service.title;
 document.getElementById("service-intro").textContent = service.intro;
+// "Antes de continuar" (pedido da Pati, 16/10/2026): nos serviços que têm limites explicados (CALI Build e Solução
+// Personalizada) o card vira a primeira tela, antes da carta de boas-vindas, e some quando a pessoa segue.
 const boundaries = document.getElementById("service-boundaries");
 if (service.boundaryItems?.length) {
-  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2><p>${escapeHtml(service.boundaryIntro)}</p></div><ul>${service.boundaryItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p>`;
+  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2><p>${escapeHtml(service.boundaryIntro)}</p></div><ul>${service.boundaryItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p><div class="boundary-actions"><button class="btn btn-primary" type="button" id="boundary-continue">Entendi, continuar →</button></div>`;
   boundaries.classList.remove("hidden");
+  boundaries.classList.add("boundary-step");
+  welcome.before(boundaries);
+  welcome.classList.add("hidden");
+  document.getElementById("boundary-continue").addEventListener("click", () => {
+    boundaries.classList.add("hidden");
+    welcome.classList.remove("hidden");
+    welcome.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function escapeHtml(value) {
@@ -61,8 +71,13 @@ function teamRowsHtml(field) {
   return `<div class="team-rows" data-team-field="${field.id}" data-team-max="${field.maxItems || 20}">${row(0)}<button type="button" class="team-add" data-team-add>+ Adicionar outra pessoa</button></div>`;
 }
 
+// Obrigatório × opcional (16/10/2026): obrigatório leva *, o resto leva a etiqueta "Opcional".
+function requirementTag(required) {
+  return required ? '<span class="required" title="Obrigatório">*</span>' : '<span class="optional-tag">Opcional</span>';
+}
+
 function fieldHtml(field) {
-  const required = field.required ? '<span class="required">*</span>' : "";
+  const required = requirementTag(field.required);
   const common = inputAttributes(field);
   let control = "";
   if (field.type === "textarea") control = `<textarea class="control" ${common}>${escapeHtml(field.value || "")}</textarea>`;
@@ -85,7 +100,7 @@ function fieldHtml(field) {
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
 }
 
-stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><div class="step-kicker">Briefing estratégico</div><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
+stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
 
 function valueFor(field) {
   if (field.type === "team_rows") {
@@ -142,7 +157,7 @@ function setFieldLabel(fieldId, text) {
   const label = form.querySelector(`[data-field="${fieldId}"] > label`);
   if (!label) return;
   const required = service.sections.flatMap((section) => section.fields).find((field) => field.id === fieldId)?.required;
-  label.innerHTML = `${escapeHtml(text)} ${required ? '<span class="required">*</span>' : ''}`;
+  label.innerHTML = `${escapeHtml(text)} ${requirementTag(required)}`;
 }
 
 function makeTeamRow(index) {
