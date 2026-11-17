@@ -1,6 +1,6 @@
 export const CONFIG = Object.freeze({
-  supabaseUrl: "https://kqtbfeeqbcllwvlkbrkq.supabase.co",
-  supabasePublishableKey: "sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg",
+  supabaseUrl: "https://tpzcytjbglwzhgxrzzzb.supabase.co",
+  supabasePublishableKey: "sb_publishable_7iOboMbIizp5dfqpiaehLg_xRAan-U2",
   adminEmail: "patricia@calirh.com",
   brand: {
     name: "CALI",
