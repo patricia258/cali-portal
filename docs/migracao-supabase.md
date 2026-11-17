@@ -8,7 +8,7 @@ As funções `portal-submit`, `portal-admin-access` e `portal-send-proposal` for
 
 ## Antes de publicar
 
-- Configurar `RESEND_API_KEY` nas Edge Function Secrets do destino. A conexão disponível não permite copiar os secrets do projeto antigo.
+- `RESEND_API_KEY` foi configurada pela proprietária no destino e reconhecida em execução. A API do Resend validou a chave com uma requisição sem destinatário; nenhum e-mail foi enviado.
 - Configurar Supabase Auth: Site URL `https://portal.calirh.com`; URLs de retorno `https://portal.calirh.com/**`, `https://cali-portal.vercel.app/**`, `https://propostas.calirh.com/**` e `https://cali-prospect-compass.lovable.app/**`. Incluir a URL exata da prévia se usada para testar acesso por e-mail.
 - Conferir SMTP e provedores de Auth se usados. As configurações do serviço não acompanham os registros da conta.
 - Repetir a sincronização e comparação das tabelas e arquivos se a origem receber alterações desde a cópia.
