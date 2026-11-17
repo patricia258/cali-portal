@@ -15,3 +15,7 @@ As funções `portal-submit`, `portal-admin-access` e `portal-send-proposal` for
 - Conferir login e MFA, envio de solicitação, abertura dos PDFs e geração/envio de proposta antes do corte. Testes de envio devem usar destinatário autorizado.
 
 O outro repositório também usará esse projeto. Não excluir nem pausar o ambiente antigo antes de validar os dois sistemas e possíveis consumidores fora desta migração.
+
+## Validação para o corte
+
+Em 17/11/2026, a proprietária confirmou SMTP e URLs de retorno salvos e confirmou login por link e visualização dos leads na prévia do Prospect. A chave Resend substituta passou na validação sem envio de e-mail pela ferramenta. A comparação imediatamente anterior ao corte confirmou igualdade das dez tabelas entre as origens e o destino. A sincronização adicional do Portal foi concluída à noite. Os ambientes antigos serão preservados.
