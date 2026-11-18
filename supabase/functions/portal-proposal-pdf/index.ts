@@ -7,7 +7,7 @@ import QRCode from "npm:qrcode@1.5.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PORTAL_URL = "https://portal.calirh.com";
-const LOGO_URL = `${PORTAL_URL}/assets/logo-cali-light.png`;
+const LOGO_URL = `${PORTAL_URL}/assets/logo-cali-bordo.png`;
 const LIME_URL = `${PORTAL_URL}/assets/cali-lime-mark.svg`;
 
 const BORDO = "#5A1E2D", DOURADO = "#B58C52", GRAFITE = "#2B2B2B", CINZA = "#6B5D63", LINHA = "#E6DDD3", MARFIM = "#F7F3EE";
