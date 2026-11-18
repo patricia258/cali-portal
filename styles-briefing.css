@@ -1,0 +1,158 @@
+/* Briefing CALI — nova direção (rebrand aprovado com a Patrícia, 17/11/2026).
+   Página própria, sem o cabeçalho/rodapé do site institucional: estrutura nova, uma pergunta por tela,
+   centralizada no meio da tela (como o Typeform). Fundo único claro; bordô em peso real no título,
+   na seleção e no botão. Sem pílulas; sem rótulo "opcional" repetido; legenda abaixo do campo.
+   Rádio e seleção avançam sozinhos ao escolher; só múltipla escolha pede o clique em Continuar. */
+
+.form-body{
+  --serif:'Archivo',Arial,sans-serif;
+  --sans:'Hanken Grotesk',Arial,sans-serif;
+  --mono:'Martian Mono',monospace;
+  margin:0; background:var(--marfim-fundo,#FBF8F4);
+}
+
+html:has(body.form-body){height:100%}
+body.form-body{min-height:100%; display:flex; flex-direction:column; font-family:var(--sans)}
+
+.form-body .stage{display:flex; flex-direction:column; min-height:100vh}
+
+/* === topo: só a logo oficial e o contador, nada de menu === */
+.form-body .briefing-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px max(20px, env(safe-area-inset-left,0px)) 16px;
+}
+.form-body .briefing-topbar .wordmark{display:flex; align-items:center}
+.form-body .briefing-topbar .wordmark img{display:block; height:30px; width:auto}
+.form-body .briefing-topbar .step-flag{font:600 11px/1 var(--mono); letter-spacing:.06em; font-variant-numeric:tabular-nums; color:#5c5254}
+
+.form-body .briefing-progress-track{height:3px; background:rgba(90,30,45,.08)}
+.form-body .briefing-progress-bar{height:100%; width:0; background:var(--dourado); transition:width .5s cubic-bezier(.22,.75,.24,1)}
+
+/* === área central: uma coisa por vez, centralizada no meio da tela === */
+.form-body .viewport{flex:1; display:flex; flex-direction:column; width:100%; max-width:820px; margin:0 auto; padding:32px max(20px, env(safe-area-inset-left,0px)) 40px}
+
+/* === tela de abertura, centralizada como as demais === */
+.form-body #briefing-welcome{flex:1; display:flex; flex-direction:column; min-height:0}
+.form-body .intro{max-width:620px; margin:auto 0}
+.form-body .intro-kicker{
+  display:inline-block; font:600 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase;
+  color:var(--bordo); border:1px solid rgba(90,30,45,.3); border-radius:6px; padding:6px 10px; margin:0 0 18px;
+}
+.form-body .intro h1{font:800 clamp(34px,5.4vw,52px)/1.08 var(--serif); letter-spacing:-.025em; color:var(--bordo); margin:0 0 20px}
+.form-body .intro-greeting{font:700 18px/1.4 var(--sans); color:var(--bordo); margin:0 0 12px}
+.form-body .intro p{font-size:17px; line-height:1.65; color:var(--grafite); margin:0 0 16px; max-width:58ch}
+.form-body .intro-note{font-size:14px; color:#655b5d}
+.form-body .intro-note strong{color:var(--bordo)}
+.form-body .intro .btn{margin-top:28px}
+
+/* === cada pergunta ocupa a tela toda e fica centralizada no meio, como o Typeform === */
+.form-body #briefing-form{flex:1; display:flex; flex-direction:column; min-height:0}
+.form-body #steps{flex:1; display:flex; flex-direction:column; min-height:0}
+.form-body .form-step{display:none; flex:1; flex-direction:column; justify-content:center; align-self:center; width:100%; max-width:680px}
+.form-body .form-step.active{display:flex}
+.form-body .form-step .field{display:flex; flex-direction:column}
+.form-body .form-step .field > label:not(.single-check){
+  display:block; font:800 clamp(26px,3.6vw,38px)/1.18 var(--serif); letter-spacing:-.02em;
+  color:var(--bordo); margin:0 0 22px;
+}
+.form-body .form-step .field > label .required{color:var(--dourado); font-size:.55em; vertical-align:super; margin-left:2px}
+/* a etiqueta "opcional" já está coberta pela legenda geral — some aqui pra não repetir a mesma informação */
+.form-body .form-step .field > label .optional-tag{display:none}
+.form-body .form-step .field-help{order:1; font-size:15px; line-height:1.6; color:#655b5d; margin:10px 0 0; max-width:58ch}
+
+/* caixa única de marcar (ex.: "estou ciente do deslocamento"): o próprio texto é a pergunta */
+.form-body .form-step .single-check{
+  display:flex; align-items:center; gap:14px; padding:20px 22px; border-radius:10px; border-color:#e2d6d0;
+}
+.form-body .form-step .single-check span{font:600 17px/1.5 var(--sans); color:var(--grafite)}
+.form-body .form-step .single-check input{
+  flex:0 0 auto; width:22px; height:22px; margin:0; border-radius:5px; accent-color:var(--bordo);
+}
+
+/* === controles, maiores e quadrados (nunca pílula) === */
+.form-body .form-step .control{
+  min-height:58px; font-size:17px; padding:16px 18px; border-radius:8px;
+  border-color:#e2d6d0; background:#fffefc; font-family:var(--sans);
+}
+.form-body .form-step textarea.control{min-height:150px}
+.form-body .form-step .control:hover{border-color:var(--taupe)}
+.form-body .form-step .control:focus{border-color:var(--bordo); outline:none; box-shadow:0 0 0 3px rgba(90,30,45,.1)}
+.form-body .form-step select.control{
+  appearance:none; -webkit-appearance:none; padding-right:46px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A1E2D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat; background-position:right 18px center; background-size:16px;
+}
+
+/* === opções: cartões quadrados, com indicador de letra, bordô cheio quando selecionado === */
+.form-body .form-step .choices-radio{grid-template-columns:1fr; gap:10px}
+.form-body .form-step .choices-checkboxes{grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+.form-body .form-step .choice{
+  display:flex; align-items:center; gap:14px;
+  min-height:auto; padding:18px 20px; border-radius:8px; border-color:#e2d6d0; background:#fffefc;
+  transition:background .16s ease, border-color .16s ease, color .16s ease;
+}
+.form-body .form-step .choice:hover{border-color:var(--bordo); background:#fff}
+.form-body .form-step .choice-key{
+  flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(90,30,45,.3);
+  display:grid; place-items:center; font:600 12px/1 var(--mono); color:var(--bordo);
+}
+.form-body .form-step .choice input{order:3; margin:0 0 0 auto; accent-color:var(--bordo); flex:0 0 auto}
+.form-body .form-step .choice-copy{display:flex; flex-direction:column; gap:4px}
+.form-body .form-step .choice-copy strong{font-size:16px}
+.form-body .form-step .choice:has(input:checked){background:var(--bordo); border-color:var(--bordo); color:var(--marfim)}
+.form-body .form-step .choice:has(input:checked) .choice-key{background:var(--marfim); border-color:var(--marfim); color:var(--bordo)}
+.form-body .form-step .choice:has(input:checked) .choice-copy small{color:#e4d6d2}
+.form-body .form-step .choice:has(input:checked) input{accent-color:var(--marfim)}
+
+/* === notícias de contexto === */
+.form-body .form-step .form-context-notices{order:2; margin:14px 0 0}
+.form-body .context-notice{border-radius:8px; font-family:var(--sans)}
+
+/* === etapa final: consentimento + envio === */
+.form-body #consent-wrap.form-step{max-width:680px}
+.form-body #consent-wrap .question{margin-bottom:24px}
+.form-body #consent-wrap .q-title{font:800 clamp(28px,4vw,40px)/1.15 var(--serif); letter-spacing:-.02em; color:var(--bordo); margin:0 0 12px}
+.form-body #consent-wrap .q-help{font-size:15px; line-height:1.6; color:#655b5d; margin:0}
+.form-body .consent-check{display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.6; color:#655b5d; background:#faf7f4; border-radius:8px; padding:18px 20px}
+.form-body .consent-check a{color:var(--bordo); font-weight:700}
+
+/* === legenda de obrigatório: fica abaixo do campo ativo, nunca acima do título === */
+.form-body .form-legend{order:3; font:400 12px/1.5 var(--sans); color:#5c5254; margin:14px 0 0}
+.form-body .form-legend .required{color:var(--dourado); font-weight:700}
+
+/* === aviso de erro: linha própria, de altura fixa, nunca empurra o botão === */
+.form-body .form-feedback{order:4; display:block; min-height:18px; margin:16px 0 0; font-family:var(--sans); font-size:12.5px; color:var(--vermelho,#9B2C2C)}
+
+/* === ações: botões quadrados, sempre no mesmo lugar === */
+.form-body .form-actions{order:5; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:12px; padding-top:20px; border-top:1px solid #eee4df}
+.form-body .btn{border-radius:8px; font-family:var(--mono); letter-spacing:.03em; font-weight:600; font-size:13px; padding:14px 22px; white-space:nowrap}
+.form-body .btn-primary{background:var(--bordo); color:var(--marfim)}
+.form-body .btn-primary:hover{background:var(--bordo-escuro,#3A1420)}
+.form-body .btn-outline{background:transparent; border:1px solid rgba(90,30,45,.26); color:var(--bordo)}
+
+/* === primeira tela de limite (CALI Build / Solução Personalizada) === */
+.form-body .service-boundaries{
+  display:block; max-width:680px; margin:auto 0; padding:0;
+  background:none; border:0; border-radius:0; backdrop-filter:none; box-shadow:none;
+}
+.form-body .service-boundaries .boundary-label{font:600 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--dourado-escuro,#8C6B3A)}
+.form-body .service-boundaries h2{font:800 clamp(30px,4.4vw,42px)/1.15 var(--serif); letter-spacing:-.02em; color:var(--bordo); margin:10px 0 16px}
+.form-body .service-boundaries p{font-size:16px; line-height:1.65; color:var(--grafite); margin:0 0 20px}
+.form-body .service-boundaries ul{list-style:none; margin:0 0 20px; padding:0; display:grid; gap:10px}
+.form-body .service-boundaries li{font-size:15px; line-height:1.6; color:var(--grafite); padding:14px 16px; border:1px solid #e2d6d0; border-radius:8px}
+.form-body .service-boundaries li strong{color:var(--bordo)}
+.form-body .service-boundaries .boundary-closing{font-size:15px; color:#655b5d}
+.form-body .service-boundaries .boundary-actions{margin-top:24px}
+
+/* === sucesso === */
+.form-body .success-panel{flex:1; display:flex; flex-direction:column; justify-content:center; max-width:620px; margin:0 auto; padding:32px 20px}
+.form-body .success-panel h2{font:800 clamp(34px,5vw,48px)/1.1 var(--serif); letter-spacing:-.02em; color:var(--bordo); margin:0 0 16px}
+.form-body .success-panel p{font-size:16px; line-height:1.6; color:#655b5d; margin:0 0 28px}
+.form-body .success-panel .btn{align-self:flex-start}
+
+@media (max-width:620px){
+  .form-body .viewport{padding:24px max(16px, env(safe-area-inset-left,0px)) 32px}
+  .form-body .form-step .choices-checkboxes{grid-template-columns:1fr}
+  .form-body .form-actions{flex-wrap:wrap}
+  .form-body .form-step .field > label{font-size:clamp(24px,7vw,30px)}
+}

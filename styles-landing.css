@@ -1,0 +1,32 @@
+/* Central de serviços do Portal CALI — ajuste de direção (17/11/2026).
+   Mesma tipografia e peso do briefing (Archivo/Hanken Grotesk/Martian Mono), bordô em peso real,
+   cantos quadrados nos botões e cartões em vez do arredondado anterior. Escopado a .home-body:
+   só afeta este index.html, nada do admin, da proposta ou do briefing. */
+
+.home-body{
+  --serif:'Archivo',Arial,sans-serif;
+  --sans:'Hanken Grotesk',Arial,sans-serif;
+  --mono:'Martian Mono',monospace;
+}
+
+.home-body .eyebrow{font-family:var(--mono); font-weight:600; color:#6b4420}
+
+.home-body .portal-intro h1{font-weight:800; letter-spacing:-.03em}
+.home-body .portal-directory h2{font-weight:800; letter-spacing:-.03em}
+.home-body .portal-carousel-heading h3{font-weight:800; letter-spacing:-.03em}
+.home-body .portal-card-content strong{font-weight:800; letter-spacing:-.02em}
+
+/* botões: quadrados, nunca pílula */
+.home-body .btn{border-radius:8px; font-family:var(--mono); letter-spacing:.03em; font-weight:600}
+.home-body .portal-intro-action{border-radius:8px}
+
+/* cartões de serviço: cantos discretos, não o arredondado anterior */
+.home-body .portal-service-card{border-radius:10px}
+.home-body .portal-carousel .portal-service-card{border-radius:10px}
+.home-body .portal-card-overline{font-family:var(--mono); font-weight:600}
+
+/* pequenos ajustes de contraste (WCAG AA) sobre o degradê rosado do topo */
+.home-body .portal-intro .hero-availability small{color:#544a45}
+.home-body .portal-intro .eyebrow{color:#6b4420}
+.home-body .portal-intro h1 span{color:#6b4420}
+.home-body .portal-intro .hero-availability span{color:#6b4420}

@@ -7,8 +7,8 @@ const welcome = document.getElementById("briefing-welcome");
 const startButton = document.getElementById("start-briefing");
 const stepsRoot = document.getElementById("steps");
 const progressBar = document.getElementById("progress-bar");
-const progressLabel = document.getElementById("progress-label");
 const progressCount = document.getElementById("progress-count");
+const formLegend = document.getElementById("form-legend");
 const backButton = document.getElementById("back");
 const nextButton = document.getElementById("next");
 const submitButton = document.getElementById("submit");
@@ -82,10 +82,10 @@ function fieldHtml(field) {
   const common = inputAttributes(field);
   let control = "";
   if (field.type === "textarea") control = `<textarea class="control" ${common}>${escapeHtml(field.value || "")}</textarea>`;
-  else if (field.type === "select") control = `<select class="control" ${common}><option value="">Selecione</option>${field.options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select>`;
+  else if (field.type === "select") control = `<select class="control" ${common} data-auto-advance="true"><option value="">Selecione</option>${field.options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select>`;
   else if (field.type === "radio" || field.type === "checkboxes") {
     const inputType = field.type === "radio" ? "radio" : "checkbox";
-    control = `<div class="choices">${field.options.map((item) => `<label class="choice ${item.selectAll ? "choice-select-all" : ""}"><input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}" ${item.selectAll ? 'data-select-all="true"' : ""}><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
+    control = `<div class="choices choices-${field.type}">${field.options.map((item, index) => `<label class="choice ${item.selectAll ? "choice-select-all" : ""}">${item.selectAll ? "" : `<span class="choice-key">${String.fromCharCode(65 + index)}</span>`}<input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}" ${item.selectAll ? 'data-select-all="true"' : ""} ${field.type === "radio" ? 'data-auto-advance="true"' : ""}><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
   } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
   else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
   else if (field.type === "team_rows") control = teamRowsHtml(field);
@@ -101,7 +101,13 @@ function fieldHtml(field) {
   return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
 }
 
-stepsRoot.innerHTML = service.sections.map((section, index) => `<section class="form-step" data-step="${index}"><h2>${escapeHtml(section.title)}</h2>${section.description ? `<p class="step-description">${escapeHtml(section.description)}</p>` : ""}<div class="form-context-notices" data-context-notices aria-live="polite"></div><div class="field-grid">${section.fields.map(fieldHtml).join("")}</div></section>`).join("");
+// Uma pergunta por tela (pedido da Pati, 17/11/2026): cada campo vira seu próprio passo.
+// service.sections continua existindo só pra organizar o cadastro dos campos; não aparece mais como título de etapa.
+const allFields = service.sections.flatMap((section) => section.fields);
+const TERMINAL = allFields.length;
+document.getElementById("consent-wrap").dataset.stepIndex = String(TERMINAL);
+
+stepsRoot.innerHTML = allFields.map((field, index) => `<section class="form-step" data-step-index="${index}"><div class="form-context-notices" data-context-notices aria-live="polite"></div>${fieldHtml(field)}</section>`).join("");
 
 function valueFor(field) {
   if (field.type === "team_rows") {
@@ -339,55 +345,86 @@ function updateContextNotices() {
   });
 }
 
-function showStep(index, shouldScroll = true) {
-  current = Math.max(0, Math.min(index, service.sections.length - 1));
-  document.querySelectorAll(".form-step").forEach((element, i) => element.classList.toggle("active", i === current));
-  progressLabel.textContent = service.sections[current].title;
-  progressCount.textContent = `${String(current + 1).padStart(2, "0")} / ${String(service.sections.length).padStart(2, "0")}`;
-  progressBar.style.width = `${((current + 1) / service.sections.length) * 100}%`;
-  backButton.style.visibility = current === 0 ? "hidden" : "visible";
-  const finalStep = current === service.sections.length - 1;
-  nextButton.classList.toggle("hidden", finalStep);
-  submitButton.classList.toggle("hidden", !finalStep);
-  document.getElementById("consent-wrap").classList.toggle("hidden", !finalStep);
-  feedback.textContent = "";
-  updateFormLogic();
-  updateContextNotices();
-  if (shouldScroll) window.scrollTo({ top: Math.max(0, document.querySelector(".form-layout").offsetTop - 96), behavior: "smooth" });
+function isFieldVisible(field) {
+  const wrapper = form.querySelector(`[data-field="${field.id}"]`);
+  return Boolean(wrapper) && !wrapper.classList.contains("conditional-hidden");
 }
 
-function validateStep() {
-  let valid = true;
-  service.sections[current].fields.forEach((field) => {
-    const wrapper = form.querySelector(`[data-field="${field.id}"]`);
-    if (!wrapper || wrapper.classList.contains("conditional-hidden")) return;
-    const value = valueFor(field);
-    const missing = field.required && (field.type === "checkbox" ? value !== true : (Array.isArray(value) ? value.length === 0 : value === ""));
-    const invalidEmail = field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    const invalidUrl = field.type === "url" && value && !/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(value);
-    const phoneDigits = field.phone ? String(value).replace(/\D/g, "") : "";
-    const invalidPhone = field.phone && value && (phoneDigits.length < 10 || phoneDigits.length > 15);
-    const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
-    const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
-    const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
-    const invalidTeam = field.type === "team_rows" && Array.isArray(value) && value.some((entry) => !entry.nome || !entry.cargo || !entry.senioridade);
-    const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator || invalidTeam);
-    wrapper.classList.toggle("invalid", isInvalid);
-    const error = wrapper.querySelector(".field-error");
-    if (error) {
-      if (invalidEmail) error.textContent = "Informe um e-mail válido.";
-      else if (invalidUrl) error.textContent = "Informe um link completo, começando por https://.";
-      else if (invalidPhone) error.textContent = "Informe um WhatsApp válido, com DDD.";
-      else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
-      else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
-      else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
-      else if (invalidTeam) error.textContent = "Preencha nome, cargo e senioridade de cada pessoa.";
-      else error.textContent = "Preencha este campo para continuar.";
-    }
-    if (isInvalid) valid = false;
-  });
-  if (!valid) feedback.textContent = "Revise os campos destacados.";
-  return valid;
+function visibleIndexes() {
+  return allFields.map((_, i) => i).filter((i) => isFieldVisible(allFields[i]));
+}
+
+function showStep(index, shouldScroll = true) {
+  current = Math.max(0, Math.min(index, TERMINAL));
+  document.querySelectorAll(".form-step").forEach((element) => element.classList.toggle("active", element.dataset.stepIndex === String(current)));
+  const visible = visibleIndexes();
+  const total = visible.length + 1; // +1 pela etapa final de consentimento/envio
+  const position = current === TERMINAL ? total : visible.indexOf(current) + 1;
+  progressCount.textContent = `${String(Math.max(position, 1)).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+  progressBar.style.width = `${(Math.max(position, 1) / total) * 100}%`;
+  backButton.style.visibility = current === 0 ? "hidden" : "visible";
+  const finalStep = current === TERMINAL;
+  nextButton.classList.toggle("hidden", finalStep);
+  submitButton.classList.toggle("hidden", !finalStep);
+  feedback.textContent = "";
+  formLegend.classList.toggle("hidden", finalStep);
+  updateFormLogic();
+  updateContextNotices();
+  if (shouldScroll) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function validateField(field) {
+  const wrapper = form.querySelector(`[data-field="${field.id}"]`);
+  if (!wrapper || wrapper.classList.contains("conditional-hidden")) return true;
+  const value = valueFor(field);
+  const missing = field.required && (field.type === "checkbox" ? value !== true : (Array.isArray(value) ? value.length === 0 : value === ""));
+  const invalidEmail = field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const invalidUrl = field.type === "url" && value && !/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(value);
+  const phoneDigits = field.phone ? String(value).replace(/\D/g, "") : "";
+  const invalidPhone = field.phone && value && (phoneDigits.length < 10 || phoneDigits.length > 15);
+  const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
+  const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
+  const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
+  const invalidTeam = field.type === "team_rows" && Array.isArray(value) && value.some((entry) => !entry.nome || !entry.cargo || !entry.senioridade);
+  const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator || invalidTeam);
+  wrapper.classList.toggle("invalid", isInvalid);
+  const error = wrapper.querySelector(".field-error");
+  if (error) {
+    if (invalidEmail) error.textContent = "Informe um e-mail válido.";
+    else if (invalidUrl) error.textContent = "Informe um link completo, começando por https://.";
+    else if (invalidPhone) error.textContent = "Informe um WhatsApp válido, com DDD.";
+    else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
+    else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
+    else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
+    else if (invalidTeam) error.textContent = "Preencha nome, cargo e senioridade de cada pessoa.";
+    else error.textContent = "Preencha este campo para continuar.";
+  }
+  return !isInvalid;
+}
+
+function validateCurrentField() {
+  if (current === TERMINAL) return true;
+  return validateField(allFields[current]);
+}
+
+// Varredura completa antes do envio (17/11/2026): cobre o caso raro de a pessoa voltar,
+// mudar uma resposta anterior e isso invalidar um campo que ela já tinha passado.
+function firstInvalidVisibleIndex() {
+  for (const index of visibleIndexes()) { if (!validateField(allFields[index])) return index; }
+  return -1;
+}
+
+function step(delta) {
+  if (delta > 0 && !validateCurrentField()) return;
+  let index = current === TERMINAL ? allFields.length - 1 + delta : current + delta;
+  if (delta > 0) {
+    while (index < allFields.length && !isFieldVisible(allFields[index])) index += 1;
+    current = index >= allFields.length ? TERMINAL : index;
+  } else {
+    while (index >= 0 && !isFieldVisible(allFields[index])) index -= 1;
+    current = Math.max(0, index);
+  }
+  showStep(current);
 }
 
 function collectAnswers() {
@@ -472,9 +509,20 @@ form.addEventListener("click", (event) => {
 });
 
 // Durante o preenchimento o topo grande sai de cena (16/10/2026): fica só uma linha com o serviço e o link de volta.
-startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); document.body.classList.add("briefing-active"); showStep(0); window.scrollTo({ top: 0, behavior: "smooth" }); });
-backButton.addEventListener("click", () => showStep(current - 1));
-nextButton.addEventListener("click", () => { if (validateStep()) showStep(current + 1); });
+startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); document.body.classList.add("briefing-active"); current = 0; showStep(0); window.scrollTo({ top: 0, behavior: "smooth" }); });
+backButton.addEventListener("click", () => step(-1));
+nextButton.addEventListener("click", () => step(1));
+
+// Enter avança a pergunta em campos de uma linha só; em textarea, Enter continua quebrando linha.
+form.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  const target = event.target;
+  if (target.tagName === "TEXTAREA" || target.tagName === "BUTTON") return;
+  if (target.tagName === "INPUT" && ["text","email","tel","url","number"].includes(target.type)) {
+    event.preventDefault();
+    step(1);
+  }
+});
 
 form.addEventListener("input", (event) => {
   const target = event.target;
@@ -506,6 +554,14 @@ form.addEventListener("change", (event) => {
 
   updateFormLogic();
   updateContextNotices();
+
+  // Escolha única avança sozinha (pedido da Pati, 17/11/2026): rádio e seleção não exigem
+  // clicar em "Continuar" depois — só múltipla escolha continua pedindo o clique.
+  if (target.matches('[data-auto-advance]')) {
+    const ready = target.type === "radio" ? target.checked : String(target.value || "") !== "";
+    if (ready) window.setTimeout(() => step(1), 220);
+  }
+
   if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
   const matrix = target.closest(".indicator-matrix");
   const selected = [...matrix.querySelectorAll('input[type="checkbox"]')];
@@ -519,7 +575,8 @@ form.addEventListener("change", (event) => {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!validateStep()) return;
+  const invalidIndex = firstInvalidVisibleIndex();
+  if (invalidIndex !== -1) { showStep(invalidIndex); return; }
   if (!document.getElementById("lgpd").checked) { feedback.textContent = "Confirme a autorização de uso dos dados."; return; }
   submitButton.disabled = true;
   submitButton.textContent = "Enviando…";
