@@ -1,4 +1,4 @@
-import { functionUrl } from "/js/config.js";
+import { CONFIG, functionUrl } from "/js/config.js";
 
 const protocolo = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
 const badge = document.getElementById("badge"), title = document.getElementById("title"), lead = document.getElementById("lead"), details = document.getElementById("details");
@@ -13,7 +13,7 @@ function showFail(message) {
 async function run() {
   if (!/^[A-Za-z0-9-]{6,80}$/.test(protocolo)) return showFail("Protocolo ausente ou inválido no link.");
   try {
-    const res = await fetch(`${functionUrl("portal-verify")}?protocolo=${encodeURIComponent(protocolo)}`);
+    const res = await fetch(`${functionUrl("portal-verify")}?protocolo=${encodeURIComponent(protocolo)}`, { headers: { apikey: CONFIG.supabasePublishableKey } });
     const data = await res.json();
     if (!res.ok || !data.valid) return showFail("Não encontramos uma proposta CALI com este protocolo.");
     badge.className = "verify-badge ok"; badge.textContent = "✓";
