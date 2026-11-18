@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5A1E2D">
   <title>Painel de Propostas · CALI</title>
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
   <link rel="icon" type="image/svg+xml" href="/assets/cali-favicon.svg?v=20260924-leaf">
   <link rel="shortcut icon" type="image/svg+xml" href="/assets/cali-favicon.svg?v=20260924-leaf">
@@ -17,7 +19,6 @@
     <section class="filters"><input class="control search" id="search" placeholder="Buscar empresa, contato ou protocolo"><select class="control" id="service-filter"><option value="">Todos os serviços</option></select><select class="control" id="status-filter"><option value="">Todos os status</option></select><button class="btn btn-primary" id="clear">Limpar</button></section>
     <section class="table-card"><div class="table-scroll"><table class="data-table"><thead><tr><th>Entrada</th><th>Empresa / contato</th><th>Serviço</th><th>Momento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="table-body"></tbody></table></div><div class="empty hidden" id="empty">Nenhuma resposta encontrada.</div></section>
   </div></main>
-  <div class="drawer-overlay" id="overlay"></div><aside class="drawer" id="drawer"><div class="drawer-head"><div><div class="eyebrow" style="margin:0;color:#DDBB7F" id="drawer-code"></div><h2 id="drawer-title">Oportunidade</h2><p id="drawer-subtitle"></p></div><button class="icon-btn" id="close" aria-label="Fechar painel">×</button></div><div class="drawer-body" id="drawer-body"></div><div class="drawer-footer"><span class="drawer-save-feedback" id="drawer-save-feedback" aria-live="polite"></span><button class="btn btn-outline" id="save-review">Salvar alterações</button><button class="btn btn-primary" id="save-proposal">Salvar e abrir proposta →</button></div></aside>
   <div class="confirm-overlay hidden" id="delete-overlay" role="presentation">
     <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-title">
       <div class="delete-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14v11H5zM4 5h16v3H4zM9 12h6"/></svg></div>

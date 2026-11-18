@@ -486,7 +486,11 @@ html,.home-body{background:var(--marfim)}
 }
 
 /* Portal CALI · a mesma marca, com abertura clara e escolha de serviços simples. */
-.home-body,.form-body{--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',Arial,sans-serif;font-family:var(--sans);background:#f7f3ee}
+.home-body,.form-body,.admin-body{--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',Arial,sans-serif;font-family:var(--sans);background:#f7f3ee}
+.admin-body .btn{border-radius:8px}
+.admin-body .status-chip,.admin-body .edit-badge{border-radius:7px}
+.admin-body .kpi,.admin-body .filters,.admin-body .table-card,.admin-body .drawer-section{border-radius:10px}
+.admin-body .status-inline{border-radius:7px}
 .home-body .topbar.ecosystem-topbar,.form-body .topbar.ecosystem-topbar{left:18px;right:18px;top:18px;height:76px;border-radius:100px;background:#431523f2;border:1px solid #ffffff26;box-shadow:0 14px 35px #210b1440}
 .home-body .topbar.ecosystem-topbar.is-scrolled,.form-body .topbar.ecosystem-topbar.is-scrolled{height:68px;top:10px;background:#431523fa}
 .home-body .topbar.ecosystem-topbar .topbar-inner,.form-body .topbar.ecosystem-topbar .topbar-inner{padding:0 24px;max-width:1440px}

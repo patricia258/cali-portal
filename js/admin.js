@@ -1,55 +1,19 @@
 import { CONFIG } from "/js/config.js";
 import { requireAdmin, apiHeaders, signOut } from "/js/auth.js";
-import { SERVICES, STATUS, flattenFields, labelFor, initialPackageFor, calculateProposal, investmentContextFor, PACKAGE_PRICE_BANDS } from "/js/services.js";
-import { proposalProfile } from "/js/proposal-profiles.js";
+import { SERVICES, STATUS } from "/js/services.js";
 
 const session = await requireAdmin();
 if (!session) throw new Error("Sessão administrativa ausente.");
-let submissions = [], pricingRules = [], proposals = [], mapaResponses = [], selected = null, pendingDelete = null, showArchived = false;
+let submissions = [], pendingDelete = null, showArchived = false;
 const tableBody = document.getElementById("table-body");
-const drawer = document.getElementById("drawer"), overlay = document.getElementById("overlay"), drawerBody = document.getElementById("drawer-body");
 
 document.getElementById("admin-name").textContent = session.user.email === CONFIG.adminEmail ? "Patrícia" : session.user.email;
 document.getElementById("logout").addEventListener("click", signOut);
 
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
-const currency = (value) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const priceBandText = (band) => !band ? "" : band.max == null ? `Referência interna: a partir de ${currency(band.min)}, sem teto fixo.` : `Faixa interna deste modelo: ${currency(band.min)} a ${currency(band.max)}.`;
 const formatDate = (value) => new Date(value).toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
-const DISCOUNT_TYPES = ["Condição comercial","Cliente novo","Indicação","Campanha do mês","Parceria","Outro"];
-const PAYMENT_METHODS = [
-  ["monthly", "Mensal recorrente"],
-  ["split", "Entrada + finalização"],
-  ["project_installments", "Parcelamento do projeto"],
-  ["pix", "À vista via PIX"],
-  ["card", "Cartão de crédito + taxas"],
-  ["custom", "Condição personalizada"],
-];
-const BONUS_PRESETS = {
-  "assessoria-estrategica": [
-    ["leadership-guide", "Guia prático de rituais de liderança", "Material editável com estrutura para reuniões, alinhamentos e acompanhamentos do ciclo."],
-    ["extra-alignment", "Encontro adicional de alinhamento", "Uma conversa extraordinária de até 60 minutos com a liderança, agendada durante o primeiro ciclo."],
-    ["governance-checklist", "Checklist de governança de pessoas", "Checklist editável para acompanhar decisões, responsáveis, prazos e pendências do primeiro ciclo."],
-  ],
-  "cali-build": [["build-sustain", "Checklist de sustentação do ciclo", "Material para registrar responsáveis, indicadores, rotinas de manutenção e próximos marcos após a implantação."]],
-  "mentoria-rh": [
-    ["application-book", "Caderno de aplicação CALI", "Roteiro editável para registrar decisões, práticas e próximos movimentos entre os encontros."],
-    ["extra-checkin", "Check-in adicional de 30 minutos", "Um encontro breve após o encerramento para revisar a aplicação do plano de desenvolvimento."],
-  ],
-  "diagnostico-executivo": [["thirty-day-checkin", "Check-in executivo de 30 dias", "Uma conversa de 30 minutos para revisar o avanço das prioridades indicadas na devolutiva."]],
-  "cultura-direcao": [["ritual-guide", "Guia de rituais culturais", "Modelo editável para conectar comportamentos esperados às reuniões, decisões e conversas de liderança."]],
-  "shadowing-lideranca": [["followup", "Check-in de evolução", "Uma conversa de 30 minutos após o ciclo para revisar a aplicação do plano de ação da liderança."]],
-  treinamentos: [["application-guide", "Guia de aplicação pós-encontro", "Material editável para transformar os principais aprendizados em compromissos de aplicação."]],
-  "marca-empregadora": [["activation-matrix", "Matriz de ativação e indicadores", "Modelo editável para organizar iniciativa, responsável, canal, prazo e indicador."]],
-  "solucao-personalizada": [["followup", "Check-in executivo de 30 dias", "Uma conversa breve para revisar a aplicação da entrega principal e orientar o próximo movimento."]],
-};
-const BUDGET_STRATEGIES = [
-  ["adequar", "Adequar pacote e escopo ao teto informado"],
-  ["fasear", "Contratar uma primeira fase dentro do teto"],
-  ["manter", "Manter escopo integral e justificar o valor"],
-];
-const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
 const eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
 const deleteIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 
 async function rest(path, options = {}) {
@@ -59,57 +23,10 @@ async function rest(path, options = {}) {
   if (response.status === 204) return null;
   return response.json();
 }
-async function optionalRest(path) {
-  try { const response=await fetch(`${CONFIG.supabaseUrl}/rest/v1/${path}`,{headers:apiHeaders(session)}); return response.ok ? response.json() : []; }
-  catch { return []; }
-}
 
 async function load() {
-  const [submissionData, ruleData, proposalData, mapaData] = await Promise.all([
-    rest("cali_submissions?select=*&order=created_at.desc"),
-    rest("cali_pricing_rules?select=*&active=eq.true&order=service_slug,sort_order"),
-    rest("cali_proposals?select=*&order=created_at.desc"),
-    optionalRest("mapa_respostas?select=id,protocolo,status,c_nome,c_empresa,c_email,created_at,diagnostico_v2&order=created_at.desc"),
-  ]);
-  submissions = submissionData || []; pricingRules = ruleData || []; proposals = proposalData || []; mapaResponses = mapaData || [];
+  submissions = await rest("cali_submissions?select=*&order=created_at.desc") || [];
   updateKpis(); render();
-}
-
-const mean = (values) => { const valid = (values || []).filter((value)=>value !== null && value !== undefined); return valid.length ? valid.reduce((sum,value)=>sum+Number(value),0)/valid.length : 0; };
-function mapaSnapshot(row) {
-  if (row?.diagnostico_v2?.version !== 2) return null;
-  const d = row.diagnostico_v2;
-  const esc10 = (value) => Number(value || 0) * 2;
-  const d1 = mean([esc10(mean(d.d1.processos)),esc10(mean(d.d1.estrutura)),esc10(mean(d.d1.governanca))]);
-  const d2 = mean([esc10(mean(d.d2.comportamento)),esc10(d.d2.valores?.cultura_decisao),esc10(mean(d.d2.desenvolvimento))]);
-  const d3 = mean([esc10(mean(d.d3.indicadores)),esc10(mean(d.d3.decisao)),esc10(mean(d.d3.tecnologia))]);
-  const d4 = mean([esc10(mean(d.d4.tamanho)),esc10(d.d4.vinculos?.gestao),esc10(mean(d.d4.rotatividade))]);
-  const score = d1 * .25 + d2 * .30 + d3 * .20 + d4 * .25;
-  const maturity = mean([d1,d2,d3]);
-  const quadrant = maturity < 5 ? (d4 < 5 ? "Embrionário" : "Frágil") : (d4 < 5 ? "Em Estruturação" : "Estratégico");
-  return { include:true, sourceId:row.id, protocol:row.protocolo, score:Number(score.toFixed(1)), quadrant, completedAt:row.created_at };
-}
-
-function defaultProposalNarrative(service, submission, answers, profile, answerText) {
-  const company = submission.company_name || "A empresa";
-  const contextParts = profile.contextIds.slice(0,4).map((id) => answerText(id)).filter(Boolean);
-  const priorityParts = profile.priorityIds.map((id) => answerText(id)).filter(Boolean);
-  return {
-    contextSummary: `${company} compartilhou um contexto que combina ${contextParts.join(", ") || "necessidades de gestão de pessoas que pedem organização e direção"}. Esta proposta parte do briefing recebido e considera o momento atual, a capacidade de implantação e as decisões que precisam ser sustentadas pela liderança.`,
-    painPoints: priorityParts.slice(0,4),
-    executiveReading: `A leitura inicial indica que o trabalho deve começar pelo que cria base para as demais necessidades avançarem com consistência. Por isso, a recomendação prioriza uma sequência viável de implantação, sem perder de vista o conjunto de temas levantados.`,
-    whyNow: `O momento pede foco, critérios claros de decisão e uma condução que conecte pessoas ao negócio sem ampliar desnecessariamente a estrutura fixa da empresa.`,
-    cycleObjective: `Organizar a prioridade central deste ciclo, definir responsáveis e transformar as decisões em uma rotina de acompanhamento aplicável.`,
-    expectedResults: ["Prioridades organizadas e compreendidas pela liderança", "Decisões apoiadas por critérios e informações mais claras", "Roadmap com responsáveis e próximos movimentos definidos"],
-  };
-}
-
-function concreteAdvantages(profile) {
-  return [
-    "Mais de 15 anos de experiência em Recursos Humanos e atuação em mais de 110 empresas, aplicados à leitura de riscos, dependências e prioridades deste contexto.",
-    "Condução direta por Patrícia Lima, com repertório de diretoria e CHRO, sem repasses ou camadas intermediárias.",
-    profile.advantages?.[0] || "Método conectado ao negócio, com decisões, responsáveis e próximos movimentos claramente organizados.",
-  ];
 }
 
 function updateKpis() {
@@ -137,11 +54,9 @@ function render() {
   tableBody.innerHTML = filtered.map((r) => {
     const service = SERVICES[r.service_slug];
     const archiveAction = r.archived_at ? `<button class="table-icon-action restore" data-restore="${r.id}" aria-label="Restaurar ${escapeHtml(r.company_name || r.contact_name)}" title="Restaurar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6M4 4v6h6"/></svg></button>` : `<button class="table-icon-action danger" data-delete="${r.id}" aria-label="Arquivar ${escapeHtml(r.company_name || r.contact_name)}" title="Arquivar registro de teste">${deleteIcon}</button>`;
-    const statusSelect = `<select class="control status-inline" data-status-row="${r.id}" style="padding:6px 10px;font-size:12.5px;border-radius:7px;min-width:190px">${STATUS.map((s) => `<option value="${s.value}" ${r.status===s.value?"selected":""}>${escapeHtml(s.label)}</option>`).join("")}</select>`;
-    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td>${statusSelect}</td><td><div class="table-actions"><button class="table-icon-action" data-view="${r.id}" aria-label="Ver ${escapeHtml(r.company_name || r.contact_name)}" title="Ver">${eyeIcon}</button><button class="table-icon-action" data-open="${r.id}" aria-label="Editar ${escapeHtml(r.company_name || r.contact_name)}" title="Editar">${pencilIcon}</button>${archiveAction}</div></td></tr>`;
+    const statusSelect = `<select class="control status-inline" data-status-row="${r.id}">${STATUS.map((s) => `<option value="${s.value}" ${r.status===s.value?"selected":""}>${escapeHtml(s.label)}</option>`).join("")}</select>`;
+    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td>${statusSelect}</td><td><div class="table-actions"><a class="table-icon-action" href="/admin/ver.html?id=${r.id}" aria-label="Ver ${escapeHtml(r.company_name || r.contact_name)}" title="Ver">${eyeIcon}</a><a class="table-icon-action" href="/admin/editar.html?id=${r.id}" aria-label="Editar ${escapeHtml(r.company_name || r.contact_name)}" title="Editar">${pencilIcon}</a>${archiveAction}</div></td></tr>`;
   }).join("");
-  tableBody.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => openView(button.dataset.view)));
-  tableBody.querySelectorAll("[data-open]").forEach((button) => button.addEventListener("click", () => openSubmission(button.dataset.open)));
   tableBody.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => openDeleteConfirmation(button.dataset.delete)));
   tableBody.querySelectorAll("[data-restore]").forEach((button) => button.addEventListener("click", () => restoreSubmission(button.dataset.restore)));
   tableBody.querySelectorAll("[data-status-row]").forEach((select) => select.addEventListener("change", async (event) => {
@@ -173,379 +88,12 @@ function exportCsv() {
       row.contact_email, row.contact_phone, row.company_name, ...answerKeys.map((key) => row.answers?.[key]),
     ].map(csvValue).join(";")),
   ];
-  const blob = new Blob(["\ufeff", lines.join("\n")], { type:"text/csv;charset=utf-8" });
+  const blob = new Blob(["﻿", lines.join("\n")], { type:"text/csv;charset=utf-8" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `CALI-briefings-${new Date().toISOString().slice(0,10)}.csv`;
   link.click();
   URL.revokeObjectURL(link.href);
-}
-
-function scopeDefaults(service, packageCode = service.packages?.[0]?.code) {
-  const map = {
-    "assessoria-estrategica": packageCode === "FULL" ? [
-      "Direção estratégica quinzenal com a liderança",
-      "Até duas prioridades simultâneas definidas para o ciclo",
-      "Leitura dos indicadores-chave e apoio às decisões críticas",
-      "Uma visita presencial mensal com finalidade previamente definida",
-      "Roadmap das demais frentes e revisão periódica de prioridades",
-    ] : [
-      "Direção estratégica mensal com a liderança",
-      "Uma prioridade central definida para o ciclo",
-      "Leitura dos indicadores-chave e apoio às decisões críticas",
-      "Estruturação de política, processo ou rotina vinculada à prioridade",
-      "Roadmap das demais frentes para ciclos posteriores",
-    ],
-    "cali-build": packageCode === "COMPLETO" ? [
-      "Arquitetura-alvo e roadmap de implantação por ciclos",
-      "Métodos, critérios, templates e referências para as frentes priorizadas",
-      "Revisões técnicas frequentes das entregas produzidas pelo RH interno",
-      "Checkpoints executivos para aprovações e remoção de impedimentos",
-      "Acompanhamento da adoção e transferência de conhecimento para sustentação interna",
-    ] : [
-      "Diagnóstico do ponto de partida e arquitetura da frente prioritária",
-      "Método, critérios, templates e referências para o primeiro ciclo",
-      "Checkpoints de orientação e revisão técnica das entregas internas",
-      "Apoio à validação com sponsor ou diretoria nos marcos necessários",
-      "Roadmap de sustentação e próximas frentes após o ciclo",
-    ],
-    "mentoria-rh": packageCode === "AMPLIADO" ? [
-      "Leitura inicial do momento e dos objetivos profissionais",
-      "Cinco encontros aplicados a casos reais",
-      "Plano de desenvolvimento com competências prioritárias",
-      "Práticas e registros de aplicação entre os encontros",
-      "Encontro final de consolidação e próximos movimentos",
-    ] : [
-      "Leitura inicial do momento e do objetivo prioritário",
-      "Três encontros aplicados a casos reais",
-      "Plano de desenvolvimento focado em uma competência central",
-      "Práticas de aplicação entre os encontros",
-      "Síntese final com próximos movimentos",
-    ],
-    "diagnostico-executivo": packageCode === "COMPLETO" ? [
-      "Kickoff e organização dos insumos",
-      "Até 6 entrevistas com lideranças-chave",
-      "Leitura documental e dos indicadores disponíveis",
-      "Relatório executivo, mapa de riscos e prioridades de 90 dias",
-      "Reunião executiva de devolutiva",
-    ] : [
-      "Kickoff focado na decisão prioritária",
-      "Até 3 entrevistas com lideranças-chave",
-      "Leitura dos documentos e indicadores já disponíveis",
-      "Síntese executiva e prioridades de 90 dias",
-      "Reunião remota de devolutiva",
-    ],
-    "cultura-direcao":[
-      "Leitura da cultura atual por pesquisa ou amostra definida",
-      "Até 4 entrevistas e 1 grupo focal",
-      "1 workshop de direção com a liderança",
-      "Comportamentos esperados e direcionadores culturais",
-      "Roadmap de 90 dias com responsáveis e indicadores",
-    ],
-    "shadowing-lideranca":[
-      "Alinhamento de objetivo, consentimento e confidencialidade",
-      "Até 4 horas de observação em duas situações reais de uma liderança",
-      "Registro técnico de padrões de comunicação, decisão e influência",
-      "Devolutiva individual confidencial",
-      "Plano de ação com três comportamentos prioritários",
-    ],
-    treinamentos: packageCode === "PALESTRA" ? [
-      "Reunião breve de briefing com o sponsor",
-      "Palestra estratégica de 60 a 90 minutos",
-      "Conteúdo contextualizado ao público e ao negócio",
-      "Facilitação ao vivo por Patrícia Lima",
-      "Material-síntese de apoio",
-    ] : packageCode === "WORKSHOP" ? [
-      "Reunião de briefing com o sponsor",
-      "Workshop aplicado de até quatro horas",
-      "Conteúdo e exercícios conectados ao contexto real",
-      "Facilitação ao vivo por Patrícia Lima",
-      "Material de apoio e compromissos de aplicação",
-    ] : [
-      "Reunião de briefing e desenho da competência prioritária",
-      "Até três encontros personalizados",
-      "Conteúdo, exercícios e prática entre os encontros",
-      "Facilitação ao vivo por Patrícia Lima",
-      "Síntese de aplicação e próximos compromissos",
-    ],
-    "marca-empregadora": packageCode === "RECORRENTE" ? [
-      "Revisão mensal das prioridades de marca empregadora",
-      "Orientação estratégica para ativação por RH, Marketing ou agência",
-      "Acompanhamento do roadmap e dos responsáveis",
-      "Leitura dos indicadores de percepção e atração disponíveis",
-      "Recomendações para o ciclo seguinte",
-    ] : [
-      "Diagnóstico de percepção interna e externa",
-      "Definição ou refinamento do EVP e dos pilares",
-      "Personas e canais prioritários",
-      "Roadmap de ativação com responsabilidades definidas",
-      "Matriz de indicadores para acompanhamento",
-    ],
-    "solucao-personalizada":["Leitura aprofundada do contexto","Desenho do escopo sob medida","Definição de entregas, limites e responsabilidades","Cronograma e checkpoints de validação","Recomendações conectadas ao resultado esperado"],
-  };
-  return map[service.slug] || [];
-}
-
-function latestProposal(submissionId) { return proposals.find((proposal) => proposal.submission_id === submissionId); }
-
-function technicalPackageFor(service, answers) {
-  return initialPackageFor(service, { ...answers, investimento:"avaliar", budget:"avaliar" });
-}
-
-function packageForBudget(service, answers, investment) {
-  const technical = technicalPackageFor(service, answers);
-  if (service.slug === "cali-build") return technical;
-  if (!investment?.max) return technical;
-  const currentPackageCodes = new Set((service.packages || []).map((item) => item.code));
-  const technicalRule = pricingRules.find((rule) => rule.service_slug === service.slug && rule.package_code === technical);
-  if (technicalRule && Number(technicalRule.base_price) > 0 && Number(technicalRule.base_price) <= investment.max) return technical;
-  const fitting = pricingRules
-    .filter((rule) => rule.service_slug === service.slug && currentPackageCodes.has(rule.package_code) && Number(rule.base_price) > 0 && Number(rule.base_price) <= investment.max)
-    .sort((a, b) => Number(a.base_price) - Number(b.base_price));
-  return fitting.at(-1)?.package_code || technical;
-}
-
-function selectedLabels(service, fieldId, values = []) {
-  const field = flattenFields(service).find((item) => item.id === fieldId);
-  return values.map((value) => field?.options?.find((item) => item.value === value)?.label || value);
-}
-
-function prioritizedScope(service, answers, phased = false, packageCode = initialPackageFor(service, answers)) {
-  if (service.slug === "assessoria-estrategica") {
-    const selected = Array.isArray(answers.frentes) ? answers.frentes : [];
-    const challenge = String(answers.principal_desafio || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    const keywordMap = { governanca:["governan","process"], clima:["clima","engaj"], comunicacao:["comunic"], planejamento:["planej"], desenho:["estrutur","desenho"], cultura:["cultur"], cargos:["cargo","salario"], atracao:["atracao","selec","onboard"] };
-    const ordered = [
-      ...selected.filter((value) => (keywordMap[value] || []).some((keyword) => challenge.includes(keyword))),
-      ...selected,
-    ].filter((value, index, list) => list.indexOf(value) === index);
-    const priorityLimit = packageCode === "FULL" ? 2 : 1;
-    const priorities = selectedLabels(service, "frentes", ordered.slice(0, priorityLimit));
-    const priorityDescription = priorities.length
-      ? priorities.join(", ")
-      : packageCode === "FULL" ? "até duas frentes críticas" : "uma frente crítica";
-    return [
-      phased ? "Fase 1 de direção estratégica com a liderança" : "Direção estratégica mensal com a liderança",
-      `${packageCode === "FULL" ? "Prioridades" : "Prioridade"} do primeiro ciclo: ${priorityDescription}`,
-      `${packageCode === "FULL" ? "Encontros quinzenais" : "Encontro mensal"} e apoio a decisões críticas dentro da carga contratada`,
-      "Organização de um roadmap para as demais frentes levantadas no briefing",
-      "Revisão das prioridades conforme a evolução do ciclo",
-    ];
-  }
-  if (service.slug === "cali-build") {
-    const selected = Array.isArray(answers.frentes) ? answers.frentes : [];
-    const limit = packageCode === "COMPLETO" ? 3 : 1;
-    const priorities = selectedLabels(service, "frentes", selected.slice(0, limit));
-    const description = priorities.length ? priorities.join(", ") : (answers.escopo_build === "rh_completo" ? "arquitetura do RH e subsistemas prioritários" : "frente prioritária a confirmar no kickoff");
-    return [
-      phased ? "Ciclo inicial de estruturação assistida com escopo delimitado" : "Estruturação assistida organizada em ciclos",
-      "Prioridades do primeiro ciclo: " + description,
-      "Método, modelos, critérios e revisão técnica pela CALI; execução pelo RH interno",
-      "Checkpoints de implantação e validações com sponsor nos marcos necessários",
-      "Roadmap das demais frentes para ciclos posteriores",
-    ];
-  }
-  const defaults = scopeDefaults(service, initialPackageFor(service, answers));
-  return [
-    phased ? "Primeira fase do trabalho, com escopo e entregas delimitados" : "Escopo priorizado conforme o investimento informado",
-    ...defaults.slice(0, 3),
-    "Roadmap das demais necessidades para uma etapa posterior",
-  ];
-}
-
-function openView(id) {
-  const record = submissions.find((r) => r.id === id); if (!record) return;
-  selected = record;
-  const service = SERVICES[record.service_slug], answers = record.answers || {}, fields = flattenFields(service);
-  document.getElementById("drawer-code").textContent = `${record.protocol} · ${service.code}`;
-  document.getElementById("drawer-title").textContent = record.company_name || record.contact_name;
-  document.getElementById("drawer-subtitle").textContent = `${service.title} · ${record.contact_name}`;
-  const answerHtml = fields.map((field) => {
-    const answer = ["investimento","budget"].includes(field.id) ? investmentContextFor(service, answers)?.label || "—" : labelFor(field.options, answers[field.id]);
-    return `<div class="answer"><small>${escapeHtml(field.label)}</small><div>${escapeHtml(answer)}</div></div>`;
-  }).join("");
-  const statusLabel = STATUS.find((s) => s.value === record.status)?.label || record.status;
-  const proposal = latestProposal(record.id);
-  drawerBody.innerHTML = `<section class="drawer-section"><h3>Contato e empresa</h3><div class="answer-grid"><div class="answer"><small>Contato</small><div>${escapeHtml(record.contact_name)}${record.contact_role ? ` · ${escapeHtml(record.contact_role)}` : ""}</div></div><div class="answer"><small>E-mail</small><div>${escapeHtml(record.contact_email)}</div></div><div class="answer"><small>WhatsApp</small><div>${escapeHtml(record.contact_phone || "—")}</div></div><div class="answer"><small>Empresa</small><div>${escapeHtml(record.company_name || "—")}</div></div><div class="answer"><small>Localidade</small><div>${escapeHtml(record.company_location || "—")}</div></div><div class="answer"><small>Status atual</small><div><span class="status-chip" data-status="${escapeHtml(record.status)}">${escapeHtml(statusLabel)}</span></div></div>${proposal ? `<div class="answer"><small>Valor na proposta</small><div>${currency(proposal.final_unit)}</div></div>` : ""}</div></section><section class="drawer-section"><h3>Respostas do briefing</h3><div class="answer-grid">${answerHtml}</div></section>${record.internal_notes ? `<section class="drawer-section"><h3>Observações internas</h3><p>${escapeHtml(record.internal_notes)}</p></section>` : ""}`;
-  drawer.dataset.mode = "view";
-  document.getElementById("save-review").classList.add("hidden");
-  const proposalButton = document.getElementById("save-proposal");
-  proposalButton.textContent = "Editar →";
-  proposalButton.classList.remove("hidden");
-  drawer.classList.add("open"); overlay.classList.add("open");
-}
-
-function openSubmission(id) {
-  selected = submissions.find((r) => r.id === id); if (!selected) return;
-  const service = SERVICES[selected.service_slug], answers = selected.answers || {}, fields = flattenFields(service), currentProposal = latestProposal(selected.id);
-  drawer.dataset.mode = "edit";
-  document.getElementById("save-review").classList.remove("hidden");
-  document.getElementById("save-proposal").textContent = "Salvar e abrir proposta →";
-  document.getElementById("drawer-code").textContent = `${selected.protocol} · ${service.code}`;
-  document.getElementById("drawer-title").textContent = selected.company_name || selected.contact_name;
-  document.getElementById("drawer-subtitle").textContent = `${service.title} · ${selected.contact_name}`;
-  const savedCalc = currentProposal?.calculator_data || {};
-  const investment = investmentContextFor(service, answers);
-  const technicalPackage = technicalPackageFor(service, answers);
-  const budgetPackage = packageForBudget(service, answers, investment);
-  const recommended = currentProposal?.package_code || budgetPackage || initialPackageFor(service, answers);
-  const packages = service.packages || [];
-  const defaultRule = pricingRules.find((r) => r.service_slug === service.slug && r.package_code === recommended);
-  const base = currentProposal?.base_price ?? defaultRule?.base_price ?? 0;
-  const packageInfo = packages.find((item) => item.code === recommended);
-  const defaultHours = savedCalc.monthlyHours ?? packageInfo?.suggestedHours ?? 0;
-  const hoursField = ["assessoria-estrategica","cali-build"].includes(service.slug) ? `<div class="field"><label>Horas mensais contratadas</label><input class="control" id="monthly-hours" type="number" min="1" max="200" step="1" value="${defaultHours}"><small class="field-help" id="monthly-hours-help">Referência da matriz: ${escapeHtml(packageInfo?.hoursRange || "a definir")}h/mês. O número final é ajustável.</small></div>` : "";
-  const alerts = service.alerts?.(answers) || [];
-  const answerHtml = fields.map((field) => {
-    const answer = ["investimento","budget"].includes(field.id) ? investmentContextFor(service, answers)?.label || "—" : labelFor(field.options, answers[field.id]);
-    return `<div class="answer"><small>${escapeHtml(field.label)}</small><div>${escapeHtml(answer)}</div></div>`;
-  }).join("");
-  const defaultBudgetStrategy = savedCalc.budgetStrategy || (currentProposal ? "manter" : investment?.max ? "adequar" : "manter");
-  const initialScope = currentProposal?.scope_items || (["adequar","fasear"].includes(defaultBudgetStrategy) ? prioritizedScope(service, answers, defaultBudgetStrategy === "fasear", recommended) : scopeDefaults(service, recommended));
-  const investmentHtml = investment
-    ? `<div class="budget-reading"><span>Investimento informado pelo cliente</span><strong>${escapeHtml(investment.label)} <small>${escapeHtml(investment.period)}</small></strong></div><div class="budget-live" id="budget-live"></div>${investment.max ? `<div class="field budget-strategy-field"><label>Como tratar esta faixa na proposta?</label><select class="control" id="budget-strategy">${BUDGET_STRATEGIES.map(([value,label])=>`<option value="${value}" ${defaultBudgetStrategy===value?"selected":""}>${escapeHtml(label)}</option>`).join("")}</select></div><button class="btn btn-budget" type="button" id="apply-budget">Aplicar recomendação ao pacote e ao escopo</button>` : `<p class="budget-open-note">O cliente preferiu avaliar o investimento pelo escopo. A calculadora mantém a leitura técnica integral.</p>`}`
-    : `<div class="budget-reading legacy"><span>Investimento do cliente</span><strong>Não informado</strong></div><p class="budget-open-note">Este briefing é anterior à pergunta obrigatória. Faça a análise comercial manualmente.</p>`;
-  const selectedBand = PACKAGE_PRICE_BANDS[service.slug]?.[recommended];
-  const priceBandHint = priceBandText(selectedBand);
-  const profileAnswerText = (fieldId) => {
-    const field = fields.find((item) => item.id === fieldId);
-    return labelFor(field?.options, answers[fieldId]);
-  };
-  const profile = proposalProfile({ service, packageCode:recommended, packageLabel:packageInfo?.label || recommended, answers, answerText:profileAnswerText, minimumMonths:Number(currentProposal?.contract_months ?? packageInfo?.minimumMonths ?? 1), monthlyHours:Number(defaultHours) });
-  const initialAdvantages = Number(savedCalc.editorialVersion || 0) >= 2 && Array.isArray(savedCalc.advantages) && savedCalc.advantages.length ? savedCalc.advantages : concreteAdvantages(profile);
-  const bonusPresets = BONUS_PRESETS[service.slug] || [];
-  const savedBonus = savedCalc.bonus || { code:"none", title:"", description:"" };
-  const bonusOptions = [["none", "Sem bônus"], ...bonusPresets.map(([code,title]) => [code,title]), ["custom", "Bônus personalizado"]];
-  const recurringModel = service.slug === "assessoria-estrategica" || service.slug === "cali-build" || (service.slug === "marca-empregadora" && recommended === "RECORRENTE");
-  const savedPayment = savedCalc.payment || {};
-  const defaultPaymentMethod = savedPayment.method || (recurringModel ? "monthly" : "split");
-  const narrativeDefaults = defaultProposalNarrative(service, selected, answers, profile, profileAnswerText);
-  const matchedMap = mapaResponses.find((row) => String(row.c_email || "").trim().toLowerCase() === String(selected.contact_email || "").trim().toLowerCase());
-  const automaticMap = mapaSnapshot(matchedMap);
-  const savedMap = Object.prototype.hasOwnProperty.call(savedCalc, "mapaPeople") ? savedCalc.mapaPeople : automaticMap;
-  const initialMap = savedMap || { include:false, score:automaticMap?.score || "", quadrant:automaticMap?.quadrant || "Frágil", sourceId:automaticMap?.sourceId || "", protocol:automaticMap?.protocol || "" };
-  drawerBody.innerHTML = `<section class="drawer-section"><div class="drawer-section-heading"><div><div class="eyebrow">Dados editáveis</div><h3>Contato e empresa</h3></div><span class="edit-badge">${pencilIcon} Editar</span></div><div class="calc-grid"><div class="field"><label>Nome do contato / decisor</label><input class="control" id="edit-contact-name" value="${escapeHtml(selected.contact_name || "")}" maxlength="140"></div><div class="field"><label>Cargo</label><input class="control" id="edit-contact-role" value="${escapeHtml(selected.contact_role || "")}" maxlength="140"></div><div class="field"><label>E-mail</label><input class="control" id="edit-contact-email" type="email" value="${escapeHtml(selected.contact_email || "")}" maxlength="254"></div><div class="field"><label>WhatsApp</label><input class="control" id="edit-contact-phone" value="${escapeHtml(selected.contact_phone || "")}" maxlength="40"></div><div class="field"><label>Empresa</label><input class="control" id="edit-company-name" value="${escapeHtml(selected.company_name || "")}" maxlength="180"></div><div class="field"><label>Localidade</label><input class="control" id="edit-company-location" value="${escapeHtml(selected.company_location || "")}" maxlength="180"></div></div><p class="edit-note">As respostas originais do briefing permanecem preservadas abaixo. Aqui você corrige os dados que aparecem no painel, na proposta e na confirmação de envio.</p></section><section class="drawer-section"><h3>Leitura do briefing</h3><div class="answer-grid">${answerHtml}</div></section><section class="drawer-section"><h3>Avisos para a análise</h3><div class="alerts">${alerts.length ? alerts.map((a) => `<div class="alert ${a.level}">${escapeHtml(a.text)}</div>`).join("") : '<div class="alert low">Nenhum alerta crítico gerado pelas regras atuais.</div>'}</div></section><section class="drawer-section"><h3>Análise interna</h3><div class="field"><label>Status</label><select class="control" id="review-status">${STATUS.map((s) => `<option value="${s.value}" ${selected.status===s.value?"selected":""}>${s.label}</option>`).join("")}</select></div><div class="field" style="margin-top:12px"><label>Observações internas</label><textarea class="control" id="internal-notes">${escapeHtml(selected.internal_notes || "")}</textarea></div></section><section class="drawer-section"><h3>Calculadora da proposta</h3><p class="calc-explainer">${service.slug === "cali-build" ? "A calculadora cruza porte, quantidade de frentes, capacidade interna, cadência e ponto de partida. No Build não há teto fixo: a referência cresce com a complexidade e o valor final continua editável." : "A calculadora cruza a complexidade do briefing com o investimento informado. Cada pacote possui piso e teto próprios; acima do teto, o escopo precisa ser faseado ou migrar de modelo."}</p><div class="budget-panel">${investmentHtml}</div><div class="calc-grid"><div class="field"><label>Modelo / pacote</label><select class="control" id="package-code">${packages.map((p) => `<option value="${p.code}" ${recommended===p.code?"selected":""}>${escapeHtml(p.label)}</option>`).join("")}</select><small id="package-price-band">${escapeHtml(priceBandHint)}</small></div><div class="field"><label>Valor-base interno</label><input class="control" id="base-price" type="number" min="0" step="50" value="${base}"></div><div class="field"><label>Adicionais</label><input class="control" id="extras" type="number" min="0" step="50" value="${currentProposal?.extras ?? 0}"></div><div class="field"><label>Desconto (%)</label><input class="control" id="discount" type="number" min="0" max="50" step=".01" value="${currentProposal?.discount_pct ?? 0}"></div><div class="field"><label>Tipo de desconto</label><select class="control" id="discount-type"><option value="">Sem identificação</option>${DISCOUNT_TYPES.map((type) => `<option value="${type}" ${savedCalc.discountType===type?"selected":""}>${type}</option>`).join("")}</select></div><div class="field"><label>Descrição da condição</label><input class="control" id="discount-description" value="${escapeHtml(savedCalc.discountDescription || "")}" placeholder="Ex.: condição válida neste mês"></div><div class="field"><label id="months-label">Contrato mínimo (meses)</label><input class="control" id="months" type="number" min="1" value="${currentProposal?.contract_months ?? packageInfo?.minimumMonths ?? 1}"></div>${hoursField}<div class="field"><label>Validade da proposta (dias)</label><input class="control" id="validity" type="number" min="1" value="${currentProposal?.validity_days ?? 15}"></div><div class="field calc-final-field"><label>Valor final editável</label><input class="control" id="final-price" type="number" min="0" step="50" value="${currentProposal?.final_unit ?? ""}"><small>O valor permanece dentro da faixa comercial definida para o modelo.</small></div></div><div class="calc-result" id="calc-result"></div></section><section class="drawer-section"><h3>Escopo e condições</h3><div class="field"><label>Entregas incluídas — uma por linha</label><textarea class="control" id="scope" style="min-height:160px">${escapeHtml(initialScope.join("\n"))}</textarea><small class="field-help">Até 7 linhas no total. Se precisar de mais, reúna entregas relacionadas ou leve-as para um ciclo posterior.</small></div><div class="field" style="margin-top:12px"><label>Condições de pagamento</label><textarea class="control" id="payment-terms">${escapeHtml(currentProposal?.payment_terms || "Pagamento conforme cronograma definido na proposta.")}</textarea></div><div class="field" style="margin-top:12px"><label>Observações que aparecem na proposta</label><textarea class="control" id="public-notes">${escapeHtml(currentProposal?.public_notes || "")}</textarea></div></section>`;
-  const contentSection = document.getElementById("scope").closest(".drawer-section");
-  contentSection.querySelector("h3").textContent = "Conteúdo da proposta";
-  const scopeField = document.getElementById("scope").closest(".field");
-  const paymentDetailsField = document.getElementById("payment-terms").closest(".field");
-  if (!currentProposal) document.getElementById("payment-terms").value = "";
-  const introductionField = document.getElementById("public-notes").closest(".field");
-  introductionField.querySelector("label").textContent = "Introdução da solução";
-  introductionField.querySelector("textarea").value = currentProposal?.public_notes || profile.solutionCopy || "";
-  introductionField.insertAdjacentHTML("beforeend", '<small class="field-help">Aparece na página da solução, logo abaixo do nome do pacote.</small>');
-  contentSection.insertBefore(introductionField, scopeField);
-  contentSection.insertAdjacentHTML("afterbegin", `<div class="proposal-editor-intro"><div class="eyebrow">Conteúdo do PDF</div><p>Cada campo informa exatamente onde o texto aparecerá. O documento cria páginas adicionais quando o conteúdo precisar de mais espaço.</p></div><h4 class="drawer-subheading">1 · Contexto do cliente</h4><div class="field"><label>Contexto que orienta a proposta</label><textarea class="control" id="proposal-context" style="min-height:150px">${escapeHtml(savedCalc.contextSummary || narrativeDefaults.contextSummary)}</textarea><small class="field-help">Texto principal da página 1. Traga o momento, o que o cliente relatou e o que precisa ser compreendido.</small></div><div class="field" style="margin-top:12px"><label>Dores e sinais prioritários — um por linha</label><textarea class="control" id="proposal-pains" style="min-height:120px">${escapeHtml((savedCalc.painPoints || narrativeDefaults.painPoints).join("\n"))}</textarea></div><div class="field" style="margin-top:12px"><label>Leitura executiva da Patrícia</label><textarea class="control" id="proposal-reading" style="min-height:120px">${escapeHtml(savedCalc.executiveReading || narrativeDefaults.executiveReading)}</textarea><small class="field-help">Sua interpretação do contexto. Não é uma observação solta: aparece como fechamento da página 1.</small></div><div class="mapa-proposal-builder"><div><strong>Resultado do Mapa de People</strong><p>${automaticMap ? `Resultado localizado pelo e-mail do lead: ${automaticMap.score.toLocaleString("pt-BR")}/10 · ${escapeHtml(automaticMap.quadrant)} · ${escapeHtml(automaticMap.protocol || "")}.` : "Nenhum resultado foi localizado automaticamente pelo e-mail. Você pode incluir manualmente, se necessário."}</p></div><label class="mapa-toggle"><input type="checkbox" id="mapa-include" ${initialMap.include ? "checked" : ""}> Incluir no PDF</label><div class="calc-grid" id="mapa-fields"><div class="field"><label>Nota geral</label><input class="control" id="mapa-score" type="number" min="0" max="10" step=".1" value="${escapeHtml(initialMap.score)}"></div><div class="field"><label>Quadrante</label><select class="control" id="mapa-quadrant">${["Embrionário","Frágil","Em Estruturação","Estratégico"].map((value)=>`<option value="${value}" ${initialMap.quadrant===value?"selected":""}>${value}</option>`).join("")}</select></div></div></div><h4 class="drawer-subheading">2 · Solução recomendada</h4>`);
-  scopeField.querySelector("label").textContent = "Escopo incluído — uma entrega por linha e na ordem desejada";
-  scopeField.insertAdjacentHTML("beforeend", '<small class="field-help">A proposta numera as entregas nesta mesma ordem. Use “-” no início para criar um subitem sem nova numeração.</small>');
-  introductionField.insertAdjacentHTML("afterend", `<div class="field" style="margin-top:12px"><label>Por que esta solução agora</label><textarea class="control" id="proposal-why-now">${escapeHtml(savedCalc.whyNow || narrativeDefaults.whyNow)}</textarea></div><div class="field" style="margin-top:12px"><label>Objetivo do primeiro ciclo / projeto</label><textarea class="control" id="proposal-cycle-objective">${escapeHtml(savedCalc.cycleObjective || narrativeDefaults.cycleObjective)}</textarea></div><div class="field" style="margin-top:12px"><label>Resultados esperados — um por linha</label><textarea class="control" id="proposal-results">${escapeHtml((savedCalc.expectedResults || narrativeDefaults.expectedResults).join("\n"))}</textarea></div><div class="field" style="margin-top:12px"><label>Por que a CALI neste contexto — um diferencial por linha</label><textarea class="control" id="proposal-advantages" style="min-height:120px">${escapeHtml(initialAdvantages.join("\n"))}</textarea><small class="field-help">Use diferenciais concretos: experiência, forma de condução, proximidade e método. Não repita carga horária, prazo ou escopo.</small></div><h4 class="drawer-subheading">3 · Escopo, ciclos e roadmap</h4>`);
-  const cadenceDefaults = profile.operating.filter((item)=>!/(carga|\bhoras?\b|cumulativ|investimento)/i.test(item));
-  scopeField.insertAdjacentHTML("afterend", `<div class="field" style="margin-top:12px"><label>Ciclos ou fases — uma por linha</label><textarea class="control" id="proposal-cycles" placeholder="Ex.: Ciclo 1 | Governança de pessoas | Estruturar papéis, ritos e decisões | Meses 1 e 2">${escapeHtml((savedCalc.cycles || []).map((cycle)=>[cycle.title,cycle.focus,cycle.objective,cycle.duration].filter(Boolean).join(" | ")).join("\n"))}</textarea><small class="field-help">Até 6 ciclos. Formato: Nome do ciclo | Foco | Objetivo | Duração.</small></div><div class="field" style="margin-top:12px"><label>Cadência e formato — um item por linha</label><textarea class="control" id="proposal-cadence">${escapeHtml((savedCalc.cadence || cadenceDefaults).join("\n"))}</textarea><small class="field-help">Até 4 itens: reuniões, checkpoints, canal e presencialidade. Não repita horas ou duração contratual.</small></div><div class="calc-grid" style="margin-top:12px"><div class="field"><label>Responsabilidades da CALI — até 3</label><textarea class="control" id="proposal-cali-responsibilities">${escapeHtml((savedCalc.caliResponsibilities || (service.slug === "cali-build" ? ["Definir arquitetura, prioridades, método e critérios técnicos do ciclo.","Orientar e revisar tecnicamente as entregas construídas pelo RH interno.","Conduzir checkpoints e apoiar validações executivas nos marcos previstos."] : ["Conduzir as análises, encontros e devolutivas previstos no escopo.","Organizar decisões, responsáveis e próximos movimentos."])).join("\n"))}</textarea></div><div class="field"><label>Responsabilidades do cliente — até 3</label><textarea class="control" id="proposal-client-responsibilities">${escapeHtml((savedCalc.clientResponsibilities || (service.slug === "cali-build" ? ["Designar e manter um responsável interno pela implantação entre os checkpoints.","Levantar dados, adaptar os materiais, construir entregas e implantar as rotinas definidas.","Garantir acesso aos insumos e aprovações do sponsor/diretoria dentro dos prazos do ciclo."] : ["Disponibilizar dados, pessoas e aprovações necessários ao trabalho.","Designar responsáveis internos e participar dos checkpoints acordados."])).join("\n"))}</textarea></div></div><div class="field" style="margin-top:12px"><label>Prioridades para ciclos posteriores — uma por linha</label><textarea class="control" id="proposal-roadmap-items">${escapeHtml((savedCalc.roadmapItems || []).join("\n"))}</textarea><small class="field-help">Até 4 prioridades. Elas aparecem no roadmap, não como entregas contratadas agora.</small></div><div class="field" style="margin-top:12px"><label>Fora do escopo — um item por linha</label><textarea class="control" id="proposal-out-of-scope">${escapeHtml((savedCalc.outOfScope || profile.outOfScope).join("\n"))}</textarea><small class="field-help">Até 4 itens curtos. O bloco aparecerá junto dos ciclos e do roadmap.</small></div><h4 class="drawer-subheading">4 · Condições comerciais e fechamento</h4><div class="bonus-builder"><div class="field"><label>Bônus de contratação</label><select class="control" id="bonus-choice">${bonusOptions.map(([code,label])=>`<option value="${code}" ${savedBonus.code===code?"selected":""}>${escapeHtml(label)}</option>`).join("")}</select></div><div id="bonus-fields" class="calc-grid"><div class="field"><label>Nome do bônus</label><input class="control" id="bonus-title" value="${escapeHtml(savedBonus.title || "")}" maxlength="140"></div><div class="field"><label>O que o cliente receberá</label><textarea class="control" id="bonus-description" maxlength="500">${escapeHtml(savedBonus.description || "")}</textarea></div></div><small class="field-help">O bônus só aparece no PDF quando você selecionar e confirmar o conteúdo.</small></div>`);
-  paymentDetailsField.querySelector("label").textContent = "Observações adicionais sobre o pagamento (opcional)";
-  paymentDetailsField.querySelector("textarea").placeholder = "Ex.: primeira cobrança em data diferente, condição válida até determinada data ou observação sobre emissão de nota.";
-  paymentDetailsField.insertAdjacentHTML("beforebegin", `<h4 class="drawer-subheading">Prazo e forma de pagamento</h4><div class="calc-grid payment-builder"><div class="field"><label>Forma de pagamento</label><select class="control" id="payment-method">${PAYMENT_METHODS.map(([value,label])=>`<option value="${value}" ${defaultPaymentMethod===value?"selected":""}>${label}</option>`).join("")}</select></div><div class="field" data-payment-panel="monthly"><label>Vencimento mensal</label><input class="control" id="payment-monthly-due" value="${escapeHtml(savedPayment.monthlyDue || "1º dia útil de cada mês")}"></div><div class="field" data-payment-panel="split"><label>Entrada (%)</label><input class="control" id="payment-entry-pct" type="number" min="0" max="100" value="${Number(savedPayment.entryPct ?? 50)}"></div><div class="field" data-payment-panel="split"><label>Na finalização (%)</label><input class="control" id="payment-final-pct" type="number" min="0" max="100" value="${Number(savedPayment.finalPct ?? 50)}"></div><div class="field" data-payment-panel="project_installments"><label>Número de parcelas</label><input class="control" id="payment-project-installments" type="number" min="2" max="12" value="${Number(savedPayment.projectInstallments ?? 2)}"></div><div class="field" data-payment-panel="project_installments"><label>Vencimento das parcelas</label><input class="control" id="payment-project-installment-due" value="${escapeHtml(savedPayment.projectInstallmentDue || "Mensais, com a primeira parcela no aceite")}" maxlength="160"></div><div class="field" data-payment-panel="pix"><label>Desconto à vista no PIX (%)</label><input class="control" id="payment-pix-discount" type="number" min="0" max="50" step=".01" value="${Number(savedPayment.pixDiscount ?? currentProposal?.discount_pct ?? 0)}"><small class="field-help">Ao alterar, o desconto da proposta é atualizado para esta condição.</small></div><div class="field" data-payment-panel="card"><label>Número de parcelas</label><input class="control" id="payment-card-installments" type="number" min="1" max="24" value="${Number(savedPayment.cardInstallments ?? 1)}"></div><div class="field" data-payment-panel="card"><label>Tratamento das taxas</label><select class="control" id="payment-card-fees"><option value="client" ${savedPayment.cardFees!=="included"?"selected":""}>Acrescidas ao valor do cliente</option><option value="included" ${savedPayment.cardFees==="included"?"selected":""}>Já incluídas no valor final</option></select></div><div class="field" data-payment-panel="custom"><label>Nome da condição</label><input class="control" id="payment-custom-label" value="${escapeHtml(savedPayment.customLabel || "Condição personalizada")}" maxlength="120"></div></div>`);
-  let bonusInitialized = false;
-  const updateBonusFields = () => {
-    const code = document.getElementById("bonus-choice").value;
-    const preset = bonusPresets.find(([presetCode]) => presetCode === code);
-    document.getElementById("bonus-fields").classList.toggle("hidden", code === "none");
-    if (preset && bonusInitialized) {
-      document.getElementById("bonus-title").value = preset[1];
-      document.getElementById("bonus-description").value = preset[2];
-    } else if (code === "none") {
-      document.getElementById("bonus-title").value = "";
-      document.getElementById("bonus-description").value = "";
-    }
-    bonusInitialized = true;
-  };
-  const updatePaymentFields = () => {
-    const method = document.getElementById("payment-method").value;
-    document.querySelectorAll("[data-payment-panel]").forEach((field) => field.classList.toggle("hidden", field.dataset.paymentPanel !== method));
-  };
-  document.getElementById("bonus-choice").addEventListener("change", updateBonusFields);
-  document.getElementById("payment-method").addEventListener("change", updatePaymentFields);
-  document.getElementById("payment-pix-discount").addEventListener("input", (event) => {
-    document.getElementById("discount").value = event.target.value;
-    document.getElementById("discount-type").value = "Condição comercial";
-    document.getElementById("discount-description").value = "Pagamento à vista via PIX";
-    manualFinal = false;
-    recalc();
-  });
-  updateBonusFields();
-  updatePaymentFields();
-  let manualFinal = Boolean(savedCalc.manualFinal);
-  const recalc = () => {
-    const rule = pricingRules.find((r) => r.service_slug === service.slug && r.package_code === document.getElementById("package-code").value);
-    if (rule && Number(document.getElementById("base-price").value) === 0) document.getElementById("base-price").value = rule.base_price;
-    const budgetStrategy = document.getElementById("budget-strategy")?.value || "manter";
-    const scopeMode = ["adequar","fasear"].includes(budgetStrategy) ? "prioritized" : "integral";
-    const result = calculateProposal({ service, answers, packageCode:document.getElementById("package-code").value, basePrice:document.getElementById("base-price").value, extras:document.getElementById("extras").value, discount:document.getElementById("discount").value, months:document.getElementById("months").value, finalOverride:manualFinal ? document.getElementById("final-price").value : null, scopeMode });
-    if (!manualFinal) document.getElementById("final-price").value = result.finalUnit;
-    document.getElementById("months-label").textContent = result.monthly ? "Prazo mínimo do contrato (meses)" : "Duração do projeto (meses)";
-    const discountName = document.getElementById("discount-type").value || "Desconto";
-    const hours = Number(document.getElementById("monthly-hours")?.value || 0);
-    document.getElementById("calc-result").innerHTML = `<div class="calc-line"><span>Valor de referência</span><strong>${currency(result.subtotal)}</strong></div>${result.discountValue ? `<div class="calc-line"><span>${escapeHtml(discountName)} (${result.discountPct.toLocaleString("pt-BR") }%)</span><strong>− ${currency(result.discountValue)}</strong></div>` : ""}<div class="calc-total"><span>${result.monthly ? "Mensalidade final" : "Investimento final"}</span><strong>${currency(result.finalUnit)}</strong></div>${result.ceilingApplied ? `<div class="calc-condition">O teto comercial de ${currency(result.priceBand.max)} foi aplicado. Se o escopo integral exigir mais capacidade, divida em fases ou selecione outro modelo.</div>` : ""}${result.monthly ? `<div class="calc-condition">${hours ? `${hours} horas mensais. ` : ""}Contrato mínimo de ${result.months} meses, renovação automática e aviso prévio de 30 dias. A recorrência não é somada como valor total.</div>` : ""}`;
-    const technicalRule = pricingRules.find((item) => item.service_slug === service.slug && item.package_code === technicalPackage);
-    const technicalResult = technicalRule ? calculateProposal({ service, answers, packageCode:technicalPackage, basePrice:technicalRule.base_price, months:document.getElementById("months").value }) : null;
-    const budgetLive = document.getElementById("budget-live");
-    if (budgetLive && investment?.max) {
-      const priced = result.finalUnit > 0;
-      const aligned = priced && result.finalUnit <= investment.max;
-      const technicalLabel = packages.find((item) => item.code === technicalPackage)?.label || technicalPackage;
-      const gap = Math.max(0, (technicalResult?.finalUnit || 0) - investment.max);
-      budgetLive.className = `budget-live ${!priced ? "pending" : aligned ? "aligned" : "over"}`;
-      budgetLive.innerHTML = `<div><span>Leitura técnica do escopo integral</span><strong>${escapeHtml(technicalLabel)} · ${technicalResult?.finalUnit ? currency(technicalResult.finalUnit) : "valor a definir"}</strong></div><div><span>Proposta configurada agora</span><strong>${priced ? `${currency(result.finalUnit)} · ${aligned ? "alinhada à faixa" : `acima do teto em ${currency(result.finalUnit - investment.max)}`}` : "Informe o valor-base para validar o alinhamento"}</strong></div>${gap ? `<p>Há ${currency(gap)} de diferença entre a necessidade integral e o teto informado. A recomendação é priorizar o primeiro ciclo ou contratar por fases.</p>` : ""}`;
-    }
-    return result;
-  };
-  ["base-price","extras","discount"].forEach((id) => document.getElementById(id).addEventListener("input", () => { manualFinal = false; recalc(); }));
-  ["months","monthly-hours","discount-type","discount-description","budget-strategy"].forEach((id) => document.getElementById(id)?.addEventListener("input", recalc));
-  document.getElementById("final-price").addEventListener("input", () => {
-    manualFinal = true;
-    const reference = calculateProposal({ service, answers, packageCode:document.getElementById("package-code").value, basePrice:document.getElementById("base-price").value, extras:document.getElementById("extras").value, discount:0, months:document.getElementById("months").value });
-    const final = Number(document.getElementById("final-price").value) || 0;
-    document.getElementById("discount").value = reference.subtotal ? Math.min(50, Math.max(0, ((reference.subtotal - final) / reference.subtotal) * 100)).toFixed(2) : 0;
-    recalc();
-  });
-  document.getElementById("package-code").addEventListener("change", (event) => { const rule = pricingRules.find((r) => r.service_slug === service.slug && r.package_code === event.target.value); if (rule) document.getElementById("base-price").value = rule.base_price; const selectedPackage = packages.find((item) => item.code === event.target.value); const selectedBand = PACKAGE_PRICE_BANDS[service.slug]?.[event.target.value]; document.getElementById("package-price-band").textContent = priceBandText(selectedBand); if (selectedPackage?.minimumMonths) document.getElementById("months").value = selectedPackage.minimumMonths; if (document.getElementById("monthly-hours") && selectedPackage?.suggestedHours) document.getElementById("monthly-hours").value = selectedPackage.suggestedHours; if (document.getElementById("monthly-hours-help")) document.getElementById("monthly-hours-help").textContent = `Referência da matriz: ${selectedPackage?.hoursRange || "a definir"}h/mês. O número final é ajustável.`; if (!currentProposal) document.getElementById("scope").value = scopeDefaults(service, event.target.value).join("\n"); manualFinal = false; recalc(); });
-  document.getElementById("apply-budget")?.addEventListener("click", () => {
-    const strategy = document.getElementById("budget-strategy").value;
-    const nextPackage = strategy === "manter" ? technicalPackage : budgetPackage;
-    const nextRule = pricingRules.find((item) => item.service_slug === service.slug && item.package_code === nextPackage);
-    document.getElementById("package-code").value = nextPackage;
-    if (nextRule) document.getElementById("base-price").value = nextRule.base_price;
-    const nextPackageInfo = packages.find((item) => item.code === nextPackage);
-    if (nextPackageInfo?.minimumMonths) document.getElementById("months").value = nextPackageInfo.minimumMonths;
-    if (document.getElementById("monthly-hours") && nextPackageInfo?.suggestedHours) document.getElementById("monthly-hours").value = nextPackageInfo.suggestedHours;
-    if (document.getElementById("monthly-hours-help")) document.getElementById("monthly-hours-help").textContent = `Referência da matriz: ${nextPackageInfo?.hoursRange || "a definir"}h/mês. O número final é ajustável.`;
-    document.getElementById("extras").value = 0;
-    document.getElementById("discount").value = 0;
-    manualFinal = false;
-    if (strategy !== "manter") {
-      document.getElementById("scope").value = prioritizedScope(service, answers, strategy === "fasear", nextPackage).join("\n");
-      const note = strategy === "fasear" ? "Esta proposta contempla a primeira fase do trabalho. As demais frentes serão organizadas em roadmap e contratadas após a validação desta etapa." : "O escopo foi priorizado para manter aderência à faixa de investimento informada, sem comprometer a qualidade das entregas contratadas.";
-      if (!document.getElementById("public-notes").value.trim()) document.getElementById("public-notes").value = note;
-    }
-    recalc();
-  });
-  drawer.dataset.recalc = "ready"; drawer._recalc = recalc; recalc();
-  drawer.classList.add("open"); overlay.classList.add("open");
-}
-
-function closeDrawer() { drawer.classList.remove("open"); overlay.classList.remove("open"); selected = null; }
-
-function editableSubmissionPayload() {
-  const contactName = document.getElementById("edit-contact-name").value.trim();
-  const contactEmail = document.getElementById("edit-contact-email").value.trim().toLowerCase();
-  if (contactName.length < 2) throw new Error("Informe o nome do contato.");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) throw new Error("Informe um e-mail válido.");
-  return {status:document.getElementById("review-status").value,internal_notes:document.getElementById("internal-notes").value,contact_name:contactName,contact_role:document.getElementById("edit-contact-role").value.trim()||null,contact_email:contactEmail,contact_phone:document.getElementById("edit-contact-phone").value.trim()||null,company_name:document.getElementById("edit-company-name").value.trim()||null,company_location:document.getElementById("edit-company-location").value.trim()||null,updated_at:new Date().toISOString()};
-}
-
-async function saveReview() {
-  if (!selected) return;
-  await rest(`cali_submissions?id=eq.${selected.id}`, { method:"PATCH", headers:{Prefer:"return=representation"}, body:JSON.stringify(editableSubmissionPayload()) });
-  await load(); closeDrawer();
 }
 
 function openDeleteConfirmation(id) {
@@ -577,76 +125,11 @@ async function restoreSubmission(id) {
   await load();
 }
 
-async function saveProposal() {
-  if (!selected) return;
-  await rest(`cali_submissions?id=eq.${selected.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(editableSubmissionPayload())});
-  const service = SERVICES[selected.service_slug], existing = latestProposal(selected.id), calculation = drawer._recalc();
-  const payment = {
-    method:document.getElementById("payment-method").value,
-    monthlyDue:document.getElementById("payment-monthly-due").value.trim(),
-    entryPct:Number(document.getElementById("payment-entry-pct").value || 0),
-    finalPct:Number(document.getElementById("payment-final-pct").value || 0),
-    projectInstallments:Number(document.getElementById("payment-project-installments").value || 2),
-    projectInstallmentDue:document.getElementById("payment-project-installment-due").value.trim(),
-    pixDiscount:Number(document.getElementById("payment-pix-discount").value || 0),
-    cardInstallments:Number(document.getElementById("payment-card-installments").value || 1),
-    cardFees:document.getElementById("payment-card-fees").value,
-    customLabel:document.getElementById("payment-custom-label").value.trim(),
-  };
-  if (payment.method === "split" && payment.entryPct + payment.finalPct !== 100) throw new Error("Na condição de entrada + finalização, os percentuais precisam somar 100%.");
-  if (payment.method === "project_installments" && (payment.projectInstallments < 2 || payment.projectInstallments > 12)) throw new Error("O parcelamento do projeto deve ter entre 2 e 12 parcelas.");
-  const bonusCode = document.getElementById("bonus-choice").value;
-  const bonus = bonusCode === "none" ? null : { code:bonusCode, title:document.getElementById("bonus-title").value.trim(), description:document.getElementById("bonus-description").value.trim() };
-  if (bonus && (!bonus.title || !bonus.description)) throw new Error("Preencha o nome e a descrição do bônus ou selecione “Sem bônus”.");
-  const advantages = document.getElementById("proposal-advantages").value.split("\n").map((item)=>item.trim()).filter(Boolean).slice(0,4);
-  if (!advantages.length) throw new Error("Informe ao menos uma vantagem concreta desta proposta.");
-  const lines = (id) => document.getElementById(id).value.split("\n").map((item)=>item.trim()).filter(Boolean);
-  const scopeItems = lines("scope");
-  if (scopeItems.length > 7) throw new Error(`O escopo tem ${scopeItems.length} linhas. Para manter tudo em uma única página, use no máximo 7.`);
-  const cycles = lines("proposal-cycles").map((line) => {
-    const raw = line.replace(/^\s*[-–—]\s*/, "");
-    if (raw.includes("|")) {
-      const [title="", focus="", objective="", duration=""] = raw.split("|").map((item)=>item.trim());
-      return { title, focus, objective, duration };
-    }
-    const compact = raw.match(/^(Ciclo\s+\d+)\s*(?:\(([^)]+)\))?\s*:\s*(.+)$/i);
-    return compact ? {title:compact[1], duration:compact[2] || "", focus:compact[3], objective:""} : {title:raw,focus:"",objective:"",duration:""};
-  }).filter((cycle)=>cycle.title);
-  if (cycles.length > 6) throw new Error(`Foram informados ${cycles.length} ciclos. A página comporta no máximo 6; leve os demais para outro ciclo de contratação.`);
-  const cadence = lines("proposal-cadence");
-  const caliResponsibilities = lines("proposal-cali-responsibilities");
-  const clientResponsibilities = lines("proposal-client-responsibilities");
-  const roadmapItems = lines("proposal-roadmap-items");
-  if (cadence.length > 4) throw new Error("Cadência e formato comportam no máximo 4 itens curtos.");
-  if (caliResponsibilities.length > 3 || clientResponsibilities.length > 3) throw new Error("Use no máximo 3 responsabilidades da CALI e 3 responsabilidades do cliente.");
-  if (roadmapItems.length > 4) throw new Error("O roadmap posterior comporta no máximo 4 prioridades. Reúna itens relacionados antes de salvar.");
-  const outOfScope = lines("proposal-out-of-scope");
-  if (outOfScope.length > 4) throw new Error(`O bloco “Fora do escopo” tem ${outOfScope.length} itens. Para manter a leitura clara, use no máximo 4.`);
-  const includeMap = document.getElementById("mapa-include").checked;
-  const mapaPeople = { include:includeMap, score:Number(document.getElementById("mapa-score").value || 0), quadrant:document.getElementById("mapa-quadrant").value, sourceId:document.getElementById("mapa-score").dataset.sourceId || null };
-  const matchedMap = mapaResponses.find((row) => String(row.c_email || "").trim().toLowerCase() === String(selected.contact_email || "").trim().toLowerCase());
-  if (matchedMap) Object.assign(mapaPeople, { sourceId:matchedMap.id, protocol:matchedMap.protocolo, completedAt:matchedMap.created_at });
-  if (includeMap && (!mapaPeople.score || mapaPeople.score > 10)) throw new Error("Informe uma nota válida do Mapa de People entre 0,1 e 10.");
-  const calculatorData = { ...calculation, editorialVersion:2, monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim(), budgetStrategy:document.getElementById("budget-strategy")?.value || "manter", investmentAnswer:investmentContextFor(service, selected.answers || {}), contextSummary:document.getElementById("proposal-context").value.trim(), painPoints:lines("proposal-pains"), executiveReading:document.getElementById("proposal-reading").value.trim(), mapaPeople, whyNow:document.getElementById("proposal-why-now").value.trim(), cycleObjective:document.getElementById("proposal-cycle-objective").value.trim(), expectedResults:lines("proposal-results"), advantages, cycles, cadence, caliResponsibilities, clientResponsibilities, roadmapItems, outOfScope, bonus, payment };
-  const payload = { submission_id:selected.id, service_slug:selected.service_slug, version:existing?.version || 1, package_code:document.getElementById("package-code").value, base_price:Number(document.getElementById("base-price").value)||0, extras:Number(document.getElementById("extras").value)||0, discount_pct:Math.min(50, calculation.discountPct), contract_months:Number(document.getElementById("months").value)||1, validity_days:Number(document.getElementById("validity").value)||15, subtotal:calculation.subtotal, final_unit:calculation.finalUnit, total_value:calculation.finalUnit, calculator_data:calculatorData, scope_items:scopeItems, payment_terms:document.getElementById("payment-terms").value, public_notes:document.getElementById("public-notes").value, status:"rascunho", updated_at:new Date().toISOString() };
-  let saved;
-  if (existing) saved = await rest(`cali_proposals?id=eq.${existing.id}`, {method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});
-  else saved = await rest("cali_proposals", {method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});
-  await rest(`cali_submissions?id=eq.${selected.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"edicao",updated_at:new Date().toISOString()})});
-  const id = saved?.[0]?.id || existing?.id;
-  if (id) location.href = `/proposta/${id}`;
-}
-
 Object.entries(SERVICES).forEach(([slug, service]) => document.getElementById("service-filter").insertAdjacentHTML("beforeend", `<option value="${slug}">${service.title}</option>`));
 STATUS.forEach((status) => document.getElementById("status-filter").insertAdjacentHTML("beforeend", `<option value="${status.value}">${status.label}</option>`));
 ["search","service-filter","status-filter"].forEach((id) => document.getElementById(id).addEventListener("input", render));
 document.getElementById("clear").addEventListener("click", () => { document.getElementById("search").value=""; document.getElementById("service-filter").value=""; document.getElementById("status-filter").value=""; render(); });
-const runDrawerAction = async (action) => { const feedback = document.getElementById("drawer-save-feedback"); feedback.textContent = ""; try { await action(); } catch (error) { feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar."; } };
-document.getElementById("refresh").addEventListener("click", load); document.getElementById("close").addEventListener("click", closeDrawer); overlay.addEventListener("click", closeDrawer); document.getElementById("save-review").addEventListener("click", () => runDrawerAction(saveReview));
-document.getElementById("save-proposal").addEventListener("click", () => {
-  if (drawer.dataset.mode === "view") { const id = selected?.id; closeDrawer(); if (id) openSubmission(id); return; }
-  runDrawerAction(saveProposal);
-});
+document.getElementById("refresh").addEventListener("click", load);
 document.getElementById("export-csv").addEventListener("click", exportCsv);
 document.getElementById("archive-filter").addEventListener("click", () => { showArchived = !showArchived; document.getElementById("archive-filter").textContent = showArchived ? "Ver ativos" : "Ver arquivados"; render(); });
 document.getElementById("cancel-delete").addEventListener("click", closeDeleteConfirmation);
