@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
-import { Document, Font, Image, Link, Page, Path, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
+import { Document, Font, Image, Page, Path, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
 import { createElement as h } from "npm:react@18.3.1";
 import QRCode from "npm:qrcode@1.5.4";
 
@@ -62,7 +62,6 @@ const s = StyleSheet.create({
   regNome: { fontWeight: 600, fontSize: 11.5, color: BORDO, marginTop: 3 },
   regCargo: { fontSize: 8.5, color: GRAFITE },
   regLinha: { fontSize: 7.4, lineHeight: 1.45, color: CINZA },
-  regAvaliar: { fontSize: 7.6, lineHeight: 1.45, fontWeight: 700, color: BORDO },
   qr: { width: 60, height: 60 },
   investReferLinha: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: LINHA },
   investReferRotulo: { fontSize: 7.4, fontWeight: 700, color: CINZA, letterSpacing: 0.5, textTransform: "uppercase" },
@@ -102,13 +101,28 @@ function Lista({ itens }: { itens: string[] }) {
   )));
 }
 
-async function buildPdf(proposal: any, submission: any, service_title: string) {
+async function obterCarimbo(admin: ReturnType<typeof createClient>, proposal: any, submission: any, titulo: string) {
+  const protocolo = submission.protocol as string;
+  const { data: existente } = await admin.from("cali_emissoes").select("protocolo,hash,emitido_em,titulo,cliente,signatario_nome,signatario_cargo").eq("protocolo", protocolo).maybeSingle();
+  if (existente) return existente;
+  const emitido_em = new Date().toISOString();
+  const hash = await sha256Hex(JSON.stringify({ id: proposal.id, final_unit: proposal.final_unit, scope_items: proposal.scope_items, emitido_em }));
+  const row = { proposal_id: proposal.id, protocolo, hash, emitido_em, titulo, cliente: submission.company_name || null, signatario_nome: "Patrícia Lima", signatario_cargo: "People Advisory Executive · CALI RH" };
+  const { data: inserido, error } = await admin.from("cali_emissoes").insert(row).select("protocolo,hash,emitido_em,titulo,cliente,signatario_nome,signatario_cargo").single();
+  if (!error) return inserido;
+  const { data: corrida } = await admin.from("cali_emissoes").select("protocolo,hash,emitido_em,titulo,cliente,signatario_nome,signatario_cargo").eq("protocolo", protocolo).maybeSingle();
+  if (corrida) return corrida;
+  throw error;
+}
+
+async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, submission: any, service_title: string) {
   const protocolo = submission.protocol as string;
   const calc = proposal.calculator_data || {};
   const urlVerificar = `${PORTAL_URL}/v/${protocolo}`;
   const qr = await QRCode.toDataURL(urlVerificar, { margin: 0, width: 240, color: { dark: "#5A1E2D", light: "#FFFFFF" } });
-  const emitidoEm = new Date().toISOString();
-  const hash = await sha256Hex(JSON.stringify({ id: proposal.id, final_unit: proposal.final_unit, scope_items: proposal.scope_items, emitidoEm }));
+  const carimbo = await obterCarimbo(admin, proposal, submission, `Proposta CALI — ${service_title}`);
+  const emitidoEm = carimbo.emitido_em as string;
+  const hash = carimbo.hash as string;
   const d = await limaPath();
 
   const scope: string[] = Array.isArray(proposal.scope_items) ? proposal.scope_items : [];
@@ -191,12 +205,12 @@ async function buildPdf(proposal: any, submission: any, service_title: string) {
       h(View, { style: s.registro, wrap: false },
         h(View, { style: { flex: 1 } },
           h(Text, { style: s.rotulo }, "Registro eletrônico de emissão"),
-          h(Text, { style: s.regNome }, "Patrícia Lima"),
-          h(Text, { style: s.regCargo }, "People Advisory Executive · CALI RH"),
+          h(Text, { style: s.regNome }, carimbo.signatario_nome),
+          h(Text, { style: s.regCargo }, carimbo.signatario_cargo),
           h(View, { style: { marginTop: 5 } },
             h(Text, { style: s.regLinha }, `Registro gerado em ${dataHora(emitidoEm)} (horário de Brasília) · Protocolo ${protocolo}`),
             h(Text, { style: s.regLinha }, `Código de integridade: ${hash.slice(0, 32)}`),
-            h(Link, { src: urlVerificar, style: s.regAvaliar }, "Confira a autenticidade desta proposta"),
+            h(Text, { style: s.regLinha }, `Confira a autenticidade em ${urlVerificar.replace(/^https?:\/\//, "")}`),
           ),
         ),
         h(Image, { src: qr, style: s.qr }),
@@ -219,7 +233,7 @@ Deno.serve(async (req) => {
     const proposal = data?.[0];
     if (!proposal || !proposal.submission) return new Response(JSON.stringify({ error: "Nenhuma proposta encontrada." }), { status: 404, headers: { ...cors(req), "Content-Type": "application/json" } });
     const serviceTitles: Record<string, string> = { "assessoria-estrategica": "Assessoria Estratégica Mensal — HR as a Service", "cali-build": "CALI Build", "mentoria-rh": "Mentoria para Profissionais de RH" };
-    const blob = await buildPdf(proposal, proposal.submission, serviceTitles[proposal.service_slug] || proposal.service_slug);
+    const blob = await buildPdf(admin, proposal, proposal.submission, serviceTitles[proposal.service_slug] || proposal.service_slug);
     const bytes = await blob.arrayBuffer();
     return new Response(bytes, { headers: { ...cors(req), "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="teste-${proposal.submission.protocol}.pdf"` } });
   } catch (error) {

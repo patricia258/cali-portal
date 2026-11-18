@@ -1,34 +1,29 @@
 import { CONFIG, functionUrl } from "/js/config.js";
 
 const protocolo = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
-const badge = document.getElementById("badge"), title = document.getElementById("title"), lead = document.getElementById("lead"), details = document.getElementById("details");
+const centro = document.getElementById("centro");
+const auth = document.getElementById("auth");
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const dataHora = (iso) => new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
-function showFail(message) {
-  badge.className = "verify-badge fail"; badge.textContent = "✕";
-  title.textContent = "Documento não verificado";
-  lead.textContent = message;
+function naoEncontrado() {
+  centro.innerHTML = `<div class="av-fim"><h1>Documento não encontrado</h1><p>Confira o protocolo impresso no documento.</p></div>`;
 }
 
 async function run() {
-  if (!/^[A-Za-z0-9-]{6,80}$/.test(protocolo)) return showFail("Protocolo ausente ou inválido no link.");
+  if (!/^[A-Za-z0-9-]{6,80}$/.test(protocolo)) return naoEncontrado();
   try {
     const res = await fetch(`${functionUrl("portal-verify")}?protocolo=${encodeURIComponent(protocolo)}`, { headers: { apikey: CONFIG.supabasePublishableKey } });
-    const data = await res.json();
-    if (!res.ok || !data.valid) return showFail("Não encontramos uma proposta CALI com este protocolo.");
-    badge.className = "verify-badge ok"; badge.textContent = "✓";
-    title.textContent = "Documento autêntico";
-    lead.textContent = "Esta proposta foi emitida oficialmente pela CALI RH.";
-    details.innerHTML = `<div class="verify-grid">
-      <div class="verify-row"><span>Protocolo</span><span>${escapeHtml(data.protocol)}</span></div>
-      ${data.company_name ? `<div class="verify-row"><span>Empresa</span><span>${escapeHtml(data.company_name)}</span></div>` : ""}
-      <div class="verify-row"><span>Serviço</span><span>${escapeHtml(data.service_title)}</span></div>
-      <div class="verify-row"><span>Emissão</span><span>${escapeHtml(data.issued_at)}</span></div>
-    </div>
-    <div class="verify-sign"><strong>Patrícia Lima</strong>People Advisory Executive · CALI RH</div>
-    <p class="verify-foot">Em caso de dúvida sobre esta proposta, fale diretamente com patricia@calirh.com.</p>`;
+    const data = res.ok ? await res.json() : null;
+    if (!data) return naoEncontrado();
+    centro.innerHTML = `<div class="av-fim"><h1>Documento autêntico</h1><p>${[escapeHtml(data.titulo), escapeHtml(data.cliente)].filter(Boolean).join(" · ")}</p></div>`;
+    document.getElementById("auth-responsavel").textContent = `${data.signatario_nome}, ${data.signatario_cargo}`;
+    document.getElementById("auth-emitido").textContent = dataHora(data.emitido_em);
+    document.getElementById("auth-protocolo").textContent = data.protocolo;
+    document.getElementById("auth-hash").textContent = String(data.hash || "").slice(0, 32);
+    auth.classList.remove("hidden");
   } catch {
-    showFail("Não foi possível verificar este documento agora. Tente novamente em instantes.");
+    naoEncontrado();
   }
 }
 run();
