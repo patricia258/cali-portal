@@ -8,7 +8,8 @@
     { "source": "/login", "destination": "/admin/login.html" },
     { "source": "/acesso", "destination": "/admin/access.html" },
     { "source": "/redefinir-senha", "destination": "/admin/reset.html" },
-    { "source": "/proposta/:id", "destination": "/proposta.html" }
+    { "source": "/proposta/:id", "destination": "/proposta.html" },
+    { "source": "/v/:protocolo", "destination": "/verificar.html" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [

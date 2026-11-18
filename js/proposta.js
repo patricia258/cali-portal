@@ -292,7 +292,7 @@ printButton.addEventListener("click",()=>{document.title=proposalPdfBaseName(pdf
 // O fluxo de envio permanece independente do desenho editorial do PDF.
 const drawer=document.getElementById("send-drawer"),overlay=document.getElementById("send-overlay"),sendButton=document.getElementById("send-email"),feedback=document.getElementById("send-feedback");
 const companyInput=document.getElementById("send-company"),recipientNameInput=document.getElementById("send-recipient-name"),recipientEmailInput=document.getElementById("send-recipient-email"),subjectPreview=document.getElementById("send-subject");
-const proposalSubject=()=>`CALI RH - Olá, ${recipientNameInput.value.trim()||"Nome do decisor"}, Sua proposta chegou! 🧲 ${service.title} · ${submission.protocol}.`;
+const proposalSubject=()=>`CALI RH - Sua proposta chegou! ${service.title}.`;
 let sending = false;
 function refreshSendConfirmation(){subjectPreview.textContent=proposalSubject();const fieldsValid=recipientNameInput.value.trim().length>=2&&recipientEmailInput.checkValidity();sendButton.disabled=sending||!fieldsValid;}
 function openSend(){companyInput.value=submission.company_name||"";recipientNameInput.value=submission.contact_name||"";recipientEmailInput.value=submission.contact_email||"";document.getElementById("send-to").textContent=`${service.title} · ${submission.protocol}`;feedback.textContent="";feedback.style.color="var(--vermelho)";refreshSendConfirmation();drawer.classList.add("open");overlay.classList.add("open");}
