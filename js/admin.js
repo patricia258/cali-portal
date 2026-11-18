@@ -49,6 +49,7 @@ const BUDGET_STRATEGIES = [
   ["manter", "Manter escopo integral e justificar o valor"],
 ];
 const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
+const eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
 const deleteIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 
 async function rest(path, options = {}) {
@@ -136,11 +137,22 @@ function render() {
   tableBody.innerHTML = filtered.map((r) => {
     const service = SERVICES[r.service_slug];
     const archiveAction = r.archived_at ? `<button class="table-icon-action restore" data-restore="${r.id}" aria-label="Restaurar ${escapeHtml(r.company_name || r.contact_name)}" title="Restaurar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6M4 4v6h6"/></svg></button>` : `<button class="table-icon-action danger" data-delete="${r.id}" aria-label="Arquivar ${escapeHtml(r.company_name || r.contact_name)}" title="Arquivar registro de teste">${deleteIcon}</button>`;
-    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td><span class="status-chip" data-status="${escapeHtml(r.status)}">${escapeHtml(STATUS.find((s) => s.value === r.status)?.label || r.status)}</span></td><td><div class="table-actions"><button class="table-icon-action" data-open="${r.id}" aria-label="Editar ${escapeHtml(r.company_name || r.contact_name)}" title="Editar">${pencilIcon}</button>${archiveAction}</div></td></tr>`;
+    const statusSelect = `<select class="control status-inline" data-status-row="${r.id}" style="padding:6px 10px;font-size:12.5px;border-radius:7px;min-width:190px">${STATUS.map((s) => `<option value="${s.value}" ${r.status===s.value?"selected":""}>${escapeHtml(s.label)}</option>`).join("")}</select>`;
+    return `<tr><td>${formatDate(r.created_at)}<br><small>${escapeHtml(r.protocol)}</small></td><td class="company-cell"><strong>${escapeHtml(r.company_name || r.contact_name)}</strong><span>${escapeHtml(r.contact_name)} · ${escapeHtml(r.contact_email)}</span></td><td>${escapeHtml(service?.title || r.service_slug)}</td><td>${escapeHtml(r.answers?.momento_empresa || r.answers?.prazo_inicio || "—")}</td><td>${statusSelect}</td><td><div class="table-actions"><button class="table-icon-action" data-view="${r.id}" aria-label="Ver ${escapeHtml(r.company_name || r.contact_name)}" title="Ver">${eyeIcon}</button><button class="table-icon-action" data-open="${r.id}" aria-label="Editar ${escapeHtml(r.company_name || r.contact_name)}" title="Editar">${pencilIcon}</button>${archiveAction}</div></td></tr>`;
   }).join("");
+  tableBody.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => openView(button.dataset.view)));
   tableBody.querySelectorAll("[data-open]").forEach((button) => button.addEventListener("click", () => openSubmission(button.dataset.open)));
   tableBody.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => openDeleteConfirmation(button.dataset.delete)));
   tableBody.querySelectorAll("[data-restore]").forEach((button) => button.addEventListener("click", () => restoreSubmission(button.dataset.restore)));
+  tableBody.querySelectorAll("[data-status-row]").forEach((select) => select.addEventListener("change", async (event) => {
+    const id = event.target.dataset.statusRow, value = event.target.value;
+    event.target.disabled = true;
+    try {
+      await rest(`cali_submissions?id=eq.${id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: value, updated_at: new Date().toISOString() }) });
+      const row = submissions.find((item) => item.id === id); if (row) row.status = value;
+      updateKpis();
+    } finally { event.target.disabled = false; }
+  }));
 }
 
 function csvValue(value) {
@@ -341,9 +353,34 @@ function prioritizedScope(service, answers, phased = false, packageCode = initia
   ];
 }
 
+function openView(id) {
+  const record = submissions.find((r) => r.id === id); if (!record) return;
+  selected = record;
+  const service = SERVICES[record.service_slug], answers = record.answers || {}, fields = flattenFields(service);
+  document.getElementById("drawer-code").textContent = `${record.protocol} · ${service.code}`;
+  document.getElementById("drawer-title").textContent = record.company_name || record.contact_name;
+  document.getElementById("drawer-subtitle").textContent = `${service.title} · ${record.contact_name}`;
+  const answerHtml = fields.map((field) => {
+    const answer = ["investimento","budget"].includes(field.id) ? investmentContextFor(service, answers)?.label || "—" : labelFor(field.options, answers[field.id]);
+    return `<div class="answer"><small>${escapeHtml(field.label)}</small><div>${escapeHtml(answer)}</div></div>`;
+  }).join("");
+  const statusLabel = STATUS.find((s) => s.value === record.status)?.label || record.status;
+  const proposal = latestProposal(record.id);
+  drawerBody.innerHTML = `<section class="drawer-section"><h3>Contato e empresa</h3><div class="answer-grid"><div class="answer"><small>Contato</small><div>${escapeHtml(record.contact_name)}${record.contact_role ? ` · ${escapeHtml(record.contact_role)}` : ""}</div></div><div class="answer"><small>E-mail</small><div>${escapeHtml(record.contact_email)}</div></div><div class="answer"><small>WhatsApp</small><div>${escapeHtml(record.contact_phone || "—")}</div></div><div class="answer"><small>Empresa</small><div>${escapeHtml(record.company_name || "—")}</div></div><div class="answer"><small>Localidade</small><div>${escapeHtml(record.company_location || "—")}</div></div><div class="answer"><small>Status atual</small><div><span class="status-chip" data-status="${escapeHtml(record.status)}">${escapeHtml(statusLabel)}</span></div></div>${proposal ? `<div class="answer"><small>Valor na proposta</small><div>${currency(proposal.final_unit)}</div></div>` : ""}</div></section><section class="drawer-section"><h3>Respostas do briefing</h3><div class="answer-grid">${answerHtml}</div></section>${record.internal_notes ? `<section class="drawer-section"><h3>Observações internas</h3><p>${escapeHtml(record.internal_notes)}</p></section>` : ""}`;
+  drawer.dataset.mode = "view";
+  document.getElementById("save-review").classList.add("hidden");
+  const proposalButton = document.getElementById("save-proposal");
+  proposalButton.textContent = "Editar →";
+  proposalButton.classList.remove("hidden");
+  drawer.classList.add("open"); overlay.classList.add("open");
+}
+
 function openSubmission(id) {
   selected = submissions.find((r) => r.id === id); if (!selected) return;
   const service = SERVICES[selected.service_slug], answers = selected.answers || {}, fields = flattenFields(service), currentProposal = latestProposal(selected.id);
+  drawer.dataset.mode = "edit";
+  document.getElementById("save-review").classList.remove("hidden");
+  document.getElementById("save-proposal").textContent = "Salvar e abrir proposta →";
   document.getElementById("drawer-code").textContent = `${selected.protocol} · ${service.code}`;
   document.getElementById("drawer-title").textContent = selected.company_name || selected.contact_name;
   document.getElementById("drawer-subtitle").textContent = `${service.title} · ${selected.contact_name}`;
@@ -605,7 +642,11 @@ STATUS.forEach((status) => document.getElementById("status-filter").insertAdjace
 ["search","service-filter","status-filter"].forEach((id) => document.getElementById(id).addEventListener("input", render));
 document.getElementById("clear").addEventListener("click", () => { document.getElementById("search").value=""; document.getElementById("service-filter").value=""; document.getElementById("status-filter").value=""; render(); });
 const runDrawerAction = async (action) => { const feedback = document.getElementById("drawer-save-feedback"); feedback.textContent = ""; try { await action(); } catch (error) { feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar."; } };
-document.getElementById("refresh").addEventListener("click", load); document.getElementById("close").addEventListener("click", closeDrawer); overlay.addEventListener("click", closeDrawer); document.getElementById("save-review").addEventListener("click", () => runDrawerAction(saveReview)); document.getElementById("save-proposal").addEventListener("click", () => runDrawerAction(saveProposal));
+document.getElementById("refresh").addEventListener("click", load); document.getElementById("close").addEventListener("click", closeDrawer); overlay.addEventListener("click", closeDrawer); document.getElementById("save-review").addEventListener("click", () => runDrawerAction(saveReview));
+document.getElementById("save-proposal").addEventListener("click", () => {
+  if (drawer.dataset.mode === "view") { const id = selected?.id; closeDrawer(); if (id) openSubmission(id); return; }
+  runDrawerAction(saveProposal);
+});
 document.getElementById("export-csv").addEventListener("click", exportCsv);
 document.getElementById("archive-filter").addEventListener("click", () => { showArchived = !showArchived; document.getElementById("archive-filter").textContent = showArchived ? "Ver ativos" : "Ver arquivados"; render(); });
 document.getElementById("cancel-delete").addEventListener("click", closeDeleteConfirmation);

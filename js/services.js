@@ -131,10 +131,10 @@ export const STATUS = [
   option("novo", "Nova resposta"),
   option("analise", "Em análise"),
   option("edicao", "Proposta em edição"),
-  option("aprovada", "Aprovada internamente"),
+  option("aprovada", "Aprovada internamente (pronta p/ enviar)"),
   option("enviada", "Enviada"),
   option("negociacao", "Em negociação"),
-  option("fechada", "Fechada"),
+  option("fechada", "Fechada (virou cliente)"),
   option("recusada", "Recusada"),
   option("expirada", "Expirada"),
 ];
