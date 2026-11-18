@@ -64,9 +64,36 @@ const s = StyleSheet.create({
   regLinha: { fontSize: 7.4, lineHeight: 1.45, color: CINZA },
   regAvaliar: { fontSize: 7.6, lineHeight: 1.45, fontWeight: 700, color: BORDO },
   qr: { width: 60, height: 60 },
-  investBox: { backgroundColor: MARFIM, borderWidth: 0.75, borderColor: "#E9DDB0", borderRadius: 6, paddingVertical: 12, paddingHorizontal: 14, marginTop: 6, marginBottom: 10 },
-  investValor: { fontSize: 18, fontWeight: 700, color: BORDO },
+  investReferLinha: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: LINHA },
+  investReferRotulo: { fontSize: 7.4, fontWeight: 700, color: CINZA, letterSpacing: 0.5, textTransform: "uppercase" },
+  investReferValor: { fontSize: 9.5, color: GRAFITE },
+  investDescValor: { fontSize: 9.5, color: DOURADO, fontWeight: 700 },
+  investFinal: { backgroundColor: BORDO, borderRadius: 6, paddingVertical: 12, paddingHorizontal: 14, marginTop: 8, marginBottom: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  investFinalRotulo: { fontSize: 7.4, fontWeight: 700, color: "#E6C9AE", letterSpacing: 0.6, textTransform: "uppercase" },
+  investValor: { fontSize: 18, fontWeight: 700, color: "#FFFFFF" },
+  cardsLinha: { flexDirection: "row", gap: 8, marginBottom: 10 },
+  card: { flex: 1, borderWidth: 0.75, borderColor: LINHA, borderRadius: 5, padding: 8 },
+  cardRotulo: { fontSize: 6.6, fontWeight: 700, color: CINZA, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 3 },
+  cardValor: { fontSize: 8.6, fontWeight: 700, color: BORDO },
+  pagamentoTitulo: { fontSize: 8.5, fontWeight: 700, color: BORDO, marginTop: 4, marginBottom: 6 },
+  bonusBox: { backgroundColor: BORDO, borderRadius: 5, paddingVertical: 10, paddingHorizontal: 12, marginTop: 4, marginBottom: 4, borderLeftWidth: 2.5, borderLeftColor: DOURADO },
+  bonusRotulo: { fontSize: 6.8, fontWeight: 700, color: "#E6C9AE", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 3 },
+  bonusTitulo: { fontSize: 9, fontWeight: 700, color: "#FFFFFF", marginBottom: 2 },
+  bonusDescricao: { fontSize: 8, lineHeight: 1.5, color: "#EAD9D1" },
 });
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = { monthly: "Mensal recorrente", split: "Entrada + finalização", project_installments: "Parcelamento do projeto", pix: "À vista via PIX", card: "Cartão de crédito + taxas", custom: "Condição personalizada" };
+function paymentDue(payment: any) {
+  switch (payment?.method) {
+    case "monthly": return payment.monthlyDue || "1º dia útil de cada mês";
+    case "split": return `Entrada ${payment.entryPct ?? 50}% + finalização ${payment.finalPct ?? 50}%`;
+    case "project_installments": return `${payment.projectInstallments ?? 2}x — ${payment.projectInstallmentDue || "mensais"}`;
+    case "pix": return `À vista, com ${payment.pixDiscount ?? 0}% de desconto`;
+    case "card": return `${payment.cardInstallments ?? 1}x no cartão${payment.cardFees === "included" ? " (taxas inclusas)" : " (taxas à parte)"}`;
+    case "custom": return payment.customLabel || "Condição personalizada";
+    default: return "A combinar";
+  }
+}
 
 function Lista({ itens }: { itens: string[] }) {
   return h(View, { style: { marginBottom: 6 } }, itens.map((item, i) => h(View, { key: i, style: s.itemLista, wrap: false },
@@ -122,10 +149,41 @@ async function buildPdf(proposal: any, submission: any, service_title: string) {
       scope.length ? h(Lista, { itens: scope }) : null,
 
       h(Text, { style: s.h1 }, "Investimento"),
-      h(View, { style: s.investBox },
-        h(Text, { style: s.investValor }, currency(proposal.final_unit)),
-        h(Text, { style: { fontSize: 8.5, color: CINZA, marginTop: 4 } }, proposal.payment_terms || "Condições conforme cronograma definido na proposta."),
-      ),
+      (() => {
+        const subtotal = Number(proposal.subtotal ?? proposal.final_unit ?? 0);
+        const finalUnit = Number(proposal.final_unit ?? 0);
+        const discountValue = Math.max(0, subtotal - finalUnit);
+        const hours = Number(calc.monthlyHours || 0);
+        const months = Number(proposal.contract_months || 0);
+        const payment = calc.payment || {};
+        const natureza = payment.method === "monthly" ? "Atuação recorrente e fracionada" : months > 1 ? "Atuação recorrente" : "Projeto com entrega definida";
+        const bonus = calc.bonus;
+        const cards = [
+          hours ? { rotulo: "Capacidade", valor: `Até ${hours} horas por mês` } : null,
+          months ? { rotulo: "Prazo mínimo", valor: `${months} ${months === 1 ? "mês" : "meses"}` } : null,
+          { rotulo: "Natureza", valor: natureza },
+        ].filter(Boolean) as { rotulo: string; valor: string }[];
+        return h(View, null,
+          discountValue > 0 ? h(View, { style: s.investReferLinha }, h(Text, { style: s.investReferRotulo }, "Mensalidade de referência"), h(Text, { style: s.investReferValor }, currency(subtotal))) : null,
+          discountValue > 0 ? h(View, { style: s.investReferLinha }, h(Text, { style: s.investReferRotulo }, "Condição comercial"), h(Text, { style: s.investDescValor }, `− ${currency(discountValue)}`)) : null,
+          h(View, { style: s.investFinal },
+            h(Text, { style: s.investFinalRotulo }, "Mensalidade final"),
+            h(Text, { style: s.investValor }, currency(finalUnit)),
+          ),
+          cards.length ? h(View, { style: s.cardsLinha }, ...cards.map((c, i) => h(View, { key: i, style: s.card }, h(Text, { style: s.cardRotulo }, c.rotulo), h(Text, { style: s.cardValor }, c.valor)))) : null,
+          h(Text, { style: s.pagamentoTitulo }, "Forma de pagamento"),
+          h(View, { style: s.cardsLinha },
+            h(View, { style: s.card }, h(Text, { style: s.cardRotulo }, "Forma"), h(Text, { style: s.cardValor }, PAYMENT_METHOD_LABELS[payment.method] || "A combinar")),
+            h(View, { style: s.card }, h(Text, { style: s.cardRotulo }, "Vencimento"), h(Text, { style: s.cardValor }, paymentDue(payment))),
+          ),
+          h(Text, { style: { fontSize: 8, color: CINZA, marginBottom: bonus?.title ? 8 : 0 } }, proposal.payment_terms || "Condições conforme cronograma definido na proposta."),
+          bonus?.title ? h(View, { style: s.bonusBox, wrap: false },
+            h(Text, { style: s.bonusRotulo }, "Bônus selecionado"),
+            h(Text, { style: s.bonusTitulo }, bonus.title),
+            bonus.description ? h(Text, { style: s.bonusDescricao }, bonus.description) : null,
+          ) : null,
+        );
+      })(),
 
       nextSteps.length ? h(Text, { style: s.h1 }, "Próximos passos") : null,
       nextSteps.length ? h(Lista, { itens: nextSteps }) : null,
