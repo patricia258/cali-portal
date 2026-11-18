@@ -1,3 +1,4 @@
+import { requestJson } from "/js/request.js";
 import { CONFIG, functionUrl } from "/js/config.js";
 import { serviceFromPath, trainingNeedsTravel } from "/js/services.js";
 
@@ -559,7 +560,7 @@ form.addEventListener("change", (event) => {
   // clicar em "Continuar" depois — só múltipla escolha continua pedindo o clique.
   if (target.matches('[data-auto-advance]')) {
     const ready = target.type === "radio" ? target.checked : String(target.value || "") !== "";
-    if (ready) window.setTimeout(() => step(1), 220);
+    if (ready) { const answeredStep = current; window.setTimeout(() => { if (current === answeredStep) step(1); }, 220); }
   }
 
   if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
@@ -582,12 +583,10 @@ form.addEventListener("submit", async (event) => {
   submitButton.textContent = "Enviando…";
   feedback.textContent = "";
   try {
-    const response = await fetch(functionUrl("portal-submit"), {
+    const result = await requestJson(functionUrl("portal-submit"), {
       method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.supabasePublishableKey },
       body: JSON.stringify({ service_slug: service.slug, answers: collectAnswers(), source_path: location.pathname, website: document.getElementById("website").value, lgpd_aceite: true }),
     });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || "Não foi possível enviar agora.");
     form.classList.add("hidden");
     welcome.classList.add("hidden");
     document.body.classList.add("submission-complete");

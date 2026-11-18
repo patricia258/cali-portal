@@ -14,7 +14,7 @@
 html:has(body.form-body){height:100%}
 body.form-body{min-height:100%; display:flex; flex-direction:column; font-family:var(--sans)}
 
-.form-body .stage{display:flex; flex-direction:column; min-height:100vh}
+.form-body .stage{display:flex; flex-direction:column; min-height:100vh; min-height:100dvh}
 
 /* === topo: só a logo oficial e o contador, nada de menu === */
 .form-body .briefing-topbar{
@@ -45,10 +45,11 @@ body.form-body{min-height:100%; display:flex; flex-direction:column; font-family
 .form-body .intro-note strong{color:var(--bordo)}
 .form-body .intro .btn{margin-top:28px}
 
-/* === cada pergunta ocupa a tela toda e fica centralizada no meio, como o Typeform === */
-.form-body #briefing-form{flex:1; display:flex; flex-direction:column; min-height:0}
-.form-body #steps{flex:1; display:flex; flex-direction:column; min-height:0}
-.form-body .form-step{display:none; flex:1; flex-direction:column; justify-content:center; align-self:center; width:100%; max-width:680px}
+/* === cada pergunta fica centralizada no meio da tela, com o botão logo abaixo dela —
+   nunca um bloco esticado com o botão preso lá embaixo (bug visto no celular, 17/11/2026) === */
+.form-body #briefing-form{display:flex; flex-direction:column; width:100%; max-width:680px; margin:auto 0}
+.form-body #steps{display:flex; flex-direction:column}
+.form-body .form-step{display:none; flex-direction:column}
 .form-body .form-step.active{display:flex}
 .form-body .form-step .field{display:flex; flex-direction:column}
 .form-body .form-step .field > label:not(.single-check){
