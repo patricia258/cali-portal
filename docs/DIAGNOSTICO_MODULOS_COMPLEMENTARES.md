@@ -32,3 +32,7 @@ A especificação completa está salva ao lado deste diagnóstico. A prioridade 
 ## Atualização após a correção de integração
 
 Os itens 6 e 7 do diagnóstico foram resolvidos no commit 6fff78f: a prévia deixou de usar um segundo modelo HTML e renderiza o PDF canônico; o modelo base foi conferido com seis páginas em produção. A ativação também passou a aparecer na calculadora administrativa. Os demais itens de módulos continuam pendentes. Este registro mantém o diagnóstico original para contexto, sem transformá-lo em regra permanente.
+
+## Evolução em 19/11/2026
+
+Os módulos, a abrangência, a ativação editável e a paginação variável foram implementados. O estado atual e as verificações estão descritos em EDITOR_MODULOS_E_PAGINACAO.md. As pendências acima retratam o momento original deste documento.

@@ -19,3 +19,7 @@ A ativação é derivada automaticamente, não uma segunda cobrança editável. 
 Node --check em proposta.js/admin-editar.js. Teste local de interface com dados conhecidos: seis páginas renderizadas em canvas; botão Salvar PDF habilitado; download SHA-256 idêntico ao PDF da prévia; modal de destinatário abre/fecha sem envio. Funções de geração e envio publicadas pelo painel do Supabase. Arquivos frontend verificados no domínio oficial. Geração em produção por ID de KIE-TEC e Academia do Rock: seis páginas; ativação 782 e 780 respectivamente. Teste de e-mail real não repetido nesta alteração. Nenhum valor comercial ou status de proposta foi salvo.
 
 Limite da inspeção visual em produção: a captura nativa do Chrome retornou apenas uma superfície uniforme e a árvore de acessibilidade não expôs o conteúdo da página. Por isso, a conferência visual de canvas foi local; em produção foram verificados os arquivos publicados e os PDFs gerados pela função, sem afirmar uma inspeção visual completa da sessão da usuária.
+
+## Evolução em 19/11/2026
+
+Os módulos, a abrangência, a ativação editável e a paginação variável foram implementados. O estado atual e as verificações estão descritos em EDITOR_MODULOS_E_PAGINACAO.md. As pendências acima retratam o momento original deste documento.

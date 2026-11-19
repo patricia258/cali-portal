@@ -32,3 +32,9 @@ Módulos e abrangência aparecem em seções próprias somente quando ativados. 
 - Geração local de PDFs: sem módulos, R&S zero, R&S recorrente, múltiplos módulos, pontual, personalizado, módulo removido, módulos desativados, ativação 15%, abrangência e conteúdo extenso.
 - Modelo convencional, módulos removidos e desativados: seis páginas. Estresse: 29 páginas, com os marcadores finais de todas as seções presentes, sem texto na área do rodapé e com cabeçalho nas continuações. Inspeção visual de páginas renderizadas.
 - Nenhum e-mail de cliente foi disparado e nenhuma proposta real recebeu módulos ou condições de teste.
+
+## Publicação conferida
+
+Commit funcional 709556e no domínio oficial. Frontend retornou HTTP 200 com o editor, módulo de campos e leitura de snapshots publicados. Funções de PDF e envio publicadas pelo painel autenticado do Supabase; teste autenticado de geração da proposta Academia do Rock retornou HTTP 200 e corpo %PDF-1.7. Não houve disparo de e-mail.
+
+Teste adicional local de proposta marcada como enviada: salvar criou ID novo, versão 2 e protocolo V2; 12 entregas e 9 ciclos foram preservados. Conferência visual do editor e dos campos de ativação registrada em captura local. A sessão real da usuária não foi usada para inserir condições de teste.
