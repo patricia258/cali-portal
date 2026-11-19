@@ -1,8 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
-import { Document, Image, Page, Path, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
+import { Document, Font, Image, Page, Path, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
 import { createElement as h } from "npm:react@18.3.1";
 import QRCode from "npm:qrcode@1.5.4";
+import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -10,6 +11,17 @@ const PORTAL_URL = "https://portal.calirh.com";
 const LOGO_URL = `${PORTAL_URL}/assets/logo-cali-bordo.png`;
 const LOGO_LIGHT_URL = `${PORTAL_URL}/assets/logo-cali-light.png`;
 const LIME_URL = `${PORTAL_URL}/assets/cali-lime-mark.svg`;
+
+// Fontes da identidade do PDF de referência; arquivos versionados no Portal.
+Font.register({ family: "CaliSans", fonts: [
+  { src: `${PORTAL_URL}/assets/pdf-fonts/DM-Sans-400.ttf`, fontWeight: 400 },
+  { src: `${PORTAL_URL}/assets/pdf-fonts/DM-Sans-700.ttf`, fontWeight: 700 },
+] });
+Font.register({ family: "CaliSerif", fonts: [
+  { src: `${PORTAL_URL}/assets/pdf-fonts/Playfair-Display-600.ttf`, fontWeight: 600 },
+  { src: `${PORTAL_URL}/assets/pdf-fonts/Playfair-Display-700.ttf`, fontWeight: 700 },
+] });
+Font.registerHyphenationCallback((word) => [word]);
 
 const BORDO = "#5A1E2D", DOURADO = "#B58C52", GRAFITE = "#2B2B2B", CINZA = "#6B5D63", LINHA = "#E6DDD3", MARFIM = "#F7F3EE";
 
@@ -50,32 +62,32 @@ async function limaPath() {
 }
 
 const s = StyleSheet.create({
-  pagina: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 60 },
-  paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 30, paddingHorizontal: 54 },
-  capaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 30, paddingHorizontal: 54 },
+  pagina: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 64 },
+  paginaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 24, paddingBottom: 64, paddingHorizontal: 24 },
+  capaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 18, paddingHorizontal: 24 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
-  rodapeLinha: { flexDirection: "row", justifyContent: "space-between", marginTop: 18, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: LINHA },
+  rodapeLinha: { position: "absolute", top: 782, left: 24, right: 24, height: 30, flexDirection: "row", justifyContent: "space-between", paddingTop: 10, borderTopWidth: 0.5, borderTopColor: LINHA },
   rodape: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
   paginaNum: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
 
   // Page 1 cover band
-  capaBand: { backgroundColor: BORDO, paddingTop: 34, paddingHorizontal: 54, paddingBottom: 26 },
+  capaBand: { backgroundColor: BORDO, height: 313, paddingTop: 20, paddingHorizontal: 24, paddingBottom: 24 },
   capaTopo: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingBottom: 14, borderBottomWidth: 0.75, borderBottomColor: "#7A3F4F" },
   capaLogo: { width: 90, height: 42.5, objectFit: "contain" },
   capaProtocolo: { fontSize: 8, color: "#E9D7CE", textAlign: "right" },
   capaDatas: { fontSize: 7.4, color: "#CBA9A3", textAlign: "right", marginTop: 2 },
-  capaEyebrow: { fontSize: 8.5, fontWeight: 700, letterSpacing: 1.4, color: "#DCC08E", marginTop: 22 },
-  capaTitulo: { fontSize: 27, fontWeight: 700, color: "#FFFFFF", marginTop: 8, lineHeight: 1.15 },
+  capaEyebrow: { fontSize: 8.5, fontWeight: 700, letterSpacing: 1.4, color: "#DCC08E", marginTop: 36 },
+  capaTitulo: { fontFamily: "CaliSerif", fontSize: 34, fontWeight: 700, color: "#FFFFFF", marginTop: 8, lineHeight: 1.15 },
   capaIntro: { fontSize: 10, lineHeight: 1.6, color: "#EAD9D1", marginTop: 10, maxWidth: 420 },
   capaPacoteWrap: { marginTop: 22, paddingLeft: 12, borderLeftWidth: 2, borderLeftColor: DOURADO },
   capaPacoteKicker: { fontSize: 7.4, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
-  capaPacoteLabel: { fontSize: 15, fontWeight: 700, color: "#FFFFFF", marginTop: 2 },
+  capaPacoteLabel: { fontFamily: "CaliSerif", fontSize: 17.5, fontWeight: 700, color: "#FFFFFF", marginTop: 2 },
 
   // Section headers (inner pages)
   secHead: { flexDirection: "row", alignItems: "flex-start", gap: 14, marginBottom: 14 },
-  secNum: { fontSize: 26, fontWeight: 700, color: DOURADO, lineHeight: 1.1 },
+  secNum: { fontFamily: "CaliSerif", fontSize: 19, fontWeight: 700, color: DOURADO, lineHeight: 1.1 },
   secEyebrow: { fontSize: 7.6, fontWeight: 700, letterSpacing: 1.1, color: DOURADO },
-  secTitulo: { fontSize: 17, fontWeight: 700, color: BORDO, marginTop: 3 },
+  secTitulo: { fontFamily: "CaliSerif", fontSize: 16, fontWeight: 700, lineHeight: 1.25, color: BORDO, marginTop: 3 },
   secIntro: { fontSize: 8.8, lineHeight: 1.6, color: CINZA, marginTop: 5, maxWidth: 440 },
   secDivider: { borderTopWidth: 0.5, borderTopColor: LINHA, marginBottom: 14 },
 
@@ -87,22 +99,22 @@ const s = StyleSheet.create({
   goldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 5, backgroundColor: DOURADO },
 
   blocoRotulo: { fontSize: 7.6, fontWeight: 700, letterSpacing: 0.8, color: DOURADO, textTransform: "uppercase", marginBottom: 5, marginTop: 14 },
-  blocoTitulo: { fontSize: 12.5, fontWeight: 700, color: BORDO, marginBottom: 4 },
-  p: { marginBottom: 7, fontSize: 9, lineHeight: 1.6 },
+  blocoTitulo: { fontFamily: "CaliSerif", fontSize: 14, fontWeight: 700, color: BORDO, marginBottom: 4 },
+  p: { marginBottom: 7, fontSize: 9, lineHeight: 1.4 },
 
-  chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
-  chip: { width: "48%", backgroundColor: MARFIM, borderRadius: 5, paddingVertical: 8, paddingHorizontal: 10, fontSize: 8.4, color: GRAFITE },
+  chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 3, marginTop: 4 },
+  chip: { width: "48%", backgroundColor: MARFIM, borderRadius: 5, paddingVertical: 3, paddingHorizontal: 9, fontSize: 8.2, lineHeight: 1.15, color: GRAFITE },
 
   dualBox: { flexDirection: "row", gap: 10, marginTop: 4 },
   dualBoxLeft: { width: 170 },
-  mapaCard: { borderTopWidth: 3, borderTopColor: "#B98E9B", backgroundColor: "#F3E9ED", borderRadius: 5, padding: 12 },
+  mapaCard: { flexGrow: 1, justifyContent: "space-between", borderTopWidth: 3, borderTopColor: "#B98E9B", backgroundColor: "#F3E9ED", borderRadius: 5, padding: 12 },
   mapaRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: "#8B5A6B", marginBottom: 10 },
-  mapaScore: { fontSize: 26, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
+  mapaScore: { fontFamily: "CaliSerif", fontSize: 22, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
   mapaScoreSub: { fontSize: 8, color: CINZA },
-  mapaQuadrante: { fontSize: 9.5, fontWeight: 700, color: BORDO, marginTop: 36 },
+  mapaQuadrante: { fontSize: 8, fontWeight: 700, color: BORDO },
   leituraBox: { flex: 1, borderLeftWidth: 1, borderLeftColor: LINHA, paddingLeft: 14, paddingVertical: 2 },
   leituraRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: CINZA, marginBottom: 6 },
-  leituraTexto: { fontSize: 8.6, lineHeight: 1.6, color: GRAFITE },
+  leituraTexto: { fontSize: 8.4, lineHeight: 1.2, color: GRAFITE },
 
   pairRow: { flexDirection: "row", gap: 12, marginTop: 4, marginBottom: 6 },
   pairBox: { flex: 1, borderWidth: 0.75, borderColor: LINHA, borderRadius: 5, padding: 12 },
@@ -174,9 +186,8 @@ function Watermark({ d }: { d: string }) {
 }
 
 function Footer({ protocolo }: { protocolo: string }) {
-  return h(View, { style: s.rodapeLinha },
+  return h(View, { fixed: true, style: s.rodapeLinha },
     h(Text, { style: s.rodape }, `Patrícia Lima · CALI RH · patricia@calirh.com`),
-    h(Text, { style: s.paginaNum }, protocolo),
   );
 }
 
@@ -196,7 +207,7 @@ function SecHead({ num, eyebrow, titulo, intro }: { num: string; eyebrow: string
       h(Text, { style: s.secNum }, num),
       h(View, { style: { flex: 1 } },
         h(Text, { style: s.secEyebrow }, eyebrow),
-        h(Text, { style: s.secTitulo }, titulo),
+        h(Text, { style: [s.secTitulo, ...(num === "02" ? [{ fontSize: 28.5, lineHeight: 1.2 }] : [])] }, titulo),
         intro ? h(Text, { style: s.secIntro }, intro) : null,
       ),
     ),
@@ -300,7 +311,9 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
 
   // PÁGINA 1 — CAPA
   paginas.push(h(Page, { key: "p1", size: "A4", style: s.pagina },
+    h(Watermark, { d }),
     h(View, { style: s.capaBand },
+      d ? h(Svg, { viewBox: "0 0 256 256", style: { position: "absolute", right: 0, top: 24, width: 240, height: 260 } }, h(Path, { d, fill: "#FFFFFF", fillOpacity: 0.06 })) : null,
       protocoloHeader,
       h(Text, { style: s.capaEyebrow }, "PROPOSTA CALI RH"),
       h(Text, { style: s.capaTitulo }, `Olá, ${primeiroNome(nome)}.`),
@@ -308,7 +321,6 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       h(View, { style: s.capaPacoteWrap }, h(Text, { style: s.capaPacoteKicker }, pkg.kicker), h(Text, { style: s.capaPacoteLabel }, pkg.label)),
     ),
     h(View, { style: s.capaInner },
-      h(Watermark, { d }),
       h(SecHead, { num: "01", eyebrow: "LEITURA DO CONTEXTO", titulo: "O que entendemos até aqui" }),
       h(Text, { style: s.p }, calc.contextSummary || "Contexto reunido a partir do briefing recebido."),
       painPoints.length ? h(Text, { style: s.blocoRotulo }, "SINAIS QUE ORIENTAM ESTA PROPOSTA") : null,
@@ -317,8 +329,10 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
         mapa?.include ? h(View, { style: s.dualBoxLeft },
           h(View, { style: s.mapaCard },
             h(Text, { style: s.mapaRotulo }, "MAPA DE PEOPLE"),
-            h(Text, { style: s.mapaScore }, `${Number(mapa.score).toLocaleString("pt-BR")}/10`),
-            h(Text, { style: s.mapaQuadrante }, mapa.quadrant),
+            h(View, { style: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 18 } },
+              h(Text, { style: s.mapaScore }, `${Number(mapa.score).toLocaleString("pt-BR")}/10`),
+              h(Text, { style: s.mapaQuadrante }, mapa.quadrant),
+            ),
           ),
         ) : null,
         h(View, { style: s.leituraBox },
@@ -466,7 +480,17 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   ));
 
   const el = h(Document, { title: `Proposta CALI — ${service_title}`, author: "CALI RH", creator: "Portal CALI", producer: "Portal CALI", language: "pt-BR", subject: protocolo }, ...paginas);
-  return pdf(el as never).toBlob();
+  // A numeração é aplicada após a paginação real, inclusive quando o conteúdo cresce.
+  // O render callback de Text não é confiável nesta versão do renderer no Edge.
+  const rendered = await pdf(el as never).toBlob();
+  const numbered = await PDFDocument.load(await rendered.arrayBuffer());
+  const footerFont = await numbered.embedFont(StandardFonts.Helvetica);
+  const sheets = numbered.getPages();
+  sheets.forEach((sheet, index) => {
+    const label = index === sheets.length - 1 ? protocolo : `${String(index + 1).padStart(2, "0")} / ${String(sheets.length).padStart(2, "0")}`;
+    sheet.drawText(label, { x: sheet.getWidth() - 24 - footerFont.widthOfTextAtSize(label, 7.4), y: 42, size: 7.4, font: footerFont, color: rgb(107 / 255, 93 / 255, 99 / 255) });
+  });
+  return new Blob([await numbered.save()], { type: "application/pdf" });
 }
 
 Deno.serve(async (req) => {
