@@ -51,7 +51,8 @@ async function limaPath() {
 
 const s = StyleSheet.create({
   pagina: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 60 },
-  paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 85, paddingHorizontal: 54 },
+  paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 30, paddingHorizontal: 54 },
+  capaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 30, paddingHorizontal: 54 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
   rodapeLinha: { flexDirection: "row", justifyContent: "space-between", marginTop: 18, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: LINHA },
   rodape: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
@@ -306,7 +307,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       h(Text, { style: s.capaIntro }, `Preparamos esta proposta para ${empresa}, a partir do contexto compartilhado no briefing.`),
       h(View, { style: s.capaPacoteWrap }, h(Text, { style: s.capaPacoteKicker }, pkg.kicker), h(Text, { style: s.capaPacoteLabel }, pkg.label)),
     ),
-    h(View, { style: s.paginaInner },
+    h(View, { style: s.capaInner },
       h(Watermark, { d }),
       h(SecHead, { num: "01", eyebrow: "LEITURA DO CONTEXTO", titulo: "O que entendemos até aqui" }),
       h(Text, { style: s.p }, calc.contextSummary || "Contexto reunido a partir do briefing recebido."),
