@@ -298,7 +298,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const discountValue = Math.max(0, subtotal - finalUnit);
   const hours = Number(calc.monthlyHours || 0);
   const months = Number(proposal.contract_months || 0);
-  const isRecorrente = payment.method === "monthly";
+  const isRecorrente = calc.monthly === true || proposal.service_slug === "assessoria-estrategica" || proposal.service_slug === "cali-build" || (proposal.service_slug === "marca-empregadora" && proposal.package_code === "RECORRENTE") || payment.method === "monthly";
   const natureza = isRecorrente ? "Atuação recorrente" : months > 1 ? "Atuação recorrente" : "Projeto com entrega definida";
   const ativacaoValor = isRecorrente ? Math.round(finalUnit * 0.2) : 0;
 
@@ -499,8 +499,11 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
     const url = new URL(req.url);
     const protocolParam = url.searchParams.get("protocolo");
+    const proposalParam = url.searchParams.get("proposal_id");
+    if (proposalParam && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(proposalParam)) return new Response(JSON.stringify({error:"Proposta inválida."}), {status:400,headers:{...cors(req),"Content-Type":"application/json"}});
     let query = admin.from("cali_proposals").select("*,submission:cali_submissions(*)").order("created_at", { ascending: false }).limit(1);
     if (protocolParam) query = admin.from("cali_proposals").select("*,submission:cali_submissions!inner(*)").eq("submission.protocol", protocolParam).limit(1);
+    if (proposalParam) query = admin.from("cali_proposals").select("*,submission:cali_submissions(*)").eq("id", proposalParam).limit(1);
     const { data, error } = await query;
     if (error) throw error;
     const proposal = data?.[0];

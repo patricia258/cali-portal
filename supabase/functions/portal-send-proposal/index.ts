@@ -9,8 +9,8 @@ function json(req:Request,body:unknown,status=200){return new Response(JSON.stri
 function esc(v:unknown){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]??c))}
 function clean(v:unknown,max:number){return String(v??"").replace(/[\u0000-\u001F\u007F]/g," ").replace(/\s+/g," ").trim().slice(0,max)}
 function bytesToBase64(bytes:Uint8Array){let binary="";const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary)}
-async function gerarPdf(protocolo:string){
-  const res=await fetch(`${SUPABASE_URL}/functions/v1/portal-proposal-pdf?protocolo=${encodeURIComponent(protocolo)}`,{headers:{Authorization:`Bearer ${SERVICE_KEY}`,apikey:SERVICE_KEY}});
+async function gerarPdf(protocolo:string,proposalId:string){
+  const res=await fetch(`${SUPABASE_URL}/functions/v1/portal-proposal-pdf?protocolo=${encodeURIComponent(protocolo)}&proposal_id=${encodeURIComponent(proposalId)}`,{headers:{Authorization:`Bearer ${SERVICE_KEY}`,apikey:SERVICE_KEY}});
   if(!res.ok)throw new Error(`Falha ao gerar o PDF (gerador retornou ${res.status}).`);
   const buf=await res.arrayBuffer();
   if(buf.byteLength>MAX)throw new Error("O PDF gerado ultrapassa 8 MB.");
@@ -47,7 +47,8 @@ Deno.serve(async(req)=>{
   const note=String(body.note||"").trim().slice(0,1200);
   const admin=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});const{data:p,error:pError}=await admin.from("cali_proposals").select("*,submission:cali_submissions(*)").eq("id",proposalId).single();if(pError||!p?.submission)throw pError||new Error("Proposta não encontrada.");const s=p.submission,serviceTitle=SERVICE_LABELS[p.service_slug]||clean(p.service_slug,100)||"Proposta CALI",protocol=clean(s.protocol,80)||"Sem protocolo";
   if(!RESEND_API_KEY)throw new Error("RESEND_API_KEY não configurada.");
-  const pdfBytes=await gerarPdf(protocol);
+  if(body.expected_updated_at && String(body.expected_updated_at)!==String(p.updated_at))return json(req,{error:"A proposta foi alterada em outra aba. Atualize a prévia antes de enviar."},409);
+  const pdfBytes=await gerarPdf(protocol,p.id);
   const filename=safeFile(`Proposta-CALI-${companyName||recipientName}.pdf`),path=`${p.id}/v${p.version}-${Date.now()}-${filename}`;const{error:uploadError}=await admin.storage.from("cali-proposals").upload(path,pdfBytes,{contentType:"application/pdf",upsert:false});if(uploadError)throw uploadError;
   const subject=proposalSubject(serviceTitle);const resend=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_API_KEY}`,"Content-Type":"application/json","Idempotency-Key":`proposal-${p.id}-${new Date(p.updated_at).getTime()}`},body:JSON.stringify({from:"Patrícia Lima · CALI RH <patricia@calirh.com>",to:[recipientEmail],reply_to:ADMIN_EMAIL,subject,html:emailHtml(p,note,recipientName,companyName,serviceTitle,protocol),attachments:[{filename,content:bytesToBase64(pdfBytes)}]})});const email=await resend.json().catch(()=>({}));if(!resend.ok)throw new Error(`Resend ${resend.status}: ${JSON.stringify(email)}`);
   const sentAt=new Date().toISOString();const syncResults=await Promise.all([admin.from("cali_proposals").update({status:"enviada",pdf_path:path,resend_email_id:email.id||null,sent_at:sentAt,updated_at:sentAt}).eq("id",p.id),admin.from("cali_submissions").update({status:"enviada",updated_at:sentAt}).eq("id",s.id),admin.from("cali_activity").insert({submission_id:s.id,proposal_id:p.id,event_type:"proposal_sent",metadata:{to:recipientEmail,recipient_name:recipientName,company_name:companyName,email_id:email.id||null,pdf_path:path,subject}})]);

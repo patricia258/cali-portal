@@ -9,7 +9,9 @@
   <link rel="icon" type="image/svg+xml" href="/assets/cali-favicon.svg?v=20260924-leaf">
   <link rel="shortcut icon" type="image/svg+xml" href="/assets/cali-favicon.svg?v=20260924-leaf">
   <link rel="apple-touch-icon" href="/assets/cali-favicon.svg?v=20260924-leaf">
-</head>
+<style>
+#proposal-root{padding:20px max(12px,2vw);max-width:1240px;margin:0 auto}.proposal-pdf-frame{display:block;width:100%;height:calc(100dvh - 150px);min-height:600px;border:0;background:#363636;border-radius:8px}.proposal-pdf-viewer{display:grid;gap:24px;justify-items:center}.proposal-pdf-sheet{width:min(900px,100%);position:relative;box-shadow:0 10px 30px #0002;background:white}.proposal-pdf-sheet canvas{width:100%;height:auto;display:block}.proposal-pdf-accessible-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.proposal-pdf-status{padding:60px 24px;text-align:center}.proposal-toolbar-actions{flex-wrap:wrap}.proposal-toolbar .btn:disabled{opacity:.5;cursor:wait}@media(max-width:700px){.proposal-pdf-frame{height:78dvh;min-height:480px}.proposal-toolbar-inner{align-items:start;flex-direction:column}.proposal-toolbar-actions{gap:8px}.proposal-toolbar .btn{font-size:12px;padding:10px 12px}}
+</style></head>
 <body>
   <header class="proposal-toolbar">
     <div class="shell proposal-toolbar-inner">
@@ -19,8 +21,9 @@
       </div>
       <div class="proposal-toolbar-actions">
         <a class="btn btn-soft" href="/admin">← Painel</a>
-        <button class="btn btn-gold" id="print">Salvar PDF</button>
-        <button class="btn btn-primary" id="open-send">Enviar por e-mail</button>
+        <a class="btn btn-soft" id="edit-proposal" href="/admin">Editar proposta</a>
+        <button class="btn btn-gold" id="print" disabled>Salvar PDF</button>
+        <button class="btn btn-primary" id="open-send" disabled>Enviar por e-mail</button>
       </div>
     </div>
   </header>
@@ -74,6 +77,6 @@
     </div>
     <div class="drawer-footer"><button class="btn btn-primary" id="send-email" disabled>Confirmar e enviar</button></div>
   </aside>
-  <script type="module" src="/js/proposta.js"></script>
+  <script type="module" src="/js/proposta.js?v=20261118-pdf-unico"></script>
 </body>
 </html>
