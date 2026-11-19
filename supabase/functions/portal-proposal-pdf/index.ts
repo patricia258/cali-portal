@@ -53,8 +53,9 @@ const s = StyleSheet.create({
   pagina: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 60 },
   paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 85, paddingHorizontal: 54 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
-  rodape: { position: "absolute", bottom: 24, left: 54, fontSize: 7.4, lineHeight: 1.3, color: CINZA },
-  paginaNum: { position: "absolute", bottom: 24, right: 54, fontSize: 7.4, lineHeight: 1.3, color: CINZA },
+  rodapeLinha: { flexDirection: "row", justifyContent: "space-between", marginTop: 18, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: LINHA },
+  rodape: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
+  paginaNum: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
 
   // Page 1 cover band
   capaBand: { backgroundColor: BORDO, paddingTop: 34, paddingHorizontal: 54, paddingBottom: 26 },
@@ -174,9 +175,9 @@ function Watermark({ d }: { d: string }) {
 }
 
 function Footer({ protocolo }: { protocolo: string }) {
-  return h(View, null,
-    h(Text, { fixed: true, style: s.rodape }, `Patrícia Lima · CALI RH · patricia@calirh.com`),
-    h(Text, { fixed: true, style: s.paginaNum, render: ({ pageNumber, totalPages }: any) => `${String(pageNumber).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}` }),
+  return h(View, { style: s.rodapeLinha },
+    h(Text, { style: s.rodape }, `Patrícia Lima · CALI RH · patricia@calirh.com`),
+    h(Text, { style: s.paginaNum, render: ({ pageNumber, totalPages }: any) => `${String(pageNumber).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}` }),
   );
 }
 
