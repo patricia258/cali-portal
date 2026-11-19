@@ -60,7 +60,7 @@ const s = StyleSheet.create({
   // Page 1 cover band
   capaBand: { backgroundColor: BORDO, paddingTop: 34, paddingHorizontal: 54, paddingBottom: 26 },
   capaTopo: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingBottom: 14, borderBottomWidth: 0.75, borderBottomColor: "#7A3F4F" },
-  capaLogo: { width: 110, height: 26 },
+  capaLogo: { width: 90, height: 42.5, objectFit: "contain" },
   capaProtocolo: { fontSize: 8, color: "#E9D7CE", textAlign: "right" },
   capaDatas: { fontSize: 7.4, color: "#CBA9A3", textAlign: "right", marginTop: 2 },
   capaEyebrow: { fontSize: 8.5, fontWeight: 700, letterSpacing: 1.4, color: "#DCC08E", marginTop: 22 },
@@ -79,7 +79,7 @@ const s = StyleSheet.create({
   secDivider: { borderTopWidth: 0.5, borderTopColor: LINHA, marginBottom: 14 },
 
   topoInner: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 10, borderBottomWidth: 0.5, borderBottomColor: LINHA },
-  logo: { width: 58, height: 27 },
+  logo: { width: 58, height: 27, objectFit: "contain" },
   topoDireita: { alignItems: "flex-end" },
   topoProtocolo: { fontSize: 7.6, fontWeight: 700, color: BORDO },
   topoDatas: { fontSize: 7, color: CINZA, marginTop: 1 },
@@ -268,13 +268,13 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const validade = dataCurta(new Date(new Date(criadaEm).getTime() + Number(proposal.validity_days || 15) * 86400000).toISOString());
   const pkg = PACKAGE_META[proposal.package_code] || { kicker: "SOLUÇÃO CALI", label: service_title, tagline: "" };
 
-  const clean = (arr: unknown) => Array.isArray(arr) ? arr.map((v) => String(v ?? "").trim()).filter(Boolean) : [];
+  const clean = (arr: unknown) => Array.isArray(arr) ? arr.map((v) => String(v ?? "").trim()).filter((v) => v && !/^[.\-–—•\s]*$/.test(v)) : [];
   const scope: string[] = clean(proposal.scope_items);
   const painPoints: string[] = clean(calc.painPoints);
   const expectedResults: string[] = clean(calc.expectedResults);
   const advantages: string[] = clean(calc.advantages);
   const cadence: string[] = clean(calc.cadence);
-  const cycles: { title: string }[] = (Array.isArray(calc.cycles) ? calc.cycles : []).filter((c: any) => String(c?.title ?? "").trim());
+  const cycles: { title: string }[] = (Array.isArray(calc.cycles) ? calc.cycles : []).filter((c: any) => { const t = String(c?.title ?? "").trim(); return t && !/^[.\-–—•\s]*$/.test(t); });
   const caliResponsibilities: string[] = clean(calc.caliResponsibilities);
   const clientResponsibilities: string[] = clean(calc.clientResponsibilities);
   const roadmapItems: string[] = clean(calc.roadmapItems);
