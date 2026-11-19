@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#FBF8F4">
+  <title>Briefing · Portal CALI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+<link rel="stylesheet" href="../assets/production-styles.css">
+<link rel="stylesheet" href="../assets/production-briefing.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/cali-favicon.svg?v=20260924-leaf">
+  <link rel="shortcut icon" type="image/svg+xml" href="../assets/cali-favicon.svg?v=20260924-leaf">
+  <link rel="apple-touch-icon" href="../assets/cali-favicon.svg?v=20260924-leaf">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/briefing-skin.css"><script src="../assets/preview-guard.js" defer></script></head>
+<body class="form-body">
+  <div class="stage">
+    <div class="briefing-topbar">
+      <a class="wordmark" href="index.html" aria-label="CALI RH, ir para o Portal"><img src="../assets/logo-cali-bordo.png" alt="CALI RH"></a>
+      <span class="step-flag" id="progress-count">00 / 00</span>
+    </div>
+    <div class="briefing-progress-track"><div class="briefing-progress-bar" id="progress-bar"></div></div>
+
+    <main class="viewport">
+      <aside class="service-boundaries hidden" id="service-boundaries" aria-labelledby="service-boundaries-title"></aside>
+
+      <section class="screen active" id="briefing-welcome">
+        <div class="intro">
+          <span class="intro-kicker" id="service-kicker"></span>
+          <h1 id="service-title"></h1>
+          <p class="intro-greeting">Olá, aqui é a Patrícia Lima.</p>
+          <p id="service-intro"></p>
+          <p class="intro-note">Eu vou ler cada resposta pessoalmente.</p>
+          <button class="btn btn-primary" type="button" id="start-briefing">Abrir briefing →</button>
+        </div>
+      </section>
+
+      <form class="hidden" id="briefing-form" novalidate>
+        <div id="steps"></div>
+        <section class="form-step" id="consent-wrap">
+          <div class="question">
+            <h2 class="q-title">Só falta confirmar.</h2>
+            <p class="q-help">Se quiser rever alguma resposta, use "Voltar". Depois é só autorizar o uso dos dados e enviar.</p>
+          </div>
+          <label class="consent-check"><input type="checkbox" id="lgpd" required> <span>Autorizo a CALI a tratar estas informações para analisar minha solicitação, entrar em contato e elaborar uma proposta. Os dados serão armazenados com acesso restrito, não serão vendidos e só serão compartilhados quando necessário à prestação do serviço ou por obrigação legal. Posso solicitar acesso, correção ou exclusão pelo e-mail <a href="mailto:patricia@calirh.com">patricia@calirh.com</a>. Declaro que não incluí dados pessoais sensíveis de terceiros sem autorização.</span></label>
+        </section>
+        <p class="form-legend" id="form-legend">Campos com <span class="required">*</span> são obrigatórios.</p>
+        <input type="text" name="website" id="website" class="hidden" tabindex="-1" autocomplete="off">
+        <span class="form-feedback" id="feedback"></span>
+        <div class="form-actions" id="form-actions"><button class="btn btn-outline" type="button" id="back">← Voltar</button><button class="btn btn-primary" type="button" id="next">Continuar →</button><button class="btn btn-primary hidden" type="submit" id="submit">Enviar briefing →</button></div>
+      </form>
+
+      <div class="success-panel hidden" id="success">
+        <h2>Briefing enviado.</h2>
+        <p>Recebi tudo. Vou ler com calma e volto com os próximos passos.</p>
+        <a class="btn btn-primary" href="index.html">← Voltar ao Portal CALI</a>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="../assets/js/assets-init.js"></script>
+  <script type="module" src="../assets/js/form.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+document.addEventListener('submit',event=>{if(event.target.id!=='briefing-form')return;event.preventDefault();event.stopImmediatePropagation();const f=document.getElementById('feedback');if(f)f.textContent='Esta é uma prévia visual. O envio continua disponível no Portal CALI.';},true);

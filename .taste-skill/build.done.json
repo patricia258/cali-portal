@@ -1,0 +1,11 @@
+{
+ "page": "designs/round-1/a-precisao/index.html",
+ "url": null,
+ "root": null,
+ "kind": "service",
+ "category": "Portal de serviços de RH",
+ "primary": "Encontrar meu serviço",
+ "rounds": 3,
+ "start": "2026-11-18T02:35:35.951Z",
+ "by": "gate.mjs --start"
+}

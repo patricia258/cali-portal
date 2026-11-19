@@ -1,0 +1,1 @@
+const leaf=new URLSearchParams(location.search).get('folha');if(['a','b','c'].includes(leaf)){document.querySelector('.brand-leaf').style.maskImage=`url('../assets/leaf-${leaf}.svg')`;document.querySelector('.featured.build .card-mark').src=`../assets/leaf-${leaf}.svg`;}if(new URLSearchParams(location.search).get('estatico')==='1')document.body.classList.add('still');

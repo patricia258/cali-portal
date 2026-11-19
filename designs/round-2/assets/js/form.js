@@ -1,0 +1,605 @@
+import { requestJson } from "./request.js";
+import { CONFIG, functionUrl } from "./config.js";
+import { serviceFromPath, trainingNeedsTravel } from "./services.js";
+
+const service = serviceFromPath();
+const form = document.getElementById("briefing-form");
+const welcome = document.getElementById("briefing-welcome");
+const startButton = document.getElementById("start-briefing");
+const stepsRoot = document.getElementById("steps");
+const progressBar = document.getElementById("progress-bar");
+const progressCount = document.getElementById("progress-count");
+const formLegend = document.getElementById("form-legend");
+const backButton = document.getElementById("back");
+const nextButton = document.getElementById("next");
+const submitButton = document.getElementById("submit");
+const feedback = document.getElementById("feedback");
+let current = 0;
+
+document.title = `${service.title} · CALI`;
+document.getElementById("service-kicker").textContent = service.kicker;
+document.getElementById("service-title").textContent = service.title;
+document.getElementById("service-intro").textContent = service.intro;
+// "Antes de continuar" (pedido da Pati, 16/10/2026): nos serviços que têm limites explicados (CALI Build e Solução
+// Personalizada) o card vira a primeira tela, antes da carta de boas-vindas, e some quando a pessoa segue.
+const boundaries = document.getElementById("service-boundaries");
+if (service.boundaryItems?.length) {
+  const withBold = (text) => escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  boundaries.innerHTML = `<div><span class="boundary-label">Antes de continuar</span><h2 id="service-boundaries-title">${escapeHtml(service.boundaryTitle)}</h2>${service.boundaryIntro ? `<p>${withBold(service.boundaryIntro)}</p>` : ""}</div><ul>${service.boundaryItems.map((item) => `<li>${withBold(item)}</li>`).join("")}</ul><p class="boundary-closing">${escapeHtml(service.boundaryClosing)}</p><div class="boundary-actions"><button class="btn btn-primary" type="button" id="boundary-continue">Entendi, continuar →</button></div>`;
+  boundaries.classList.remove("hidden");
+  boundaries.classList.add("boundary-step");
+  welcome.before(boundaries);
+  welcome.classList.add("hidden");
+  document.getElementById("boundary-continue").addEventListener("click", () => {
+    boundaries.classList.add("hidden");
+    welcome.classList.remove("hidden");
+    welcome.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
+}
+
+function inputAttributes(field) {
+  return [
+    `id="f-${field.id}"`, `name="${field.id}"`, field.required ? "required" : "",
+    field.min !== undefined ? `min="${field.min}"` : "", field.max !== undefined ? `max="${field.max}"` : "",
+    field.maxlength ? `maxlength="${field.maxlength}"` : "", field.autocomplete ? `autocomplete="${field.autocomplete}"` : "",
+    field.inputmode ? `inputmode="${field.inputmode}"` : "", field.placeholder ? `placeholder="${escapeHtml(field.placeholder)}"` : "",
+    field.lettersOnly ? 'data-letters-only="true"' : "", field.phone ? 'data-phone="true"' : "", field.cep ? 'data-cep="true"' : "",
+  ].filter(Boolean).join(" ");
+}
+
+function indicatorMatrixHtml(field) {
+  return `<div class="indicator-matrix" data-indicator-matrix="${field.id}">${field.options.map((item) => `
+    <div class="indicator-row ${item.exclusive ? "indicator-exclusive" : ""}">
+      <label><input type="checkbox" name="${field.id}__selected" value="${escapeHtml(item.value)}" data-indicator-label="${escapeHtml(item.label)}" ${item.exclusive ? 'data-exclusive="true"' : ""}><span>${escapeHtml(item.label)}</span></label>
+      ${item.exclusive ? '<span class="indicator-na">Não se aplica</span>' : `<select class="control indicator-level" name="${field.id}__level__${escapeHtml(item.value)}" disabled aria-label="Nível de acompanhamento de ${escapeHtml(item.label)}"><option value="">Nível de acompanhamento</option><option value="baixo">Baixo</option><option value="medio">Médio</option><option value="alto">Alto</option></select>`}
+    </div>`).join("")}</div>`;
+}
+
+function teamRowsHtml(field) {
+  const seniorityOptions = [
+    ["assistente","Assistente / estágio"],["junior","Júnior"],["pleno","Pleno"],["senior","Sênior"],
+    ["especialista","Especialista"],["coordenacao","Coordenação"],["gerencia","Gerência"],["direcao","Direção / CHRO"],["outro","Outro"]
+  ];
+  const row = (index) => `<div class="team-row" data-team-row="${index}">
+    <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome"></div>
+    <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo"></div>
+    <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option>${seniorityOptions.map(([value,label])=>`<option value="${value}">${label}</option>`).join("")}</select></div>
+    <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>
+  </div>`;
+  return `<div class="team-rows" data-team-field="${field.id}" data-team-max="${field.maxItems || 20}">${row(0)}<button type="button" class="team-add" data-team-add>+ Adicionar outra pessoa</button></div>`;
+}
+
+// Obrigatório × opcional (16/10/2026): obrigatório leva *, o resto leva a etiqueta "Opcional".
+function requirementTag(required) {
+  return required ? '<span class="required" title="Obrigatório">*</span>' : '<span class="optional-tag">Opcional</span>';
+}
+
+function fieldHtml(field) {
+  const required = requirementTag(field.required);
+  const common = inputAttributes(field);
+  let control = "";
+  if (field.type === "textarea") control = `<textarea class="control" ${common}>${escapeHtml(field.value || "")}</textarea>`;
+  else if (field.type === "select") control = `<select class="control" ${common} data-auto-advance="true"><option value="">Selecione</option>${field.options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select>`;
+  else if (field.type === "radio" || field.type === "checkboxes") {
+    const inputType = field.type === "radio" ? "radio" : "checkbox";
+    control = `<div class="choices choices-${field.type}">${field.options.map((item, index) => `<label class="choice ${item.selectAll ? "choice-select-all" : ""}">${item.selectAll ? "" : `<span class="choice-key">${String.fromCharCode(65 + index)}</span>`}<input type="${inputType}" name="${field.id}" value="${escapeHtml(item.value)}" ${item.selectAll ? 'data-select-all="true"' : ""} ${field.type === "radio" ? 'data-auto-advance="true"' : ""}><span class="choice-copy"><strong>${escapeHtml(item.label)}</strong>${item.description ? `<small>${escapeHtml(item.description)}</small>` : ""}</span></label>`).join("")}</div>`;
+  } else if (field.type === "checkbox") control = `<label class="single-check"><input id="f-${field.id}" name="${field.id}" type="checkbox"><span>${escapeHtml(field.label)} ${required}</span></label>`;
+  else if (field.type === "indicator_matrix") control = indicatorMatrixHtml(field);
+  else if (field.type === "team_rows") control = teamRowsHtml(field);
+  else control = `<input class="control" ${common} type="${field.type || "text"}" ${field.value !== undefined ? `value="${escapeHtml(field.value)}"` : ""}>`;
+  const condition = field.showWhen
+    ? Array.isArray(field.showWhen.in)
+      ? `data-show-field="${field.showWhen.field}" data-show-values="${escapeHtml(field.showWhen.in.join("|"))}"`
+      : field.showWhen.includes !== undefined
+        ? `data-show-field="${field.showWhen.field}" data-show-includes="${escapeHtml(field.showWhen.includes)}"`
+        : `data-show-field="${field.showWhen.field}" data-show-equals="${escapeHtml(field.showWhen.equals)}"`
+    : "";
+  const label = field.type === "checkbox" ? "" : `<label for="f-${field.id}">${escapeHtml(field.label)} ${required}</label>`;
+  return `<div class="field ${field.span ? `span-${field.span}` : ""}" data-field="${field.id}" ${condition}>${label}${field.help ? `<p class="field-help">${escapeHtml(field.help)}</p>` : ""}${control}<div class="field-error">Preencha este campo para continuar.</div></div>`;
+}
+
+// Uma pergunta por tela (pedido da Pati, 17/11/2026): cada campo vira seu próprio passo.
+// service.sections continua existindo só pra organizar o cadastro dos campos; não aparece mais como título de etapa.
+const allFields = service.sections.flatMap((section) => section.fields);
+const TERMINAL = allFields.length;
+document.getElementById("consent-wrap").dataset.stepIndex = String(TERMINAL);
+
+stepsRoot.innerHTML = allFields.map((field, index) => `<section class="form-step" data-step-index="${index}"><div class="form-context-notices" data-context-notices aria-live="polite"></div>${fieldHtml(field)}</section>`).join("");
+
+function valueFor(field) {
+  if (field.type === "team_rows") {
+    const root = form.querySelector(`[data-team-field="${field.id}"]`);
+    if (!root) return [];
+    return [...root.querySelectorAll("[data-team-row]")].map((row) => {
+      const entry = {};
+      row.querySelectorAll("[data-team-key]").forEach((element) => { entry[element.dataset.teamKey] = String(element.value || "").trim(); });
+      return entry;
+    }).filter((entry) => Object.values(entry).some(Boolean));
+  }
+  if (field.type === "checkboxes") return [...form.querySelectorAll(`[name="${field.id}"]:checked:not(:disabled):not([data-select-all])`)].map((element) => element.value);
+  if (field.type === "radio") return form.querySelector(`[name="${field.id}"]:checked:not(:disabled)`)?.value || "";
+  if (field.type === "checkbox") return Boolean(form.elements[field.id]?.checked);
+  if (field.type === "indicator_matrix") {
+    return [...form.querySelectorAll(`[name="${field.id}__selected"]:checked`)].map((element) => {
+      if (element.dataset.exclusive === "true") return element.dataset.indicatorLabel;
+      const level = form.elements[`${field.id}__level__${element.value}`]?.value || "não informado";
+      const levelLabel = { baixo: "baixo", medio: "médio", alto: "alto" }[level] || level;
+      return `${element.dataset.indicatorLabel} — acompanhamento ${levelLabel}`;
+    });
+  }
+  const element = form.elements[field.id];
+  if (!element || element.disabled) return "";
+  return element.type === "number" && element.value !== "" ? Number(element.value) : element.value.trim();
+}
+
+function updateConditionalFields() {
+  form.querySelectorAll("[data-show-field]").forEach((wrapper) => {
+    const sourceField = service.sections.flatMap((section) => section.fields).find((field) => field.id === wrapper.dataset.showField);
+    const sourceValue = sourceField ? valueFor(sourceField) : "";
+    const allowedValues = wrapper.dataset.showValues ? wrapper.dataset.showValues.split("|") : null;
+    const includeValue = wrapper.dataset.showIncludes;
+    const visible = allowedValues
+      ? allowedValues.includes(String(sourceValue))
+      : includeValue !== undefined
+        ? Array.isArray(sourceValue) && sourceValue.map(String).includes(String(includeValue))
+        : String(sourceValue) === wrapper.dataset.showEquals;
+    wrapper.classList.toggle("conditional-hidden", !visible);
+    wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
+    if (!visible) wrapper.classList.remove("invalid");
+  });
+}
+
+function setFieldVisibility(fieldId, visible) {
+  const wrapper = form.querySelector(`[data-field="${fieldId}"]`);
+  if (!wrapper) return;
+  wrapper.classList.toggle("conditional-hidden", !visible);
+  wrapper.querySelectorAll("input,select,textarea").forEach((element) => { element.disabled = !visible; });
+  if (!visible) wrapper.classList.remove("invalid");
+}
+
+function setFieldLabel(fieldId, text) {
+  const label = form.querySelector(`[data-field="${fieldId}"] > label`);
+  if (!label) return;
+  const required = service.sections.flatMap((section) => section.fields).find((field) => field.id === fieldId)?.required;
+  label.innerHTML = `${escapeHtml(text)} ${requirementTag(required)}`;
+}
+
+function makeTeamRow(index) {
+  const options = [["assistente","Assistente / estágio"],["junior","Júnior"],["pleno","Pleno"],["senior","Sênior"],["especialista","Especialista"],["coordenacao","Coordenação"],["gerencia","Gerência"],["direcao","Direção / CHRO"],["outro","Outro"]];
+  const wrapper = document.createElement("div");
+  wrapper.className = "team-row";
+  wrapper.dataset.teamRow = String(index);
+  wrapper.innerHTML = `
+    <div><label>Nome</label><input class="control" data-team-key="nome" maxlength="120" placeholder="Nome"></div>
+    <div><label>Cargo</label><input class="control" data-team-key="cargo" maxlength="120" placeholder="Cargo"></div>
+    <div><label>Senioridade</label><select class="control" data-team-key="senioridade"><option value="">Selecione</option>${options.map(([value,label])=>`<option value="${value}">${label}</option>`).join("")}</select></div>
+    <button type="button" class="team-remove" data-team-remove aria-label="Remover pessoa">×</button>`;
+  return wrapper;
+}
+
+function syncTeamRowsWithCount() {
+  if (service.slug !== "cali-build") return;
+  const countInput = form.elements.pessoas_rh;
+  const root = form.querySelector('[data-team-field="equipe_rh"]');
+  if (!countInput || !root || root.closest(".conditional-hidden")) return;
+  const desired = Math.max(0, Math.min(Number(countInput.value || 0), Number(root.dataset.teamMax || 50)));
+  const addButton = root.querySelector("[data-team-add]");
+  let rows = [...root.querySelectorAll("[data-team-row]")];
+  while (rows.length < desired) {
+    const nextIndex = rows.length ? Math.max(...rows.map((row) => Number(row.dataset.teamRow || 0))) + 1 : 0;
+    root.insertBefore(makeTeamRow(nextIndex), addButton);
+    rows = [...root.querySelectorAll("[data-team-row]")];
+  }
+  while (rows.length > desired && rows.length > 0) {
+    const last = rows.at(-1);
+    const hasData = [...last.querySelectorAll("input,select")].some((element) => String(element.value || "").trim());
+    if (hasData) break;
+    last.remove();
+    rows = [...root.querySelectorAll("[data-team-row]")];
+  }
+  addButton?.classList.toggle("hidden", rows.length >= Number(root.dataset.teamMax || 50));
+}
+
+function setSelectOptions(fieldId, options) {
+  const select = form.elements[fieldId];
+  if (!select || select.tagName !== "SELECT") return;
+  const previous = String(select.value || "");
+  select.innerHTML = `<option value="">Selecione</option>${options.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("")}`;
+  if (options.some(([value]) => String(value) === previous)) select.value = previous;
+}
+
+function applyTrainingRules() {
+  if (service.slug !== "treinamentos") return;
+  const type = form.querySelector('[name="tipo_contratacao"]:checked')?.value || "";
+  const audienceInputs = [...form.querySelectorAll('[name="publico"]')];
+  const wholeCompany = audienceInputs.find((input) => input.value === "empresa");
+  if (wholeCompany?.checked) {
+    audienceInputs.filter((input) => input !== wholeCompany).forEach((input) => { input.checked = false; input.disabled = true; });
+  } else {
+    audienceInputs.filter((input) => input !== wholeCompany).forEach((input) => { input.disabled = false; });
+  }
+
+  const isWholeCompany = Boolean(wholeCompany?.checked);
+  const grouped = type === "treinamento" || type === "programa_lideranca";
+  const singleEvent = type === "palestra" || type === "workshop";
+  const canEstimateAudience = Boolean(type);
+  const format = String(form.elements.formato?.value || "");
+  const locationAnswers = {
+    formato: format,
+    local_estado: String(form.elements.local_estado?.value || ""),
+    local_cidade: String(form.elements.local_cidade?.value || ""),
+  };
+  const needsTravel = trainingNeedsTravel(locationAnswers);
+  setFieldVisibility("deslocamento_ciente", needsTravel);
+  if (!needsTravel && form.elements.deslocamento_ciente) form.elements.deslocamento_ciente.checked = false;
+
+  const formatWrapper = form.querySelector('[data-field="formato"]');
+  if (formatWrapper) {
+    let note = formatWrapper.querySelector("[data-training-format-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingFormatNote = "true";
+      note.className = "context-notice info";
+      formatWrapper.appendChild(note);
+    }
+    if (format === "online") {
+      note.textContent = "Realização via Google Meet, com gravação e transcrição da sessão mediante ciência dos participantes.";
+      note.className = "context-notice info";
+      note.classList.remove("hidden");
+    } else if (needsTravel) {
+      note.textContent = "Fora de Curitiba e Região Metropolitana: passagens, hospedagem, alimentação e deslocamentos locais ficam por conta da empresa contratante e serão estimados na proposta.";
+      note.className = "context-notice attention";
+      note.classList.remove("hidden");
+    } else if (["presencial","hibrido"].includes(format)) {
+      note.textContent = "Atendimento presencial em Curitiba e Região Metropolitana sem cobrança de viagem interestadual. O endereço completo será usado para organizar a realização.";
+      note.className = "context-notice info";
+      note.classList.remove("hidden");
+    } else {
+      note.classList.add("hidden");
+    }
+  }
+
+  setFieldVisibility("nivel_publico", canEstimateAudience && !isWholeCompany);
+  if (isWholeCompany && form.elements.nivel_publico) form.elements.nivel_publico.value = "nao_aplica";
+
+  const participantVisible = canEstimateAudience && (grouped || !isWholeCompany);
+  setFieldVisibility("participantes", participantVisible);
+  setFieldLabel("participantes", grouped ? "Participantes por grupo / turma" : "Quantidade estimada de participantes");
+
+  setFieldVisibility("turmas", grouped);
+  setFieldLabel("turmas", "Número de grupos / turmas");
+  if (!grouped && form.elements.turmas) form.elements.turmas.value = "1";
+
+  const meetings = form.elements.encontros;
+  if (type === "treinamento") {
+    setFieldVisibility("encontros", true);
+    setFieldLabel("encontros", "Número de encontros (2 a 3)");
+    meetings.min = "2"; meetings.max = "3";
+    if (!meetings.value || Number(meetings.value) < 2 || Number(meetings.value) > 3) meetings.value = "2";
+  } else if (type === "programa_lideranca") {
+    setFieldVisibility("encontros", true);
+    setFieldLabel("encontros", "Número de encontros (4 a 10)");
+    meetings.min = "4"; meetings.max = "10";
+    if (!meetings.value || Number(meetings.value) < 4 || Number(meetings.value) > 10) meetings.value = "4";
+  } else {
+    setFieldVisibility("encontros", false);
+    if (meetings) meetings.value = "1";
+  }
+
+  const durationOptions = {
+    palestra: [["1","60 min"],["1.5","90 min"]],
+    workshop: [["2","2 horas"],["3","3 horas"],["4","4 horas"]],
+    treinamento: [["1.5","90 min"],["2","2 horas"],["3","3 horas"],["4","4 horas"]],
+    programa_lideranca: [["1.5","90 min"],["2","2 horas"]],
+  };
+  if (durationOptions[type]) {
+    setFieldVisibility("carga_horaria", true);
+    setSelectOptions("carga_horaria", durationOptions[type]);
+  } else {
+    setFieldVisibility("carga_horaria", false);
+  }
+
+  const interactionWrapper = form.querySelector('[data-field="nivel_interacao"]');
+  if (interactionWrapper) {
+    let note = interactionWrapper.querySelector("[data-training-dynamic-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingDynamicNote = "true";
+      note.className = "context-notice attention";
+      interactionWrapper.appendChild(note);
+    }
+    const dynamic = form.querySelector('[name="nivel_interacao"]:checked')?.value === "dinamica";
+    note.textContent = "Atividades práticas podem exigir revisão da duração prevista. O desenho considera quantidade de participantes, objetivo da dinâmica e tempo necessário para aplicação com qualidade.";
+    note.classList.toggle("hidden", !dynamic);
+  }
+
+  const audienceWrapper = form.querySelector('[data-field="publico"]');
+  if (audienceWrapper) {
+    let note = audienceWrapper.querySelector("[data-training-audience-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.dataset.trainingAudienceNote = "true";
+      note.className = "context-notice info";
+      audienceWrapper.appendChild(note);
+    }
+    note.textContent = "Como você selecionou toda a empresa, usaremos o número de colaboradores informado anteriormente como referência de público.";
+    note.classList.toggle("hidden", !(isWholeCompany && !grouped));
+  }
+}
+
+function updateFormLogic() {
+  updateConditionalFields();
+  applyTrainingRules();
+  syncTeamRowsWithCount();
+}
+
+function updateContextNotices() {
+  const answers = collectAnswers();
+  const notices = service.notices?.(answers) || [];
+  form.querySelectorAll("[data-context-notices]").forEach((container) => {
+    container.innerHTML = notices.map((notice) => `<div class="context-notice ${notice.level || "info"}">${escapeHtml(notice.text)}</div>`).join("");
+    container.classList.toggle("empty", notices.length === 0);
+  });
+}
+
+function isFieldVisible(field) {
+  const wrapper = form.querySelector(`[data-field="${field.id}"]`);
+  return Boolean(wrapper) && !wrapper.classList.contains("conditional-hidden");
+}
+
+function visibleIndexes() {
+  return allFields.map((_, i) => i).filter((i) => isFieldVisible(allFields[i]));
+}
+
+function showStep(index, shouldScroll = true) {
+  current = Math.max(0, Math.min(index, TERMINAL));
+  document.querySelectorAll(".form-step").forEach((element) => element.classList.toggle("active", element.dataset.stepIndex === String(current)));
+  const visible = visibleIndexes();
+  const total = visible.length + 1; // +1 pela etapa final de consentimento/envio
+  const position = current === TERMINAL ? total : visible.indexOf(current) + 1;
+  progressCount.textContent = `${String(Math.max(position, 1)).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+  progressBar.style.width = `${(Math.max(position, 1) / total) * 100}%`;
+  backButton.style.visibility = current === 0 ? "hidden" : "visible";
+  const finalStep = current === TERMINAL;
+  nextButton.classList.toggle("hidden", finalStep);
+  submitButton.classList.toggle("hidden", !finalStep);
+  feedback.textContent = "";
+  formLegend.classList.toggle("hidden", finalStep);
+  updateFormLogic();
+  updateContextNotices();
+  if (shouldScroll) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function validateField(field) {
+  const wrapper = form.querySelector(`[data-field="${field.id}"]`);
+  if (!wrapper || wrapper.classList.contains("conditional-hidden")) return true;
+  const value = valueFor(field);
+  const missing = field.required && (field.type === "checkbox" ? value !== true : (Array.isArray(value) ? value.length === 0 : value === ""));
+  const invalidEmail = field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const invalidUrl = field.type === "url" && value && !/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(value);
+  const phoneDigits = field.phone ? String(value).replace(/\D/g, "") : "";
+  const invalidPhone = field.phone && value && (phoneDigits.length < 10 || phoneDigits.length > 15);
+  const invalidLetters = field.lettersOnly && value && !/^[\p{L}\p{M}\s'.-]+$/u.test(value);
+  const invalidCep = field.cep && value && String(value).replace(/\D/g, "").length !== 8;
+  const invalidIndicator = field.type === "indicator_matrix" && Array.isArray(value) && value.some((item) => item.endsWith("não informado"));
+  const invalidTeam = field.type === "team_rows" && Array.isArray(value) && value.some((entry) => !entry.nome || !entry.cargo || !entry.senioridade);
+  const isInvalid = Boolean(missing || invalidEmail || invalidUrl || invalidPhone || invalidLetters || invalidCep || invalidIndicator || invalidTeam);
+  wrapper.classList.toggle("invalid", isInvalid);
+  const error = wrapper.querySelector(".field-error");
+  if (error) {
+    if (invalidEmail) error.textContent = "Informe um e-mail válido.";
+    else if (invalidUrl) error.textContent = "Informe um link completo, começando por https://.";
+    else if (invalidPhone) error.textContent = "Informe um WhatsApp válido, com DDD.";
+    else if (invalidLetters) error.textContent = "Use apenas letras neste campo.";
+    else if (invalidCep) error.textContent = "Informe um CEP válido com 8 dígitos.";
+    else if (invalidIndicator) error.textContent = "Defina o nível dos indicadores selecionados.";
+    else if (invalidTeam) error.textContent = "Preencha nome, cargo e senioridade de cada pessoa.";
+    else error.textContent = "Preencha este campo para continuar.";
+  }
+  return !isInvalid;
+}
+
+function validateCurrentField() {
+  if (current === TERMINAL) return true;
+  return validateField(allFields[current]);
+}
+
+// Varredura completa antes do envio (17/11/2026): cobre o caso raro de a pessoa voltar,
+// mudar uma resposta anterior e isso invalidar um campo que ela já tinha passado.
+function firstInvalidVisibleIndex() {
+  for (const index of visibleIndexes()) { if (!validateField(allFields[index])) return index; }
+  return -1;
+}
+
+function step(delta) {
+  if (delta > 0 && !validateCurrentField()) return;
+  let index = current === TERMINAL ? allFields.length - 1 + delta : current + delta;
+  if (delta > 0) {
+    while (index < allFields.length && !isFieldVisible(allFields[index])) index += 1;
+    current = index >= allFields.length ? TERMINAL : index;
+  } else {
+    while (index >= 0 && !isFieldVisible(allFields[index])) index -= 1;
+    current = Math.max(0, index);
+  }
+  showStep(current);
+}
+
+function collectAnswers() {
+  const answers = Object.fromEntries(service.sections.flatMap((section) => section.fields).map((field) => [field.id, valueFor(field)]));
+  if (service.slug === "treinamentos") {
+    const type = String(answers.tipo_contratacao || "");
+    const format = String(answers.formato || "");
+    if (["presencial","hibrido"].includes(format)) {
+      const city = String(answers.local_cidade || "").trim();
+      const state = String(answers.local_estado || "").trim().toUpperCase();
+      answers.local_execucao = [city,state].filter(Boolean).join("/");
+      answers.local_endereco_completo = [
+        String(answers.local_logradouro || "").trim(),
+        String(answers.local_numero || "").trim(),
+        String(answers.local_complemento || "").trim(),
+        answers.local_execucao,
+        String(answers.local_cep || "").trim() ? `CEP ${String(answers.local_cep).trim()}` : "",
+      ].filter(Boolean).join(" · ");
+      answers.deslocamento_necessario = trainingNeedsTravel(answers);
+    } else {
+      answers.local_execucao = "";
+      answers.local_endereco_completo = "";
+      answers.deslocamento_necessario = false;
+      answers.deslocamento_ciente = false;
+      answers.plataforma_online = "Google Meet";
+      answers.gravacao_transcricao = true;
+    }
+    const audience = Array.isArray(answers.publico) ? answers.publico : [];
+    const grouped = type === "treinamento" || type === "programa_lideranca";
+    if (audience.includes("empresa") && !grouped) answers.participantes = Number(answers.colaboradores || 0) || answers.participantes || "";
+    if (type === "palestra" || type === "workshop") {
+      answers.encontros = 1;
+      answers.turmas = 1;
+    }
+    if (type === "recomendar") {
+      const recurrence = String(answers.recorrencia_esperada || "");
+      answers.encontros = recurrence === "4mais" ? 4 : recurrence === "2a3" ? 2 : 1;
+      answers.turmas = 1;
+      if (!answers.carga_horaria) answers.carga_horaria = answers.nivel_interacao === "dinamica" ? 2 : (recurrence === "4mais" ? 2 : 1.5);
+    }
+  }
+  return answers;
+}
+
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 15);
+  if (digits.startsWith("55") && digits.length > 11) {
+    const local = digits.slice(2, 13);
+    return `+55 (${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7, 11)}`.replace(/[-\s]+$/, "");
+  }
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}
+
+form.addEventListener("click", (event) => {
+  const add = event.target.closest("[data-team-add]");
+  if (add) {
+    const root = add.closest("[data-team-field]");
+    const max = Number(root.dataset.teamMax || 50);
+    const rows = [...root.querySelectorAll("[data-team-row]")];
+    if (rows.length >= max) return;
+    const nextIndex = rows.length ? Math.max(...rows.map((row) => Number(row.dataset.teamRow || 0))) + 1 : 0;
+    root.insertBefore(makeTeamRow(nextIndex), add);
+    const countInput = form.elements.pessoas_rh;
+    if (countInput) countInput.value = String(root.querySelectorAll("[data-team-row]").length);
+    add.classList.toggle("hidden", root.querySelectorAll("[data-team-row]").length >= max);
+    return;
+  }
+  const remove = event.target.closest("[data-team-remove]");
+  if (remove) {
+    const root = remove.closest("[data-team-field]");
+    const row = remove.closest("[data-team-row]");
+    row?.remove();
+    const countInput = form.elements.pessoas_rh;
+    if (countInput) countInput.value = String(root.querySelectorAll("[data-team-row]").length);
+    root.querySelector("[data-team-add]")?.classList.remove("hidden");
+    updateFormLogic();
+    updateContextNotices();
+  }
+});
+
+// Durante o preenchimento o topo grande sai de cena (16/10/2026): fica só uma linha com o serviço e o link de volta.
+startButton.addEventListener("click", () => { welcome.classList.add("hidden"); form.classList.remove("hidden"); document.body.classList.add("briefing-active"); current = 0; showStep(0); window.scrollTo({ top: 0, behavior: "smooth" }); });
+backButton.addEventListener("click", () => step(-1));
+nextButton.addEventListener("click", () => step(1));
+
+// Enter avança a pergunta em campos de uma linha só; em textarea, Enter continua quebrando linha.
+form.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  const target = event.target;
+  if (target.tagName === "TEXTAREA" || target.tagName === "BUTTON") return;
+  if (target.tagName === "INPUT" && ["text","email","tel","url","number"].includes(target.type)) {
+    event.preventDefault();
+    step(1);
+  }
+});
+
+form.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target.matches("[data-letters-only]")) target.value = target.value.replace(/[^\p{L}\p{M}\s'.-]/gu, "");
+  if (target.matches("[data-phone]")) target.value = formatPhone(target.value);
+  if (target.matches("[data-cep]")) { const d=target.value.replace(/\D/g,"").slice(0,8); target.value=d.length>5?`${d.slice(0,5)}-${d.slice(5)}`:d; }
+  if (target.type === "email") target.value = target.value.replace(/\s/g, "").toLowerCase();
+  target.closest(".field")?.classList.remove("invalid");
+  if (target.name === "pessoas_rh") syncTeamRowsWithCount();
+  updateFormLogic();
+  updateContextNotices();
+});
+
+form.addEventListener("change", (event) => {
+  const target = event.target;
+
+  if (target.matches('[data-select-all]')) {
+    const wrapper = target.closest(".choices");
+    wrapper.querySelectorAll('input[type="checkbox"]:not([data-select-all])').forEach((input) => { input.checked = target.checked; });
+  } else if (target.type === "checkbox" && target.closest(".choices")) {
+    const wrapper = target.closest(".choices");
+    const selectAll = wrapper.querySelector('[data-select-all]');
+    if (selectAll) {
+      const regular = [...wrapper.querySelectorAll('input[type="checkbox"]:not([data-select-all])')];
+      selectAll.checked = regular.length > 0 && regular.every((input) => input.checked);
+      selectAll.indeterminate = regular.some((input) => input.checked) && !selectAll.checked;
+    }
+  }
+
+  updateFormLogic();
+  updateContextNotices();
+
+  // Escolha única avança sozinha (pedido da Pati, 17/11/2026): rádio e seleção não exigem
+  // clicar em "Continuar" depois — só múltipla escolha continua pedindo o clique.
+  if (target.matches('[data-auto-advance]')) {
+    const ready = target.type === "radio" ? target.checked : String(target.value || "") !== "";
+    if (ready) { const answeredStep = current; window.setTimeout(() => { if (current === answeredStep) step(1); }, 220); }
+  }
+
+  if (!target.matches('.indicator-matrix input[type="checkbox"]')) return;
+  const matrix = target.closest(".indicator-matrix");
+  const selected = [...matrix.querySelectorAll('input[type="checkbox"]')];
+  if (target.dataset.exclusive === "true" && target.checked) selected.filter((item) => item !== target).forEach((item) => { item.checked = false; });
+  else if (target.checked) selected.filter((item) => item.dataset.exclusive === "true").forEach((item) => { item.checked = false; });
+  selected.forEach((item) => {
+    const level = item.closest(".indicator-row").querySelector(".indicator-level");
+    if (level) { level.disabled = !item.checked; if (!item.checked) level.value = ""; }
+  });
+});
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const invalidIndex = firstInvalidVisibleIndex();
+  if (invalidIndex !== -1) { showStep(invalidIndex); return; }
+  if (!document.getElementById("lgpd").checked) { feedback.textContent = "Confirme a autorização de uso dos dados."; return; }
+  submitButton.disabled = true;
+  submitButton.textContent = "Enviando…";
+  feedback.textContent = "";
+  try {
+    const result = await requestJson(functionUrl("portal-submit"), {
+      method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.supabasePublishableKey },
+      body: JSON.stringify({ service_slug: service.slug, answers: collectAnswers(), source_path: location.pathname, website: document.getElementById("website").value, lgpd_aceite: true }),
+    });
+    form.classList.add("hidden");
+    welcome.classList.add("hidden");
+    document.body.classList.add("submission-complete");
+    document.querySelector(".form-hero")?.classList.add("hidden");
+    document.getElementById("success").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    feedback.textContent = error instanceof TypeError ? "Não consegui concluir o envio. Verifique sua conexão e tente novamente." : (error instanceof Error ? error.message : "Não foi possível enviar agora.");
+    submitButton.disabled = false;
+    submitButton.textContent = "Enviar briefing →";
+  }
+});
+
+showStep(0, false);
+updateFormLogic();
+updateContextNotices();

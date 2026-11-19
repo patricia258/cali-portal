@@ -1,0 +1,1201 @@
+{
+ "start": "2026-11-18T02:35:35.951Z",
+ "round": 3,
+ "idle": 0,
+ "errors": 0,
+ "status": "open",
+ "history": [
+  {
+   "at": "2026-11-18T02:40:17.026Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 38,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-18T02:42:50.234Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 32,
+   "round": 2,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-18T02:44:49.565Z",
+   "mode": "manual",
+   "status": "open",
+   "fails": 32,
+   "round": 3,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": "designs/round-1/a-precisao/index.html",
+  "url": null,
+  "root": null,
+  "kind": "service",
+  "category": "Portal de serviços de RH",
+  "primary": "Encontrar meu serviço",
+  "rounds": 3,
+  "start": "2026-11-18T02:35:35.951Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "roundKey": "b7c0abd8683b4be5:da39a3ee",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "b7c0abd8683b4be5",
+ "page": "designs/round-1/a-precisao/index.html",
+ "found": {
+  "fails": [
+   {
+    "check": "no-visual",
+    "where": "section#inicio \"O próximo passo do seu RH.\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "section#inicio \"O próximo passo do seu RH.\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "section#momentos \"O serviço certo para este momento.\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "section#momentos \"O serviço certo para este momento.\""
+    ]
+   },
+   {
+    "check": "text-only",
+    "where": "section#todos \"Todos os serviços\"",
+    "msg": "the closing section is only text: no picture, icon, mock or effect in it",
+    "fix": "give the section a visual: a photograph that fits, the real icons, or a UI fragment on a ground",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "text-only"
+    ],
+    "wheres": [
+     "section#todos \"Todos os serviços\""
+    ]
+   },
+   {
+    "check": "cta",
+    "where": "section#todos \"Todos os serviços\"",
+    "msg": "the last section before the footer ends with no button",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "cta"
+    ],
+    "wheres": [
+     "section#todos \"Todos os serviços\""
+    ]
+   },
+   {
+    "check": "copy-headline",
+    "where": "div.wrap > div.a-grid > div.hero-copy > h1 \"O próximo passo do seu RH.\"",
+    "msg": "\"O próximo passo do seu RH.\" does not name what is sold (portal de servicos de rh, portal, servicos, from flags); only the line under it does",
+    "fix": "put the category noun in the h1 (and who it is for, or where), in 2 to 8 words",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "copy-headline"
+    ],
+    "wheres": [
+     "div.wrap > div.a-grid > div.hero-copy > h1 \"O próximo passo do seu RH.\""
+    ]
+   },
+   {
+    "check": "heading-scale",
+    "where": "section#momentos > div.wrap > div.section-head > h2 \"O serviço certo para este momento.\"",
+    "msg": "h2 headings in 2 sizes, 32px (\"Todos os serviços\") to 57.6px (x1.80)",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "heading-scale"
+    ],
+    "wheres": [
+     "section#momentos > div.wrap > div.section-head > h2 \"O serviço certo para este momento.\""
+    ]
+   },
+   {
+    "check": "phone-number",
+    "where": "div.wrap > div.foot-top > div.foot-links > a:nth-of-type(2) \"https://wa.me/5541987791933\"",
+    "msg": "a WhatsApp link calls a number in a real dialable format: \"https://wa.me/5541987791933\"; a visitor can dial it and reach a stranger",
+    "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "phone-number"
+    ],
+    "wheres": [
+     "div.wrap > div.foot-top > div.foot-links > a:nth-of-type(2) \"https://wa.me/5541987791933\""
+    ]
+   },
+   {
+    "check": "focus-visible",
+    "where": "div#direcao > a.service:nth-of-type(1) \"Assessoria Estratégica Direção recorrent\"",
+    "msg": "Tab stop 11, a \"Assessoria Estratégica Direção recorrente de RH ju\": the focus lands on something you cannot see",
+    "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-visible"
+    ],
+    "wheres": [
+     "div#direcao > a.service:nth-of-type(1) \"Assessoria Estratégica Direção recorrent\""
+    ]
+   },
+   {
+    "check": "run-on",
+    "where": "div.wrap > div.a-grid:nth-of-type(1) > div.hero-copy:nth-of-type(1) > h1 \"O próximo passodo seu RH.\"",
+    "msg": "\"do seu | RH.\": the heading runs its first sentence into the grey second one with no stop",
+    "fix": "end the heading's first sentence with a full stop before its grey second one (\"Rooms and prices. Breakfast included.\")",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "run-on"
+    ],
+    "wheres": [
+     "div.wrap > div.a-grid:nth-of-type(1) > div.hero-copy:nth-of-type(1) > h1 \"O próximo passodo seu RH.\""
+    ]
+   },
+   {
+    "check": "hero-enter",
+    "where": "section#inicio",
+    "msg": "the hero does not enter on load: no head line setting html.m-enter (motion.md, The hero's entrance)",
+    "fix": "put data-enter on the hero <section> and keep the head line from starter.html that sets html.m-enter",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-enter"
+    ],
+    "wheres": [
+     "section#inicio"
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a service page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page service --photo) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "footer \"Depois do envio, eu leio seu briefing pe\"",
+    "msg": "the section is 279px tall (0.3 screens), 621px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "footer \"Depois do envio, eu leio seu briefing pe\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "section#todos \"Todos os serviçosAssessoria EstratégicaC\"",
+    "msg": "the section is 331px tall (0.4 screens), 569px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height",
+     "screen-short",
+     "screen-height"
+    ],
+    "wheres": [
+     "section#todos \"Todos os serviçosAssessoria EstratégicaC\"",
+     "#todos section.all \"Todos os serviçosAssessoria Estr\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "section#momentos \"O serviço certopara este momento.Comece \"",
+    "msg": "the section is 1031px tall (1.1 screens), 131px over one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height",
+     "screen-height"
+    ],
+    "wheres": [
+     "section#momentos \"O serviço certopara este momento.Comece \"",
+     "#momentos section.directory \"O serviço certopara este momento\""
+    ]
+   },
+   {
+    "check": "section-air",
+    "where": "section#momentos > div.wrap > div.custom \"Seu desafio é outro?Conte o que precisa \"",
+    "msg": "a top border across 100% of the container, between the section's content: sections and their parts are told apart by air and ground, not lines (SR-3)",
+    "fix": "take the rule out: sections and their parts are parted by their ground and the air between them",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-air"
+    ],
+    "wheres": [
+     "section#momentos > div.wrap > div.custom \"Seu desafio é outro?Conte o que precisa \""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "section#momentos \"O serviço certopara este momento.Comece \"",
+    "msg": "the screen at scroll 1641px (the top of section 3) shows 290px of section 2 and the content of 3 sections, over 24px each beside section 3: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "section#momentos \"O serviço certopara este momento.Comece \""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "a.skip \"Pular para o conteúdo\"",
+    "msg": "a <a> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "a.skip \"Pular para o conteúdo\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "footer \"Depois do envio, eu leio seu briefing pe\"",
+    "msg": "a <footer> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "footer \"Depois do envio, eu leio seu briefing pe\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "section#inicio > div.wrap \"CALI · People AdvisoryO próximo passodo \"",
+    "msg": "the hero's .wrap holds 2 children, 0 of them .hero-text: one .hero-text and at most one strip (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "section#inicio > div.wrap \"CALI · People AdvisoryO próximo passodo \""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div.hero-copy > div.person > div > strong \"Uma conversa com a Patrícia.\"",
+    "msg": "1 text block starts on a left line at x 134, 54px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div.hero-copy > div.person > div > strong \"Uma conversa com a Patrícia.\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div.wrap > div.a-grid > div.hero-copy > p.eyebrow \"CALI · People Advisory\"",
+    "msg": "1 text block starts on a left line at x 112, 32px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div.wrap > div.a-grid > div.hero-copy > p.eyebrow \"CALI · People Advisory\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "section#inicio > div.wrap > div.a-grid \"CALI · People AdvisoryO próximo passodo \"",
+    "msg": "the two columns of the split start 62px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "section#inicio > div.wrap > div.a-grid \"CALI · People AdvisoryO próximo passodo \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Comece pelo que precisa resolver\"",
+    "msg": "starts at x 1050; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Comece pelo que precisa resolver\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos h3 \"Desenvolver pessoas e lideranças\"",
+    "msg": "starts at x 520; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos h3 \"Desenvolver pessoas e lideranças\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Desenvolvimento para quem atua e\"",
+    "msg": "starts at x 520; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Desenvolvimento para quem atua e\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Desenvolvimento a partir de situ\"",
+    "msg": "starts at x 520; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Desenvolvimento a partir de situ\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Um tema trabalhado com as pessoa\"",
+    "msg": "starts at x 520; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Um tema trabalhado com as pessoa\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos h3 \"Alinhar cultura e reputação\"",
+    "msg": "starts at x 960; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos h3 \"Alinhar cultura e reputação\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Alinhamento entre cultura, expec\"",
+    "msg": "starts at x 960; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Alinhamento entre cultura, expec\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#momentos p \"Reputação conectada à experiênci\"",
+    "msg": "starts at x 960; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#momentos p \"Reputação conectada à experiênci\""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "#todos section.all \"Todos os serviçosAssessoria Estr\"",
+    "msg": "framed, 279px of the footer shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "#todos section.all \"Todos os serviçosAssessoria Estr\""
+    ]
+   },
+   {
+    "check": "hero-fold",
+    "where": "#inicio section.hero.hero-a \"CALI · People AdvisoryO próximo \"",
+    "msg": "ends at y 1141, past the fold (844): 1.35 screens tall",
+    "fix": "the hero fills the first screen alone, its button inside it",
+    "widths": [
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "hero-fold"
+    ],
+    "wheres": [
+     "#inicio section.hero.hero-a \"CALI · People AdvisoryO próximo \""
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "copy-headings",
+    "where": "div#direcao > h3 \"Dar direção e estruturar o RH\"",
+    "msg": "\"Dar direção e estruturar o RH\" names no product, part, place or section (the one brand line a page may have)",
+    "fix": "name the thing in every heading: the product, a part, the place or a section noun",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-actions",
+    "where": "(the page)",
+    "msg": "the main action \"Encontrar meu serviço\" does not read word for word the same in the closing section",
+    "fix": "few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "skip-link",
+    "where": "a.skip \"Pular para o conteúdo\"",
+    "msg": "the first Tab stop is \"Pular para o conteúdo\", not a skip link: a keyboard user tabs through the whole nav on every visit",
+    "fix": "add the starter's skip link as the header's first child: <a class=\"skip-link\" href=\"#top\">Skip to content</a>",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "section#todos \"Todos os serviçosAssessoria EstratégicaC\"",
+    "msg": "the content fills 49.8% of the section's height (165 of 331px): 55% or more (40% WARN) (SR-3)",
+    "fix": "fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "tap-size",
+    "where": "header.nav > div.wrap > a.brand \"Portal de serviços\"",
+    "msg": "a 82x39px tap target: under the 44px a phone needs",
+    "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+    "widths": [
+     390,
+     320
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "heading-scale",
+    "where": "div#direcao > h3 \"Dar direção e estruturar o RH\"",
+    "msg": "the h3s (30px) are only 1.10x smaller than the h2s (33px): one level a clear step (1.3x or more) below the other",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#inicio / section#momentos",
+    "msg": "uneven space at the edge of a band: 40px outside its edge, 70px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "orphan",
+    "where": "div#direcao > h3 \"Dar direção e estruturar o RH\"",
+    "msg": "its last line holds only \"RH\"",
+    "fix": "rebalance the text (text-wrap: pretty, or a shorter line) so the last line holds more than one short word",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 78,
+   "layout": 16
+  }
+ },
+ "open": [
+  {
+   "check": "no-visual",
+   "where": "section#inicio \"O próximo passo do seu RH.\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "section#inicio \"O próximo passo do seu RH.\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "section#momentos \"O serviço certo para este momento.\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "section#momentos \"O serviço certo para este momento.\""
+   ]
+  },
+  {
+   "check": "text-only",
+   "where": "section#todos \"Todos os serviços\"",
+   "msg": "the closing section is only text: no picture, icon, mock or effect in it",
+   "fix": "give the section a visual: a photograph that fits, the real icons, or a UI fragment on a ground",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "text-only"
+   ],
+   "wheres": [
+    "section#todos \"Todos os serviços\""
+   ]
+  },
+  {
+   "check": "cta",
+   "where": "section#todos \"Todos os serviços\"",
+   "msg": "the last section before the footer ends with no button",
+   "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "cta"
+   ],
+   "wheres": [
+    "section#todos \"Todos os serviços\""
+   ]
+  },
+  {
+   "check": "copy-headline",
+   "where": "div.wrap > div.a-grid > div.hero-copy > h1 \"O próximo passo do seu RH.\"",
+   "msg": "\"O próximo passo do seu RH.\" does not name what is sold (portal de servicos de rh, portal, servicos, from flags); only the line under it does",
+   "fix": "put the category noun in the h1 (and who it is for, or where), in 2 to 8 words",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "copy-headline"
+   ],
+   "wheres": [
+    "div.wrap > div.a-grid > div.hero-copy > h1 \"O próximo passo do seu RH.\""
+   ]
+  },
+  {
+   "check": "heading-scale",
+   "where": "section#momentos > div.wrap > div.section-head > h2 \"O serviço certo para este momento.\"",
+   "msg": "h2 headings in 2 sizes, 32px (\"Todos os serviços\") to 57.6px (x1.80)",
+   "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "heading-scale"
+   ],
+   "wheres": [
+    "section#momentos > div.wrap > div.section-head > h2 \"O serviço certo para este momento.\""
+   ]
+  },
+  {
+   "check": "phone-number",
+   "where": "div.wrap > div.foot-top > div.foot-links > a:nth-of-type(2) \"https://wa.me/5541987791933\"",
+   "msg": "a WhatsApp link calls a number in a real dialable format: \"https://wa.me/5541987791933\"; a visitor can dial it and reach a stranger",
+   "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "phone-number"
+   ],
+   "wheres": [
+    "div.wrap > div.foot-top > div.foot-links > a:nth-of-type(2) \"https://wa.me/5541987791933\""
+   ]
+  },
+  {
+   "check": "focus-visible",
+   "where": "div#direcao > a.service:nth-of-type(1) \"Assessoria Estratégica Direção recorrent\"",
+   "msg": "Tab stop 11, a \"Assessoria Estratégica Direção recorrente de RH ju\": the focus lands on something you cannot see",
+   "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-visible"
+   ],
+   "wheres": [
+    "div#direcao > a.service:nth-of-type(1) \"Assessoria Estratégica Direção recorrent\""
+   ]
+  },
+  {
+   "check": "run-on",
+   "where": "div.wrap > div.a-grid:nth-of-type(1) > div.hero-copy:nth-of-type(1) > h1 \"O próximo passodo seu RH.\"",
+   "msg": "\"do seu | RH.\": the heading runs its first sentence into the grey second one with no stop",
+   "fix": "end the heading's first sentence with a full stop before its grey second one (\"Rooms and prices. Breakfast included.\")",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "run-on"
+   ],
+   "wheres": [
+    "div.wrap > div.a-grid:nth-of-type(1) > div.hero-copy:nth-of-type(1) > h1 \"O próximo passodo seu RH.\""
+   ]
+  },
+  {
+   "check": "hero-enter",
+   "where": "section#inicio",
+   "msg": "the hero does not enter on load: no head line setting html.m-enter (motion.md, The hero's entrance)",
+   "fix": "put data-enter on the hero <section> and keep the head line from starter.html that sets html.m-enter",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-enter"
+   ],
+   "wheres": [
+    "section#inicio"
+   ]
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a service page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page service --photo) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "footer \"Depois do envio, eu leio seu briefing pe\"",
+   "msg": "the section is 279px tall (0.3 screens), 621px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "footer \"Depois do envio, eu leio seu briefing pe\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "section#todos \"Todos os serviçosAssessoria EstratégicaC\"",
+   "msg": "the section is 331px tall (0.4 screens), 569px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height",
+    "screen-short",
+    "screen-height"
+   ],
+   "wheres": [
+    "section#todos \"Todos os serviçosAssessoria EstratégicaC\"",
+    "#todos section.all \"Todos os serviçosAssessoria Estr\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "section#momentos \"O serviço certopara este momento.Comece \"",
+   "msg": "the section is 1031px tall (1.1 screens), 131px over one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height",
+    "screen-height"
+   ],
+   "wheres": [
+    "section#momentos \"O serviço certopara este momento.Comece \"",
+    "#momentos section.directory \"O serviço certopara este momento\""
+   ]
+  },
+  {
+   "check": "section-air",
+   "where": "section#momentos > div.wrap > div.custom \"Seu desafio é outro?Conte o que precisa \"",
+   "msg": "a top border across 100% of the container, between the section's content: sections and their parts are told apart by air and ground, not lines (SR-3)",
+   "fix": "take the rule out: sections and their parts are parted by their ground and the air between them",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-air"
+   ],
+   "wheres": [
+    "section#momentos > div.wrap > div.custom \"Seu desafio é outro?Conte o que precisa \""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "section#momentos \"O serviço certopara este momento.Comece \"",
+   "msg": "the screen at scroll 1641px (the top of section 3) shows 290px of section 2 and the content of 3 sections, over 24px each beside section 3: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "section#momentos \"O serviço certopara este momento.Comece \""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "a.skip \"Pular para o conteúdo\"",
+   "msg": "a <a> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "a.skip \"Pular para o conteúdo\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "footer \"Depois do envio, eu leio seu briefing pe\"",
+   "msg": "a <footer> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "footer \"Depois do envio, eu leio seu briefing pe\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "section#inicio > div.wrap \"CALI · People AdvisoryO próximo passodo \"",
+   "msg": "the hero's .wrap holds 2 children, 0 of them .hero-text: one .hero-text and at most one strip (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "section#inicio > div.wrap \"CALI · People AdvisoryO próximo passodo \""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div.hero-copy > div.person > div > strong \"Uma conversa com a Patrícia.\"",
+   "msg": "1 text block starts on a left line at x 134, 54px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div.hero-copy > div.person > div > strong \"Uma conversa com a Patrícia.\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div.wrap > div.a-grid > div.hero-copy > p.eyebrow \"CALI · People Advisory\"",
+   "msg": "1 text block starts on a left line at x 112, 32px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div.wrap > div.a-grid > div.hero-copy > p.eyebrow \"CALI · People Advisory\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "section#inicio > div.wrap > div.a-grid \"CALI · People AdvisoryO próximo passodo \"",
+   "msg": "the two columns of the split start 62px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "section#inicio > div.wrap > div.a-grid \"CALI · People AdvisoryO próximo passodo \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Comece pelo que precisa resolver\"",
+   "msg": "starts at x 1050; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Comece pelo que precisa resolver\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos h3 \"Desenvolver pessoas e lideranças\"",
+   "msg": "starts at x 520; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos h3 \"Desenvolver pessoas e lideranças\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Desenvolvimento para quem atua e\"",
+   "msg": "starts at x 520; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Desenvolvimento para quem atua e\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Desenvolvimento a partir de situ\"",
+   "msg": "starts at x 520; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Desenvolvimento a partir de situ\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Um tema trabalhado com as pessoa\"",
+   "msg": "starts at x 520; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Um tema trabalhado com as pessoa\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos h3 \"Alinhar cultura e reputação\"",
+   "msg": "starts at x 960; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos h3 \"Alinhar cultura e reputação\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Alinhamento entre cultura, expec\"",
+   "msg": "starts at x 960; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Alinhamento entre cultura, expec\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#momentos p \"Reputação conectada à experiênci\"",
+   "msg": "starts at x 960; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#momentos p \"Reputação conectada à experiênci\""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "#todos section.all \"Todos os serviçosAssessoria Estr\"",
+   "msg": "framed, 279px of the footer shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "#todos section.all \"Todos os serviçosAssessoria Estr\""
+   ]
+  },
+  {
+   "check": "hero-fold",
+   "where": "#inicio section.hero.hero-a \"CALI · People AdvisoryO próximo \"",
+   "msg": "ends at y 1141, past the fold (844): 1.35 screens tall",
+   "fix": "the hero fills the first screen alone, its button inside it",
+   "widths": [
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "hero-fold"
+   ],
+   "wheres": [
+    "#inicio section.hero.hero-a \"CALI · People AdvisoryO próximo \""
+   ]
+  }
+ ],
+ "waived": [],
+ "warnCount": 8,
+ "at": "2026-11-18T02:44:49.566Z",
+ "openTold": true
+}
