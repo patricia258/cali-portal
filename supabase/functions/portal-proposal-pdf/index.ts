@@ -63,7 +63,7 @@ const s = StyleSheet.create({
   capaProtocolo: { fontSize: 8, color: "#E9D7CE", textAlign: "right" },
   capaDatas: { fontSize: 7.4, color: "#CBA9A3", textAlign: "right", marginTop: 2 },
   capaEyebrow: { fontSize: 8.5, fontWeight: 700, letterSpacing: 1.4, color: "#DCC08E", marginTop: 22 },
-  capaTitulo: { fontSize: 27, fontWeight: 700, color: "#FFFFFF", marginTop: 8 },
+  capaTitulo: { fontSize: 27, fontWeight: 700, color: "#FFFFFF", marginTop: 8, lineHeight: 1.15 },
   capaIntro: { fontSize: 10, lineHeight: 1.6, color: "#EAD9D1", marginTop: 10, maxWidth: 420 },
   capaPacoteWrap: { marginTop: 22, paddingLeft: 12, borderLeftWidth: 2, borderLeftColor: DOURADO },
   capaPacoteKicker: { fontSize: 7.4, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
@@ -71,7 +71,7 @@ const s = StyleSheet.create({
 
   // Section headers (inner pages)
   secHead: { flexDirection: "row", alignItems: "flex-start", gap: 14, marginBottom: 14 },
-  secNum: { fontSize: 26, fontWeight: 700, color: DOURADO },
+  secNum: { fontSize: 26, fontWeight: 700, color: DOURADO, lineHeight: 1.1 },
   secEyebrow: { fontSize: 7.6, fontWeight: 700, letterSpacing: 1.1, color: DOURADO },
   secTitulo: { fontSize: 17, fontWeight: 700, color: BORDO, marginTop: 3 },
   secIntro: { fontSize: 8.8, lineHeight: 1.6, color: CINZA, marginTop: 5, maxWidth: 440 },
@@ -95,7 +95,7 @@ const s = StyleSheet.create({
   dualBoxLeft: { width: 170 },
   mapaCard: { borderTopWidth: 3, borderTopColor: "#B98E9B", backgroundColor: "#F3E9ED", borderRadius: 5, padding: 12 },
   mapaRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: "#8B5A6B", marginBottom: 10 },
-  mapaScore: { fontSize: 26, fontWeight: 700, color: BORDO },
+  mapaScore: { fontSize: 26, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
   mapaScoreSub: { fontSize: 8, color: CINZA },
   mapaQuadrante: { fontSize: 9.5, fontWeight: 700, color: BORDO, marginTop: 2 },
   leituraBox: { flex: 1, borderLeftWidth: 1, borderLeftColor: LINHA, paddingLeft: 14, paddingVertical: 2 },
@@ -126,7 +126,7 @@ const s = StyleSheet.create({
   investConteudo: { padding: 16 },
   investRotulo: { fontSize: 7.6, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
   investValorLinha: { flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 4 },
-  investValor: { fontSize: 24, fontWeight: 700, color: "#FFFFFF" },
+  investValor: { fontSize: 24, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.15 },
   investPorMes: { fontSize: 9, color: "#E9D7CE" },
   investDivider: { borderTopWidth: 0.5, borderTopColor: "#7A3F4F", marginTop: 12, marginBottom: 10 },
   investRefRow: { flexDirection: "row", justifyContent: "space-between" },
@@ -137,7 +137,7 @@ const s = StyleSheet.create({
   ativacaoBox: { borderWidth: 0.75, borderColor: DOURADO, borderLeftWidth: 3, borderRadius: 4, padding: 10, marginTop: 10, flexDirection: "row", gap: 14, alignItems: "center" },
   ativacaoLeft: { width: 110 },
   ativacaoRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: DOURADO, textTransform: "uppercase" },
-  ativacaoValor: { fontSize: 16, fontWeight: 700, color: BORDO, marginTop: 2 },
+  ativacaoValor: { fontSize: 16, fontWeight: 700, color: BORDO, marginTop: 2, lineHeight: 1.15 },
   ativacaoTexto: { fontSize: 7.6, lineHeight: 1.5, color: CINZA, flex: 1 },
 
   cardsLinha: { flexDirection: "row", gap: 8, marginTop: 10, marginBottom: 4 },
@@ -157,7 +157,7 @@ const s = StyleSheet.create({
   bonusDescricao: { fontSize: 8, lineHeight: 1.55, color: GRAFITE },
 
   assinaturaRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
-  assinaturaNome: { fontSize: 17, fontWeight: 700, color: BORDO },
+  assinaturaNome: { fontSize: 17, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
   assinaturaCargo: { fontSize: 8.5, color: CINZA, marginTop: 2 },
   ctaBotao: { backgroundColor: BORDO, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
   ctaTexto: { fontSize: 8.6, fontWeight: 700, color: "#FFFFFF" },
