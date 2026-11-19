@@ -115,7 +115,7 @@ const s = StyleSheet.create({
   numTitulo: { fontSize: 9, fontWeight: 700, color: BORDO },
 
   twoColWrap: { flexDirection: "row", gap: 14 },
-  twoColItem: { flexDirection: "row", gap: 9, flex: 1, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: LINHA },
+  twoColItem: { flexDirection: "row", gap: 9, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: LINHA },
 
   bulletRow: { flexDirection: "row", gap: 7, marginBottom: 7, paddingRight: 8 },
   bulletDot: { fontSize: 9, color: DOURADO, width: 10 },
@@ -157,11 +157,9 @@ const s = StyleSheet.create({
   bonusTitulo: { fontSize: 10.5, fontWeight: 700, color: BORDO, marginBottom: 4 },
   bonusDescricao: { fontSize: 8, lineHeight: 1.55, color: GRAFITE },
 
-  assinaturaRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
+  assinaturaRow: { marginTop: 14 },
   assinaturaNome: { fontSize: 17, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
   assinaturaCargo: { fontSize: 8.5, color: CINZA, marginTop: 2 },
-  ctaBotao: { backgroundColor: BORDO, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
-  ctaTexto: { fontSize: 8.6, fontWeight: 700, color: "#FFFFFF" },
 
   registro: { marginTop: 10, padding: 10, borderWidth: 0.75, borderColor: LINHA, borderRadius: 5, flexDirection: "row", gap: 16, alignItems: "center" },
   regRotulo: { fontSize: 6.8, fontWeight: 700, color: DOURADO, letterSpacing: 0.8, textTransform: "uppercase" },
@@ -449,8 +447,8 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       bonus.description ? h(Text, { style: s.bonusDescricao }, bonus.description) : null,
     ) : null,
     h(View, { style: s.assinaturaRow, wrap: false },
-      h(View, null, h(Text, { style: s.assinaturaNome }, carimbo.signatario_nome), h(Text, { style: s.assinaturaCargo }, carimbo.signatario_cargo)),
-      h(View, { style: s.ctaBotao }, h(Text, { style: s.ctaTexto }, "Vamos conversar sobre a proposta?")),
+      h(Text, { style: s.assinaturaNome }, carimbo.signatario_nome),
+      h(Text, { style: s.assinaturaCargo }, carimbo.signatario_cargo),
     ),
     h(View, { style: s.registro, wrap: false },
       h(View, { style: { flex: 1 } },
