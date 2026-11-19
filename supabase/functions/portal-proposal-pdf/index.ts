@@ -27,6 +27,10 @@ const BORDO = "#5A1E2D", DOURADO = "#B58C52", GRAFITE = "#2B2B2B", CINZA = "#6B5
 
 const SERVICE_LABELS: Record<string, string> = { "assessoria-estrategica": "Assessoria Estratégica Mensal — HR as a Service", "cali-build": "CALI Build — Estruturação Assistida de RH", "mentoria-rh": "Mentoria para Profissionais de RH", "diagnostico-executivo": "Diagnóstico Executivo de Pessoas", "cultura-direcao": "Projeto de Cultura e Direção", "shadowing-lideranca": "Shadowing de Liderança", "treinamentos": "Treinamentos & Palestras", "marca-empregadora": "Marca Empregadora", "solucao-personalizada": "Solução Personalizada" };
 
+const COVERAGE_FIELDS: string[][] = [["company", "Empresa contratante"], ["units", "Unidades incluídas"], ["unitCount", "Quantidade de unidades atendidas", "number"], ["audience", "Público ou funções abrangidas"], ["excluded", "Empresas, franquias ou unidades excluídas"], ["expansion", "Condições para expansão futura"]];
+const MODULE_FIELDS: string[][] = [["name", "Nome do módulo", "input"], ["description", "Descrição e finalidade"], ["amount", "Valor adicional (R$)", "number"], ["billingLabel", "Condição de cobrança personalizada"], ["coverage", "Abrangência: unidades, áreas e públicos"], ["deliverables", "Entregas e atividades incluídas"], ["capacity", "Capacidade ou quantidade contratada"], ["periodicity", "Periodicidade"], ["caliResponsibilities", "Responsabilidades da CALI"], ["clientResponsibilities", "Responsabilidades do cliente"], ["exclusions", "Limites e exclusões"], ["conditions", "Condições específicas"], ["guarantee", "Garantias, quando aplicáveis"], ["term", "Vigência do módulo"]];
+const RECRUITING_FIELDS: string[][] = [["processes", "Processos seletivos incluídos por período", "number"], ["period", "Período de contratação"], ["eligibleRoles", "Cargos e níveis elegíveis"], ["units", "Unidades atendidas"], ["simultaneous", "Máximo de processos simultâneos", "number"], ["stages", "Etapas contempladas"], ["technicalAssessment", "Avaliação técnica"], ["behavioralAssessment", "Entrevista estruturada e avaliação comportamental não clínica"], ["candidateCriteria", "Critérios de apresentação de candidatos"], ["finalDecision", "Responsável pela entrevista e decisão final"], ["extraCosts", "Custos adicionais de divulgação e ferramentas"], ["replacementGuarantee", "Garantia de reposição"], ["maxReplacements", "Máximo de reposições", "number"], ["replacementDeadline", "Prazo para solicitar reposição"], ["invalidGuarantee", "Condições que invalidam a garantia"], ["profileChanges", "Alterações de perfil após abertura"], ["unfinishedProcesses", "Processos não concluídos no período"], ["unusedVacancies", "Vagas não utilizadas"]];
+
 const PACKAGE_META: Record<string, { kicker: string; label: string; tagline: string }> = {
   PARTNER: { kicker: "PEOPLE ADVISORY RECORRENTE", label: "CALI PARTNER", tagline: "Direção estratégica de People para organizar prioridades, fortalecer lideranças." },
   FULL: { kicker: "PEOPLE ADVISORY RECORRENTE", label: "CALI FULL", tagline: "Direção estratégica de People com maior cadência, para organizar até duas prioridades simultâneas." },
@@ -62,7 +66,7 @@ async function limaPath() {
 }
 
 const s = StyleSheet.create({
-  pagina: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 64 },
+  pagina: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 88, paddingBottom: 64 },
   paginaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 24, paddingBottom: 64, paddingHorizontal: 24 },
   capaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 18, paddingHorizontal: 24 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
@@ -71,7 +75,7 @@ const s = StyleSheet.create({
   paginaNum: { fontSize: 7.4, lineHeight: 1.3, color: CINZA },
 
   // Page 1 cover band
-  capaBand: { backgroundColor: BORDO, height: 313, paddingTop: 20, paddingHorizontal: 24, paddingBottom: 24 },
+  capaBand: { backgroundColor: BORDO, marginTop:-88, height: 313, paddingTop: 20, paddingHorizontal: 24, paddingBottom: 24 },
   capaTopo: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingBottom: 14, borderBottomWidth: 0.75, borderBottomColor: "#7A3F4F" },
   capaLogo: { width: 90, height: 42.5, objectFit: "contain" },
   capaProtocolo: { fontSize: 8, color: "#E9D7CE", textAlign: "right" },
@@ -99,11 +103,11 @@ const s = StyleSheet.create({
   goldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 5, backgroundColor: DOURADO },
 
   blocoRotulo: { fontSize: 7.6, fontWeight: 700, letterSpacing: 0.8, color: DOURADO, textTransform: "uppercase", marginBottom: 5, marginTop: 14 },
-  blocoTitulo: { fontFamily: "CaliSerif", fontSize: 14, fontWeight: 700, color: BORDO, marginBottom: 4 },
+  blocoTitulo: { fontFamily: "CaliSerif", fontSize: 14, fontWeight: 700, color: BORDO, marginBottom: 12 },
   p: { marginBottom: 7, fontSize: 9, lineHeight: 1.4 },
 
   chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 3, marginTop: 4 },
-  chip: { width: "48%", backgroundColor: MARFIM, borderRadius: 5, paddingVertical: 3, paddingHorizontal: 9, fontSize: 8.2, lineHeight: 1.15, color: GRAFITE },
+  chip: { width: "48%", backgroundColor: MARFIM, borderRadius: 5, paddingVertical: 6, paddingHorizontal: 10, fontSize: 8.2, lineHeight: 1.15, color: GRAFITE },
 
   dualBox: { flexDirection: "row", gap: 10, marginTop: 4 },
   dualBoxLeft: { width: 170 },
@@ -202,7 +206,7 @@ function TopoInner({ protocolo, emitidoEm, validade }: { protocolo: string; emit
 }
 
 function SecHead({ num, eyebrow, titulo, intro }: { num: string; eyebrow: string; titulo: string; intro?: string }) {
-  return h(View, null,
+  return h(View, {wrap:false, minPresenceAhead:36},
     h(View, { style: s.secHead },
       h(Text, { style: s.secNum }, num),
       h(View, { style: { flex: 1 } },
@@ -215,24 +219,43 @@ function SecHead({ num, eyebrow, titulo, intro }: { num: string; eyebrow: string
   );
 }
 
+// Limita apenas o tamanho de cada bloco visual; nunca corta o conteúdo informado.
+function textParts(value: string, limit=650): string[] {
+  const words=String(value??'').split(/\s+/); const result:string[]=[]; let part='';
+  for(const word of words){
+    // Também acomoda sequências extensas sem espaços.
+    for(let i=0;i<word.length;i+=80){const token=word.slice(i,i+80);if(part.length+token.length+1>limit){result.push(part);part='';}part+=(part?' ':'')+token;}
+  }
+  if(part)result.push(part);return result;
+}
 function numberedWide(items: string[]) {
-  return items.map((item, i) => h(View, { key: i, style: s.numRowWide, wrap: false }, h(Text, { style: s.numeral }, String(i + 1).padStart(2, "0")), h(Text, { style: s.numTexto }, item)));
+  return items.flatMap((item,i)=>textParts(item).map((part,j)=>h(View,{key:`${i}-${j}`,style:s.numRowWide,wrap:false},h(Text,{style:s.numeral},j?'':String(i+1).padStart(2,'0')),h(Text,{style:s.numTexto},part))));
 }
 function numberedNarrow(items: string[]) {
-  return items.map((item, i) => h(View, { key: i, style: s.numRowNarrow, wrap: false }, h(Text, { style: s.numeral }, String(i + 1).padStart(2, "0")), h(Text, { style: s.numTexto }, item)));
+  return items.flatMap((item,i)=>textParts(item,450).map((part,j)=>h(View,{key:`${i}-${j}`,style:s.numRowNarrow,wrap:false},h(Text,{style:s.numeral},j?'':String(i+1).padStart(2,'0')),h(Text,{style:s.numTexto},part))));
 }
 function twoColNumbered(items: string[]) {
-  const left = items.filter((_, i) => i % 2 === 0), right = items.filter((_, i) => i % 2 === 1);
-  const col = (arr: string[], offset: number) => arr.map((item, i) => h(View, { key: i, style: s.twoColItem, wrap: false }, h(Text, { style: s.numeral }, String(i * 2 + 1 + offset).padStart(2, "0")), h(Text, { style: s.numTexto }, item)));
-  return h(View, { style: s.twoColWrap, wrap: false }, h(View, { style: { flex: 1 } }, col(left, 0)), h(View, { style: { flex: 1 } }, col(right, 1)));
+  const rows=[];
+  for(let i=0;i<items.length;i+=2){
+    const left=textParts(items[i],500),right=textParts(items[i+1]||'',500);
+    for(let j=0;j<Math.max(left.length,right.length);j++) rows.push(h(View,{key:`${i}-${j}`,style:s.twoColWrap,wrap:false},...[left[j],right[j]].map((part,k)=>h(View,{key:k,style:{flex:1}},part?h(View,{style:s.twoColItem},h(Text,{style:s.numeral},j?'':String(i+k+1).padStart(2,'0')),h(Text,{style:s.numTexto},part)):null))));
+  }
+  return h(View,null,...rows);
 }
-function twoColBullets(items: string[], bordo = false) {
-  const left = items.filter((_, i) => i % 2 === 0), right = items.filter((_, i) => i % 2 === 1);
-  const col = (arr: string[]) => arr.map((item, i) => h(View, { key: i, style: s.bulletRow, wrap: false }, h(Text, { style: bordo ? s.bulletDotBordo : s.bulletDot }, "•"), h(Text, { style: s.bulletTexto }, item)));
-  return h(View, { style: s.twoColWrap, wrap: false }, h(View, { style: { flex: 1 } }, col(left)), h(View, { style: { flex: 1 } }, col(right)));
+function twoColBullets(items: string[], bordo=false) {
+  const rows=[];
+  for(let i=0;i<items.length;i+=2){
+    const left=textParts(items[i],500),right=textParts(items[i+1]||'',500);
+    for(let j=0;j<Math.max(left.length,right.length);j++) rows.push(h(View,{key:`${i}-${j}`,style:s.twoColWrap,wrap:false},...[left[j],right[j]].map((part,k)=>h(View,{key:k,style:{flex:1}},part?h(View,{style:s.bulletRow},h(Text,{style:bordo?s.bulletDotBordo:s.bulletDot},j?'':'•'),h(Text,{style:s.bulletTexto},part)):null))));
+  }
+  return h(View,null,...rows);
 }
 function bullets(items: string[]) {
-  return items.map((item, i) => h(View, { key: i, style: s.bulletRow, wrap: false }, h(Text, { style: s.bulletDot }, "•"), h(Text, { style: s.bulletTexto }, item)));
+  return items.flatMap((item,i)=>textParts(item).map((part,j)=>h(View,{key:`${i}-${j}`,style:s.bulletRow,wrap:false},h(Text,{style:s.bulletDot},j?'':'•'),h(Text,{style:s.bulletTexto},part))));
+}
+function detailBlock(label:string,value:unknown){
+  if(value===null||value===undefined||String(value).trim()==='')return null;
+  return h(View,{style:{marginBottom:10}},h(Text,{style:s.blocoRotulo,minPresenceAhead:28},label),...textParts(String(value),1200).map((part,i)=>h(Text,{key:i,style:s.p,orphans:2,widows:2},part)));
 }
 
 function condicoesImportantes(months: number, hours: number, payment: any, hasScope: boolean) {
@@ -253,7 +276,7 @@ async function obterCarimbo(admin: ReturnType<typeof createClient>, proposal: an
   const { data: existente } = await admin.from("cali_emissoes").select("protocolo,hash,emitido_em,titulo,cliente,signatario_nome,signatario_cargo").eq("protocolo", protocolo).maybeSingle();
   if (existente) return existente;
   const emitido_em = new Date().toISOString();
-  const hash = await sha256Hex(JSON.stringify({ id: proposal.id, final_unit: proposal.final_unit, scope_items: proposal.scope_items, emitido_em }));
+  const hash = await sha256Hex(JSON.stringify({ id: proposal.id, version:proposal.version, final_unit: proposal.final_unit, scope_items: proposal.scope_items, calculator_data:proposal.calculator_data, public_notes:proposal.public_notes,payment_terms:proposal.payment_terms,emitido_em }));
   const row = { proposal_id: proposal.id, protocolo, hash, emitido_em, titulo, cliente: submission.company_name || null, signatario_nome: "Patrícia Lima", signatario_cargo: "People Advisory Executive · CALI RH" };
   const { data: inserido, error } = await admin.from("cali_emissoes").insert(row).select("protocolo,hash,emitido_em,titulo,cliente,signatario_nome,signatario_cargo").single();
   if (!error) return inserido;
@@ -263,8 +286,9 @@ async function obterCarimbo(admin: ReturnType<typeof createClient>, proposal: an
 }
 
 async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, submission: any, service_title: string) {
-  const protocolo = submission.protocol as string;
   const calc = proposal.calculator_data || {};
+  submission = {...submission,...calc.contactSnapshot,protocol:calc.documentProtocol||submission.protocol};
+  const protocolo = submission.protocol as string;
   const urlVerificar = `${PORTAL_URL}/v/${protocolo}`;
   const qr = await QRCode.toDataURL(urlVerificar, { margin: 0, width: 240, color: { dark: "#5A1E2D", light: "#FFFFFF" } });
   const carimbo = await obterCarimbo(admin, proposal, submission, `Proposta CALI — ${service_title}`);
@@ -276,7 +300,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const nome = submission.contact_name || "";
   const criadaEm = proposal.created_at || submission.created_at || emitidoEm;
   const validade = dataCurta(new Date(new Date(criadaEm).getTime() + Number(proposal.validity_days || 15) * 86400000).toISOString());
-  const pkg = PACKAGE_META[proposal.package_code] || { kicker: "SOLUÇÃO CALI", label: service_title, tagline: "" };
+  const pkg = {...(PACKAGE_META[proposal.package_code] || { kicker: "SOLUÇÃO CALI", label: service_title, tagline: "" }),...calc.presentation};
 
   const clean = (arr: unknown) => Array.isArray(arr) ? arr.map((v) => String(v ?? "").trim()).filter((v) => v && !/^[.\-–—•\s]*$/.test(v)) : [];
   const scope: string[] = clean(proposal.scope_items);
@@ -284,7 +308,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const expectedResults: string[] = clean(calc.expectedResults);
   const advantages: string[] = clean(calc.advantages);
   const cadence: string[] = clean(calc.cadence);
-  const cycles: { title: string }[] = (Array.isArray(calc.cycles) ? calc.cycles : []).filter((c: any) => { const t = String(c?.title ?? "").trim(); return t && !/^[.\-–—•\s]*$/.test(t); });
+  const cycles: { title: string; focus?:string; objective?:string; duration?:string }[] = (Array.isArray(calc.cycles) ? calc.cycles : []).filter((c: any) => { const t = String(c?.title ?? "").trim(); return t && !/^[.\-–—•\s]*$/.test(t); });
   const caliResponsibilities: string[] = clean(calc.caliResponsibilities);
   const clientResponsibilities: string[] = clean(calc.clientResponsibilities);
   const roadmapItems: string[] = clean(calc.roadmapItems);
@@ -299,8 +323,14 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const hours = Number(calc.monthlyHours || 0);
   const months = Number(proposal.contract_months || 0);
   const isRecorrente = calc.monthly === true || proposal.service_slug === "assessoria-estrategica" || proposal.service_slug === "cali-build" || (proposal.service_slug === "marca-empregadora" && proposal.package_code === "RECORRENTE") || payment.method === "monthly";
-  const natureza = isRecorrente ? "Atuação recorrente" : months > 1 ? "Atuação recorrente" : "Projeto com entrega definida";
-  const ativacaoValor = isRecorrente ? Math.round(finalUnit * 0.2) : 0;
+  const natureza = calc.presentation?.nature ?? (isRecorrente ? "Atuação recorrente" : months > 1 ? "Atuação recorrente" : "Projeto com entrega definida");
+  const percentRaw = Number(calc.activation?.percent ?? 20);
+  const ativacaoPercent = Number.isFinite(percentRaw) && percentRaw >= 0 && percentRaw <= 100 ? percentRaw : 20;
+  const ativacaoValor = isRecorrente ? Math.round(finalUnit * ativacaoPercent) / 100 : 0;
+  const modules = calc.modulesEnabled && Array.isArray(calc.modules) ? calc.modules : [];
+  const moduleSum=(type: string)=>modules.filter((m:any)=>m.type===type).reduce((sum:number,m:any)=>sum+Math.max(0,Number(m.amount)||0),0);
+  const monthlyTotal=finalUnit+moduleSum('recurring');
+
 
   const protocoloHeader = h(View, { style: s.capaTopo },
     h(Image, { src: LOGO_LIGHT_URL, style: s.capaLogo }),
@@ -308,11 +338,13 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   );
 
   const paginas: unknown[] = [];
+  let coverPageCount=1;
 
   // PÁGINA 1 — CAPA
   paginas.push(h(Page, { key: "p1", size: "A4", style: s.pagina },
     h(Watermark, { d }),
-    h(View, { style: s.capaBand },
+    h(View,{fixed:true,style:{position:'absolute',top:24,left:24,right:24},render:({subPageNumber}:any)=>{coverPageCount=Math.max(coverPageCount,subPageNumber||1);return null;}}),
+    h(View, { style: [s.capaBand,...(painPoints.length>6&&painPoints.length<=12?[{height:293}]:[])] },
       d ? h(Svg, { viewBox: "0 0 256 256", style: { position: "absolute", right: 0, top: 24, width: 240, height: 260 } }, h(Path, { d, fill: "#FFFFFF", fillOpacity: 0.06 })) : null,
       protocoloHeader,
       h(Text, { style: s.capaEyebrow }, "PROPOSTA CALI RH"),
@@ -323,9 +355,9 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(View, { style: s.capaInner },
       h(SecHead, { num: "01", eyebrow: "LEITURA DO CONTEXTO", titulo: "O que entendemos até aqui" }),
       h(Text, { style: s.p }, calc.contextSummary || "Contexto reunido a partir do briefing recebido."),
-      painPoints.length ? h(Text, { style: s.blocoRotulo }, "SINAIS QUE ORIENTAM ESTA PROPOSTA") : null,
-      painPoints.length ? h(View, { style: s.chipGrid, wrap: false }, ...painPoints.map((p, i) => h(Text, { key: i, style: s.chip }, p))) : null,
-      h(View, { style: [s.dualBox, { marginTop: 16 }], wrap: false },
+      painPoints.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "SINAIS QUE ORIENTAM ESTA PROPOSTA") : null,
+      painPoints.some(p=>p.length>600) || painPoints.length>12 ? h(View,null,...numberedWide(painPoints)) : painPoints.length ? h(View,{style:s.chipGrid,wrap:false},...painPoints.map((p,i)=>h(Text,{key:i,style:painPoints.length>6?[s.chip,{paddingVertical:4}]:s.chip},p))) : null,
+      h(View, { style: [s.dualBox, { marginTop: 16 }, ...(String(calc.executiveReading||"").length>1400?[{flexDirection:"column" as const}]:[])], wrap: String(calc.executiveReading||"").length>1400 },
         mapa?.include ? h(View, { style: s.dualBoxLeft },
           h(View, { style: s.mapaCard },
             h(Text, { style: s.mapaRotulo }, "MAPA DE PEOPLE"),
@@ -350,15 +382,15 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
     h(SecHead, { num: "02", eyebrow: "SOLUÇÃO RECOMENDADA", titulo: pkg.label, intro: pkg.tagline || undefined }),
     h(Text, { style: s.p }, proposal.public_notes || calc.cycleObjective || "Solução desenhada a partir do contexto apresentado."),
-    h(View, { style: s.pairRow, wrap: false },
+    h(View, { style: [s.pairRow, ...((String(calc.whyNow||"").length+String(calc.cycleObjective||"").length)>2000?[{flexDirection:"column" as const}]:[])], wrap: (String(calc.whyNow||"").length+String(calc.cycleObjective||"").length)>2000 },
       calc.whyNow ? h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "Por que agora"), h(Text, { style: s.pairTexto }, calc.whyNow)) : null,
       calc.cycleObjective ? h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "Objetivo deste ciclo"), h(Text, { style: s.pairTexto }, calc.cycleObjective)) : null,
     ),
-    expectedResults.length ? h(Text, { style: s.blocoRotulo }, "RESULTADO ESPERADO") : null,
-    expectedResults.length ? h(Text, { style: s.blocoTitulo }, "O que deve estar diferente ao final") : null,
+    expectedResults.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RESULTADO ESPERADO") : null,
+    expectedResults.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que deve estar diferente ao final") : null,
     expectedResults.length ? h(View, null, numberedNarrow(expectedResults)) : null,
-    advantages.length ? h(Text, { style: s.blocoRotulo }, "VALOR AGREGADO") : null,
-    advantages.length ? h(Text, { style: s.blocoTitulo }, "Por que a CALI neste contexto") : null,
+    advantages.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "VALOR AGREGADO") : null,
+    advantages.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Por que a CALI neste contexto") : null,
     advantages.length ? twoColNumbered(advantages) : null,
     h(Footer, { protocolo }),
   ));
@@ -369,12 +401,12 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
     h(SecHead, { num: "03", eyebrow: "ESCOPO CONTRATADO", titulo: "O que entra neste trabalho", intro: "O escopo abaixo traduz a prioridade desta versão em entregas claras, sem misturar o que pertence a etapas futuras." }),
     scope.length ? h(View, null, numberedWide(scope)) : null,
-    cadence.length ? h(Text, { style: s.blocoRotulo }, "RITMO E FORMATO") : null,
-    cadence.length ? h(Text, { style: s.blocoTitulo }, "Como a operação acontece") : null,
+    cadence.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RITMO E FORMATO") : null,
+    cadence.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Como a operação acontece") : null,
     cadence.length ? twoColNumbered(cadence) : null,
-    cycles.length ? h(Text, { style: s.blocoRotulo }, "SEQUÊNCIA PREVISTA") : null,
-    cycles.length ? h(Text, { style: s.blocoTitulo }, "Ciclos e fases") : null,
-    cycles.length ? twoColNumbered(cycles.map((c, i) => /^ciclo\b/i.test(c.title) ? c.title : `Ciclo ${i + 1} · ${c.title}`)) : null,
+    cycles.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "SEQUÊNCIA PREVISTA") : null,
+    cycles.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Ciclos e fases") : null,
+    cycles.length ? twoColNumbered(cycles.map((c, i) => [(/^ciclo\b/i.test(c.title) ? c.title : `Ciclo ${i + 1} · ${c.title}`),c.focus,c.objective,c.duration].filter(Boolean).join(" · "))) : null,
     h(Footer, { protocolo }),
   ));
 
@@ -383,20 +415,36 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(Watermark, { d }),
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
     h(SecHead, { num: "04", eyebrow: "GOVERNANÇA DO TRABALHO", titulo: "Responsabilidades, continuidade e limites", intro: "Uma boa proposta também deixa claro quem conduz cada parte, o que depende da empresa e o que não está incluído nesta contratação." }),
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoRotulo }, "RESPONSABILIDADES") : null,
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoTitulo }, "Quem faz o quê") : null,
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(View, { style: s.pairRow, wrap: false },
-      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "A CALI conduz"), ...bullets(caliResponsibilities)),
-      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "A empresa viabiliza"), ...bullets(clientResponsibilities)),
+    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RESPONSABILIDADES") : null,
+    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Quem faz o quê") : null,
+    (caliResponsibilities.length || clientResponsibilities.length) ? h(View, { style: [s.pairRow,...((caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800?[{flexDirection:"column" as const}]:[])], wrap: (caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800 },
+      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo, minPresenceAhead:28 }, "A CALI conduz"), ...bullets(caliResponsibilities)),
+      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo, minPresenceAhead:28 }, "A empresa viabiliza"), ...bullets(clientResponsibilities)),
     ) : null,
-    roadmapItems.length ? h(Text, { style: s.blocoRotulo }, "CONTINUIDADE") : null,
-    roadmapItems.length ? h(Text, { style: s.blocoTitulo }, "O que fica organizado para depois") : null,
+    roadmapItems.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "CONTINUIDADE") : null,
+    roadmapItems.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que fica organizado para depois") : null,
     roadmapItems.length ? h(View, null, numberedNarrow(roadmapItems)) : null,
-    outOfScope.length ? h(Text, { style: s.blocoRotulo }, "LIMITES DESTA PROPOSTA") : null,
-    outOfScope.length ? h(Text, { style: s.blocoTitulo }, "O que não está incluído") : null,
+    outOfScope.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "LIMITES DESTA PROPOSTA") : null,
+    outOfScope.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que não está incluído") : null,
     outOfScope.length ? twoColBullets(outOfScope, true) : null,
     h(Footer, { protocolo }),
   ));
+
+
+  const coverage=calc.coverage;
+  if(coverage?.enabled) paginas.push(h(Page,{key:'coverage',size:'A4',style:s.paginaInner},
+    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+    h(SecHead,{num:'+',eyebrow:'ABRANGÊNCIA CONTRATUAL',titulo:'Onde e com quem vamos atuar'}),
+    ...COVERAGE_FIELDS.map(([key,label])=>detailBlock(label,coverage[key])),h(Footer,{protocolo})));
+  if(modules.length) paginas.push(h(Page,{key:'modules',size:'A4',style:s.paginaInner},
+    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+    h(SecHead,{num:'+',eyebrow:'ENTREGAS COMPLEMENTARES',titulo:'Módulos complementares contratados',intro:'Capacidade operacional específica, separada das horas executivas do pacote principal.'}),
+    ...modules.flatMap((m:any,i:number)=>[
+      h(Text,{key:`module-${i}`,style:s.blocoTitulo,minPresenceAhead:70},`${i+1}. ${m.name}`),
+      detailBlock('Cobrança',`${currency(Number(m.amount)||0)} · ${{recurring:'Recorrente',one_time:'Pontual',custom:'Personalizada'}[m.type]||m.type}${m.billingLabel?' · '+m.billingLabel:''}`),
+      ...MODULE_FIELDS.filter(([key])=>!['name','amount','billingLabel'].includes(key)).map(([key,label])=>detailBlock(label,m[key])),
+      ...(m.kind==='recruiting'?RECRUITING_FIELDS.map(([key,label])=>detailBlock(label,m.recruiting?.[key])):[]),
+    ]),h(Footer,{protocolo})));
 
   // PÁGINA 5 — INVESTIMENTO
   const cards = [
@@ -411,8 +459,8 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(View, { style: s.investBox },
       h(View, { style: s.investTopo }),
       h(View, { style: s.investConteudo },
-        h(Text, { style: s.investRotulo }, "MENSALIDADE"),
-        h(View, { style: s.investValorLinha }, h(Text, { style: s.investValor }, currency(finalUnit)), h(Text, { style: s.investPorMes }, "por mês")),
+        h(Text, { style: s.investRotulo }, isRecorrente ? "MENSALIDADE" : "INVESTIMENTO"),
+        h(View, { style: s.investValorLinha }, h(Text, { style: s.investValor }, currency(isRecorrente?monthlyTotal:finalUnit)), h(Text, { style: s.investPorMes }, isRecorrente ? "por mês" : "pelo projeto")),
         discountValue > 0 ? h(View, { style: s.investDivider }) : null,
         discountValue > 0 ? h(View, { style: s.investRefRow },
           h(View, { style: s.investRefCol }, h(Text, { style: s.investRefRotulo }, "REFERÊNCIA"), h(Text, { style: s.investRefValor }, currency(subtotal))),
@@ -420,19 +468,27 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
         ) : null,
       ),
     ),
-    isRecorrente ? h(View, { style: s.ativacaoBox, wrap: false },
-      h(View, { style: s.ativacaoLeft }, h(Text, { style: s.ativacaoRotulo }, "Ativação · 20%"), h(Text, { style: s.ativacaoValor }, currency(ativacaoValor))),
-      h(Text, { style: s.ativacaoTexto }, "Inclui a preparação para o início da operação: organização de insumos e acessos, configuração da dinâmica de trabalho, planejamento do primeiro ciclo e preparação do kickoff. É uma cobrança única na assinatura, separada das mensalidades, não abatida e não reembolsável."),
+    isRecorrente ? h(View, { style: [s.ativacaoBox,...(String(calc.activation?.description||"").length>1200?[{flexDirection:"column" as const,alignItems:"stretch" as const}]:[])], wrap: String(calc.activation?.description||"").length>1200 },
+      h(View, { style: s.ativacaoLeft }, h(Text, { style: s.ativacaoRotulo }, `Ativação · ${ativacaoPercent.toLocaleString("pt-BR")}%`), h(Text, { style: s.ativacaoValor }, currency(ativacaoValor))),
+      h(Text, { style: s.ativacaoTexto }, calc.activation?.description ?? "Inclui a preparação para o início da operação: organização de insumos e acessos, configuração da dinâmica de trabalho, planejamento do primeiro ciclo e preparação do kickoff. É uma cobrança única na assinatura, separada das mensalidades, não abatida e não reembolsável."),
+    ) : null,
+    modules.length ? h(View,{style:{marginTop:12}},
+      detailBlock('Pacote principal',currency(finalUnit)),
+      detailBlock('Módulos recorrentes / mês',currency(moduleSum('recurring'))),
+      detailBlock('Módulos pontuais',currency(moduleSum('one_time'))),
+      ...modules.filter((m:any)=>m.type==='custom').map((m:any)=>detailBlock(m.name,`${currency(m.amount)} · ${m.billingLabel||'Conforme condição do módulo'}`)),
+      h(Text,{style:s.p},'A ativação incide sobre o valor final do pacote principal. Os módulos não alteram automaticamente sua base de cálculo.'),
     ) : null,
     cards.length ? h(View, { style: s.cardsLinha }, ...cards.map((c, i) => h(View, { key: i, style: s.card }, h(Text, { style: s.cardRotulo }, c.rotulo), h(Text, { style: s.cardValor }, c.valor)))) : null,
-    h(Text, { style: s.blocoRotulo }, "CONDIÇÕES IMPORTANTES"),
-    h(Text, { style: s.blocoTitulo }, "Para esta contratação"),
-    twoColBullets(condicoesImportantes(months, hours, payment, scope.length > 0)),
+    h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "CONDIÇÕES IMPORTANTES"),
+    h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Para esta contratação"),
+    twoColBullets(Array.isArray(calc.commercialConditions)?clean(calc.commercialConditions):condicoesImportantes(months, hours, payment, scope.length > 0)),
+    proposal.payment_terms ? detailBlock("Condições de pagamento",proposal.payment_terms) : null,
     h(Footer, { protocolo }),
   ));
 
   // PÁGINA 6 — PRÓXIMOS PASSOS + ASSINATURA
-  const passos: [string, string][] = isRecorrente ? [
+  const passos: [string, string][] = Array.isArray(calc.nextSteps) ? calc.nextSteps : isRecorrente ? [
     ["Avaliação e aprovação da proposta", "Confirmação do escopo, investimento e condições desta versão."],
     ["Assinatura + pagamento da Ativação", "Formalização do contrato e pagamento da Ativação para abertura da operação CALI."],
     ["Kickoff", "Reunião de início para organizar insumos, responsáveis e o primeiro ciclo."],
@@ -448,15 +504,12 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       h(Text, { style: s.secNum }, "06"),
       h(View, { style: { flex: 1 } },
         h(Text, { style: [s.secTitulo, { marginTop: 3 }] }, "Próximos passos"),
-        h(Text, { style: s.secIntro }, "Uma sequência simples para transformar a proposta aprovada em início de operação."),
+        h(Text, { style: s.secIntro }, calc.nextStepsIntro ?? "Uma sequência simples para transformar a proposta aprovada em início de operação."),
       ),
     ),
     h(View, { style: s.secDivider }),
-    h(View, null, ...passos.map(([titulo, texto], i) => h(View, { key: i, style: i === 0 ? s.passoRowFirst : s.passoRow, wrap: false },
-      h(Text, { style: s.passoNum }, String(i + 1).padStart(2, "0")),
-      h(View, { style: { flex: 1 } }, h(Text, { style: s.passoTitulo }, titulo), h(Text, { style: s.passoTexto }, texto)),
-    ))),
-    bonus?.title ? h(View, { style: s.bonusBox, wrap: false },
+    h(View, null, ...passos.flatMap(([titulo,texto],i)=>textParts(texto||'',900).length ? textParts(texto||'',900).map((part,j)=>h(View,{key:`step-${i}-${j}`,style:i===0&&j===0?s.passoRowFirst:s.passoRow,wrap:false},h(Text,{style:s.passoNum},j?'':String(i+1).padStart(2,'0')),h(View,{style:{flex:1}},j?null:h(Text,{style:s.passoTitulo},titulo),h(Text,{style:s.passoTexto},part)))) : [h(View,{key:i,style:s.passoRow,wrap:false},h(Text,{style:s.passoNum},String(i+1).padStart(2,'0')),h(Text,{style:s.passoTitulo},titulo))])),
+    bonus?.title ? h(View, { style: s.bonusBox, wrap: String(bonus?.description||"").length>2000 },
       h(Text, { style: s.bonusRotulo }, "Bônus selecionado"),
       h(Text, { style: s.bonusTitulo }, bonus.title),
       bonus.description ? h(Text, { style: s.bonusDescricao }, bonus.description) : null,
@@ -486,6 +539,18 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const numbered = await PDFDocument.load(await rendered.arrayBuffer());
   const footerFont = await numbered.embedFont(StandardFonts.Helvetica);
   const sheets = numbered.getPages();
+  // Cabeçalho nas continuações da capa, cuja faixa bordô aparece apenas na primeira folha.
+  if(coverPageCount>1){
+    const logo=await numbered.embedPng(await fetch(LOGO_URL).then(r=>r.arrayBuffer()));
+    for(let i=1;i<Math.min(coverPageCount,sheets.length);i++){
+      const sheet=sheets[i],width=sheet.getWidth(),height=sheet.getHeight();
+      sheet.drawImage(logo,{x:24,y:height-51,width:58,height:27});
+      sheet.drawText(protocolo,{x:width-24-footerFont.widthOfTextAtSize(protocolo,7.6),y:height-31.6,size:7.6,font:footerFont,color:rgb(90/255,30/255,45/255)});
+      const dates=`${dataCurta(criadaEm)} · válida até ${validade}`;
+      sheet.drawText(dates,{x:width-24-footerFont.widthOfTextAtSize(dates,7),y:height-43,size:7,font:footerFont,color:rgb(107/255,93/255,99/255)});
+      sheet.drawLine({start:{x:24,y:height-61},end:{x:width-24,y:height-61},thickness:.5,color:rgb(230/255,221/255,211/255)});
+    }
+  }
   sheets.forEach((sheet, index) => {
     const label = index === sheets.length - 1 ? protocolo : `${String(index + 1).padStart(2, "0")} / ${String(sheets.length).padStart(2, "0")}`;
     sheet.drawText(label, { x: sheet.getWidth() - 24 - footerFont.widthOfTextAtSize(label, 7.4), y: 42, size: 7.4, font: footerFont, color: rgb(107 / 255, 93 / 255, 99 / 255) });
@@ -502,7 +567,7 @@ Deno.serve(async (req) => {
     const proposalParam = url.searchParams.get("proposal_id");
     if (proposalParam && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(proposalParam)) return new Response(JSON.stringify({error:"Proposta inválida."}), {status:400,headers:{...cors(req),"Content-Type":"application/json"}});
     let query = admin.from("cali_proposals").select("*,submission:cali_submissions(*)").order("created_at", { ascending: false }).limit(1);
-    if (protocolParam) query = admin.from("cali_proposals").select("*,submission:cali_submissions!inner(*)").eq("submission.protocol", protocolParam).limit(1);
+    if (protocolParam) query = admin.from("cali_proposals").select("*,submission:cali_submissions!inner(*)").eq("submission.protocol", protocolParam).order("version",{ascending:false}).limit(1);
     if (proposalParam) query = admin.from("cali_proposals").select("*,submission:cali_submissions(*)").eq("id", proposalParam).limit(1);
     const { data, error } = await query;
     if (error) throw error;

@@ -21,7 +21,7 @@ async function rest(path) {
 let data;
 try { data = await rest(`cali_proposals?id=eq.${encodeURIComponent(proposalId)}&select=*,submission:cali_submissions(*)`); }
 catch (error) { root.textContent = error.message; throw error; }
-const proposal = data?.[0], submission = proposal?.submission, service = SERVICES[proposal?.service_slug];
+const proposal = data?.[0], submission = proposal?.submission ? {...proposal.submission,...proposal.calculator_data?.contactSnapshot,protocol:proposal.calculator_data?.documentProtocol||proposal.submission.protocol} : null, service = SERVICES[proposal?.service_slug];
 if (!proposal || !submission || !service) { root.textContent = "Proposta não encontrada."; throw new Error("Proposta não encontrada."); }
 const pdfNameData = {serviceName:service.title,contactName:submission.contact_name,companyName:submission.company_name,protocol:submission.protocol};
 const suggestedPdfName = proposalPdfFileName(pdfNameData);
