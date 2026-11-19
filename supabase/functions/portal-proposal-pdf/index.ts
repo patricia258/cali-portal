@@ -51,7 +51,7 @@ async function limaPath() {
 
 const s = StyleSheet.create({
   pagina: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingBottom: 60 },
-  paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 60, paddingHorizontal: 54 },
+  paginaInner: { fontFamily: "Helvetica", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 40, paddingBottom: 85, paddingHorizontal: 54 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
   rodape: { position: "absolute", bottom: 24, left: 54, fontSize: 7.4, lineHeight: 1.3, color: CINZA },
   paginaNum: { position: "absolute", bottom: 24, right: 54, fontSize: 7.4, lineHeight: 1.3, color: CINZA },
