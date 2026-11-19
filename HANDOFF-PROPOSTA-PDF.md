@@ -45,6 +45,12 @@ Isso é o mais importante deste documento. São os pontos onde eu errei, demorei
 
 ## Pendente agora mesmo
 
+- **ATUALIZAÇÃO 18/11/2026, depois que outra IA assumiu**: ela confirmou que quer o PDF de referência (6 páginas) replicado **integralmente**, só trocando o fechamento por assinatura+QR. O gerador atual produz **7 páginas** pra proposta da KIE-TEC (não 6) porque o bloco "Mapa de People" (capa) ainda estoura pra uma página própria quando o texto de contexto é longo — ver item 4 do estado atual acima. Eu reduzi o padding duplicado e isso ajudou (era 8 páginas, caiu pra 7), mas não foi suficiente pra garantir 6 sempre. **Isso não está resolvido.** Causa raiz exata: na página 1 (capa), depois do bloco de "chips" (sinais que orientam a proposta), sobra só uns 65-70pt de altura disponível antes da margem inferior, e o bloco seguinte (`dualBox` = card "Mapa de People" + caixa "Leitura CALI", ambos com `wrap:false`) precisa de bem mais que isso pra caber — então ele inteiro pula pra página 2. Opções pra realmente garantir 6 páginas (nenhuma testada ainda):
+  1. Tirar o `wrap:false` do `dualBox` pra permitir que a caixa "Leitura CALI" (que normalmente tem o texto mais longo) continue na página seguinte SEM TopoInner/cabeçalho — mas aí ela vaza pro meio de uma página sem moldura, o que pode parecer pior visualmente, não melhor.
+  2. Reduzir o espaço do bloco de chips ("sinais que orientam a proposta") — está em grid 2 colunas com bastante padding (`chip`: paddingVertical 8), dá pra apertar.
+  3. Diminuir um pouco o `fontSize`/`lineHeight` da `leituraTexto` e/ou do `mapaQuadrante` (ver aviso no item de limpeza do `marginTop:36`, abaixo).
+  4. Perguntar pra Paty se tudo bem o "Mapa de People" ocupar uma página própria dedicada **sempre** (ou seja, assumir 7 páginas como padrão oficial em vez de tentar forçar 6) — mais simples e mais robusto a textos longos, mas muda a contagem de páginas que ela está comparando com a referência.
+  Qualquer uma dessas precisa ser testada de novo com a proposta real da KIE-TEC (`protocolo CALI-AEM-20260925-A6CC6D`, é a mais longa que temos como teste de estresse) e confirmada visualmente com ela antes de considerar resolvido.
 - **Confirmar visualmente com a Paty** que a correção do overflow da capa (item 4 acima) realmente resolveu o "página 2 toda errada" que ela reportou — eu só confirmei via render automático, ela ainda não viu o novo e-mail depois dessa correção específica.
 - **Pergunta em aberto, não respondida por ela**: reverter o status do registro real da KIE-TEC de "enviada" de volta pra "Proposta em edição"? (Foi alterado sem querer durante os testes — ver erro nº 9 acima.) Perguntei duas vezes, ela não respondeu, focou nos bugs visuais.
 - Item de limpeza opcional, não pedido por ela: revisitar o hack `mapaQuadrante: { marginTop: 36 }` (estilo da página 1, "Mapa de People") agora que a causa raiz real do bug de overlap em coluna foi entendida — pode ser que esse `marginTop` gigante não seja mais necessário, mas nunca foi testado reduzir, e ela nunca reclamou dele de novo depois do fix original, então **não mexer sem necessidade**.
@@ -53,7 +59,109 @@ Isso é o mais importante deste documento. São os pontos onde eu errei, demorei
 
 Ela colou uma especificação completa (~10 seções numeradas) pedindo um novo recurso: módulos complementares opcionais (ex.: "Recrutamento e Seleção") pra propostas de Assessoria Estratégica, arquitetura genérica/reutilizável, preservando toda a lógica de dados/preço existente, com seção no PDF só quando o módulo está ativo, e um checklist de validação de 10 pontos. **Ela pediu explicitamente um diagnóstico/auditoria curto ANTES de qualquer implementação.**
 
-**Importante**: o texto completo colado por ela está no histórico desta conversa, mas eu não tenho o texto literal guardado neste handoff — só o resumo acima. Se a Paty for continuar isso com outra IA, o ideal é ela colar a especificação de novo (ou achar a mensagem original no histórico desta sessão) antes de começar, pra não perder os 10 pontos de detalhe exatos.
+**Texto completo da especificação, colado pela Paty (recuperado do histórico da sessão original em 18/11/2026, verbatim):**
+
+> CALI Portal — Evolução do editor de propostas comerciais
+>
+> Preciso ampliar a flexibilidade do formulário administrativo de propostas da CALI RH, preservando integralmente o funcionamento atual.
+>
+> **Objetivo**
+> Permitir que uma proposta de Assessoria Estratégica Mensal (CALI Partner ou CALI Full) receba módulos complementares opcionais, com precificação, escopo, condições e responsabilidades próprios.
+> A alteração deve ser genérica e reutilizável. Não criar campos fixos para a Academia do Rock ou para qualquer cliente específico.
+>
+> **1. Auditoria antes das alterações**
+> Analise o funcionamento atual do editor administrativo, calculadora, modelo de dados, regras de precificação, geração do PDF e persistência das propostas.
+> Identifique o que já existe e pode ser reutilizado.
+> Não recrie funcionalidades que já estejam implementadas. Preserve todos os dados e propostas existentes.
+>
+> **2. Preservar a política comercial atual**
+> Os pacotes CALI Partner e CALI Full continuam com suas regras oficiais de precificação, capacidade e prazo.
+> A taxa única de ativação já existente, equivalente a 20% da mensalidade final, deve permanecer separada da mensalidade.
+> Exemplo:
+> - Mensalidade final: R$ 3.910,00
+> - Ativação: R$ 782,00
+>
+> Não duplicar a taxa, não criar uma segunda cobrança de ativação e não alterar sua base de cálculo.
+> Descontos, adicionais e condições comerciais precisam manter a lógica atual, salvo aprovação expressa de nova regra.
+>
+> **3. Nova seção opcional: Módulos complementares**
+> Adicionar uma seção expansível no editor com a opção: "Incluir módulo complementar". Por padrão, permanecer desativada.
+> Quando ativada, permitir cadastrar um ou mais módulos com:
+> - Nome do módulo.
+> - Descrição e finalidade.
+> - Tipo: recorrente, pontual ou personalizado.
+> - Valor adicional, podendo ser zero em condição comercial aprovada.
+> - Abrangência: unidades, áreas, públicos ou operações atendidas.
+> - Entregas e atividades incluídas.
+> - Capacidade ou quantidade contratada.
+> - Periodicidade.
+> - Responsabilidades da CALI.
+> - Responsabilidades do cliente.
+> - Limites e exclusões.
+> - Condições específicas.
+> - Garantias, quando aplicáveis.
+> - Vigência do módulo.
+>
+> Permitir que um módulo seja incluído ou removido da proposta sem alterar o pacote principal.
+> Os módulos devem ser opcionais, não cumulativos automaticamente e não podem gerar compromissos que não tenham sido expressamente configurados.
+>
+> **4. Primeiro módulo: Recrutamento e Seleção**
+> Criar um modelo reutilizável de R&S complementar. Campos específicos:
+> - Quantidade de processos seletivos incluídos por período.
+> - Periodicidade mensal ou personalizada.
+> - Cargos e níveis elegíveis.
+> - Unidades atendidas.
+> - Quantidade máxima de processos simultâneos.
+> - Etapas contempladas.
+> - Avaliação técnica.
+> - Entrevista estruturada e avaliação comportamental não clínica.
+> - Critérios de apresentação dos candidatos.
+> - Responsável pela entrevista e decisão final.
+> - Custos adicionais de divulgação ou ferramentas.
+> - Garantia de reposição configurável.
+> - Quantidade máxima de reposições.
+> - Prazo para solicitar reposição.
+> - Condições que invalidam a garantia.
+> - Regras para alterações de perfil após abertura.
+> - Tratamento de processos não concluídos no período.
+> - Política de vagas não utilizadas.
+>
+> A quantidade padrão pode ser de um processo mensal, mas deve permanecer editável.
+> Não prometer contratação em prazo determinado nem resultado garantido.
+> A execução de R&S deve ser tratada como capacidade operacional específica. Não presumir que esteja incluída nas horas executivas do pacote principal.
+>
+> **5. Outros módulos**
+> A estrutura deverá permitir futuramente módulos de: Desenvolvimento de lideranças, Treinamentos específicos, Marca empregadora, Comunicação interna, Estruturação de processos, Projetos de cultura, Outros serviços personalizados.
+> Esses módulos não precisam ser cadastrados ou precificados agora. Apenas garantir que a arquitetura comporte sua inclusão futura sem refatoração significativa.
+>
+> **6. Abrangência contratual**
+> Permitir informar de forma estruturada: empresa contratante, unidades incluídas, quantidade de unidades atendidas, público ou funções abrangidas, empresas/franquias/unidades excluídas, possibilidade de expansão futura mediante nova avaliação e contratação.
+> Esses campos devem ser opcionais e aparecer no PDF somente quando preenchidos.
+> A inclusão de uma empresa com várias filiais não pode significar automaticamente atendimento integral à rede.
+>
+> **7. Condições comerciais**
+> Preservar a calculadora existente e adaptar sua apresentação para discriminar: valor-base do pacote, adicionais ou módulos contratados, descontos ou condições comerciais, mensalidade final, taxa única de ativação, cobranças pontuais (quando existirem), prazo mínimo, horas executivas mensais, capacidade operacional complementar (quando houver).
+> Não somar automaticamente a mensalidade multiplicada pela vigência como se fosse uma cobrança imediata.
+> Verificar como descontos e adicionais impactam a base de cálculo da ativação, preservando a regra oficial vigente.
+>
+> **8. PDF comercial**
+> Quando houver módulos complementares, apresentar uma seção própria: "Módulos complementares contratados". Exibir apenas os módulos ativados. Separar claramente: escopo da assessoria principal, entregas complementares, condições e limitações de cada módulo, abrangência do atendimento, valores e condições comerciais.
+> Se nenhum módulo estiver selecionado, o PDF deve manter sua apresentação atual, sem páginas ou espaços vazios adicionais.
+> Manter a identidade visual da CALI, incluindo tipografia, paleta, hierarquia editorial e tratamento correto de quebras de página.
+>
+> **9. Persistência e compatibilidade**
+> Preservar a leitura e edição de propostas antigas. Não alterar retroativamente contratos, propostas enviadas ou dados comerciais existentes.
+> Se for necessário modificar o banco de dados, utilizar migração controlada, campos opcionais e compatibilidade com os registros anteriores. Evitar criar estruturas paralelas ou duplicadas.
+>
+> **10. Validação obrigatória**
+> Antes de concluir, testar: (1) proposta convencional sem módulos; (2) proposta com um módulo de R&S; (3) proposta com múltiplos módulos; (4) módulo com valor zero; (5) módulo com cobrança recorrente; (6) módulo com cobrança pontual; (7) remoção de módulo antes do envio; (8) reabertura de proposta salva; (9) geração de PDF em todos os cenários; (10) cálculo da ativação, descontos e mensalidade.
+> Não alterar os sistemas públicos de briefing ou o fluxo de recebimento de propostas sem necessidade técnica comprovada.
+>
+> **Entrega esperada**
+> Apresentar primeiro um diagnóstico curto do que já existe e do que precisa ser acrescentado. Implementar somente as alterações necessárias, preservando o comportamento atual. Ao final, informar os arquivos modificados, migrações aplicadas, testes executados, riscos e eventuais pendências.
+> Não modificar a Matriz Institucional da CALI automaticamente. Qualquer alteração nas regras oficiais de serviços depende de aprovação expressa.
+
+Essa funcionalidade **ainda não existe** em lugar nenhum do editor (`admin-editar.js`) nem do gerador de PDF — é trabalho 100% novo a fazer, não algo que foi começado e ficou pela metade. A entrega esperada por ela pede explicitamente um **diagnóstico curto primeiro**, antes de qualquer código.
 
 **Regra dela**: não iniciar essa feature até (a) os bugs visuais atuais do PDF estarem 100% confirmados corrigidos por ela, e (b) ela dar o sinal verde explícito.
 
