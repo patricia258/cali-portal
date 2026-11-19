@@ -97,7 +97,7 @@ const s = StyleSheet.create({
   mapaRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: "#8B5A6B", marginBottom: 10 },
   mapaScore: { fontSize: 26, fontWeight: 700, color: BORDO, lineHeight: 1.15 },
   mapaScoreSub: { fontSize: 8, color: CINZA },
-  mapaQuadrante: { fontSize: 9.5, fontWeight: 700, color: BORDO, marginTop: 2 },
+  mapaQuadrante: { fontSize: 9.5, fontWeight: 700, color: BORDO, marginTop: 36 },
   leituraBox: { flex: 1, borderLeftWidth: 1, borderLeftColor: LINHA, paddingLeft: 14, paddingVertical: 2 },
   leituraRotulo: { fontSize: 7, fontWeight: 700, letterSpacing: 0.6, color: CINZA, marginBottom: 6 },
   leituraTexto: { fontSize: 8.6, lineHeight: 1.6, color: GRAFITE },
