@@ -317,7 +317,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
         mapa?.include ? h(View, { style: s.dualBoxLeft },
           h(View, { style: s.mapaCard },
             h(Text, { style: s.mapaRotulo }, "MAPA DE PEOPLE"),
-            h(View, { style: { flexDirection: "row", alignItems: "baseline", gap: 3 } }, h(Text, { style: s.mapaScore }, Number(mapa.score).toLocaleString("pt-BR")), h(Text, { style: s.mapaScoreSub }, "/10")),
+            h(Text, { style: s.mapaScore }, `${Number(mapa.score).toLocaleString("pt-BR")}/10`),
             h(Text, { style: s.mapaQuadrante }, mapa.quadrant),
           ),
         ) : null,
