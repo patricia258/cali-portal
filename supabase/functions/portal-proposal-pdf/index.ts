@@ -170,18 +170,18 @@ const s = StyleSheet.create({
 
 function Watermark({ d }: { d: string }) {
   if (!d) return null;
-  return h(View, { style: s.marca }, h(Svg, { viewBox: "0 0 256 256", style: { width: 220, height: 220 } }, h(Path, { d, fill: BORDO, fillOpacity: 0.045 })));
+  return h(View, { fixed: true, style: s.marca }, h(Svg, { viewBox: "0 0 256 256", style: { width: 220, height: 220 } }, h(Path, { d, fill: BORDO, fillOpacity: 0.045 })));
 }
 
 function Footer({ protocolo }: { protocolo: string }) {
   return h(View, null,
-    h(Text, { style: s.rodape }, `Patrícia Lima · CALI RH · patricia@calirh.com`),
-    h(Text, { style: s.paginaNum, render: ({ pageNumber, totalPages }: any) => `${String(pageNumber).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}` }),
+    h(Text, { fixed: true, style: s.rodape }, `Patrícia Lima · CALI RH · patricia@calirh.com`),
+    h(Text, { fixed: true, style: s.paginaNum, render: ({ pageNumber, totalPages }: any) => `${String(pageNumber).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}` }),
   );
 }
 
 function TopoInner({ protocolo, emitidoEm, validade }: { protocolo: string; emitidoEm: string; validade: string }) {
-  return h(View, { style: s.topoInner },
+  return h(View, { fixed: true, style: s.topoInner },
     h(Image, { src: LOGO_URL, style: s.logo }),
     h(View, { style: s.topoDireita },
       h(Text, { style: s.topoProtocolo }, protocolo),
