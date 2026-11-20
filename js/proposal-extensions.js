@@ -45,3 +45,30 @@ export const recurringSteps = [
   ['Assinatura + pagamento da Ativação','Formalização do contrato e pagamento da Ativação para abertura da operação CALI.'],
   ['Kickoff','Reunião de início para organizar insumos, responsáveis e o primeiro ciclo.'],
 ];
+
+// Apenas a página 3 do CALI Partner possui composição editorial com espaço delimitado.
+export const PARTNER_PAGE3_LIMITS = {
+  scope:{label:'Escopo incluído',characters:800,items:8},
+  cadence:{label:'Cadência e formato',characters:320,items:4},
+  cycles:{label:'Ciclos e fases',characters:420,items:6},
+  caliResponsibilities:{label:'Responsabilidades da CALI',characters:220,items:3},
+  clientResponsibilities:{label:'Responsabilidades do cliente',characters:220,items:3},
+};
+export function partnerPage3Report(content) {
+  const fields=Object.entries(PARTNER_PAGE3_LIMITS).map(([key,limit])=>{
+    const items=(content[key]||[]).map((item,i)=>{
+      if(key!=='cycles') return String(item);
+      const parts=typeof item==='string'?item.split('|').map(s=>s.trim()).filter(Boolean):[item.title,item.focus,item.objective,item.duration].filter(Boolean);
+      if(parts[0]&&!/^ciclo\b/i.test(parts[0])) parts[0]=`Ciclo ${i+1} · ${parts[0]}`;
+      return parts.join(' · ');
+    });
+    const characters=items.join('\n').length;
+    return {key,...limit,used:characters,count:items.length,valid:characters<=limit.characters && items.length<=limit.items};
+  });
+  return {valid:fields.every(field=>field.valid),fields};
+}
+export function validatePartnerPage3(content) {
+  const report=partnerPage3Report(content);
+  if(!report.valid) throw new Error('Página 3 do CALI Partner: '+report.fields.filter(field=>!field.valid).map(field=>`${field.label}: ${field.used}/${field.characters} caracteres e ${field.count}/${field.items} itens`).join('; ')+'. Encurte os textos para manter escopo e responsabilidades na mesma página.');
+  return report;
+}

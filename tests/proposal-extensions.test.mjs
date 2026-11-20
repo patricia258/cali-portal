@@ -22,3 +22,12 @@ test('configuração inválida é recusada antes da persistência',()=>{
  assert.throws(()=>validateExtensions([{name:'R&S',amount:0,type:'custom'}],{percent:20}));
  assert.throws(()=>validateExtensions([{name:'R&S',amount:0,type:'recurring',recruiting:{processes:1.5}}],{percent:20}));
 });
+
+test('Partner limita só a composição da página 3, sem cortar conteúdo',async()=>{
+ const {partnerPage3Report,validatePartnerPage3}=await import('../js/proposal-extensions.js');
+ const content={scope:['Entrega contratada'],cadence:['Encontro mensal'],cycles:[{title:'Ciclo 1',focus:'Prioridade',objective:'Implantar',duration:'Mês 1'}],caliResponsibilities:['Orientar'],clientResponsibilities:['Executar']};
+ assert.equal(partnerPage3Report(content).valid,true);
+ const piped={...content,cycles:['Ciclo 1 | Prioridade | Implantar | Mês 1']};assert.equal(partnerPage3Report(content).fields[2].used,partnerPage3Report(piped).fields[2].used);
+ const tooMany={...content,scope:Array.from({length:9},()=> 'Entrega')};assert.throws(()=>validatePartnerPage3(tooMany),/Página 3/);assert.equal(tooMany.scope.length,9);
+ assert.throws(()=>validatePartnerPage3({...content,clientResponsibilities:['a'.repeat(221)]}),/Responsabilidades do cliente/);
+});

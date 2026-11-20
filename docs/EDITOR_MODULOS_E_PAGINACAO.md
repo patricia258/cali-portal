@@ -44,3 +44,21 @@ Teste adicional local de proposta marcada como enviada: salvar criou ID novo, ve
 Restaurados: moldura marfim do produto selecionado com borda dourada, nome, subtítulo e lima discreta; painel de explicação com fundo marfim e filete dourado; filetes contínuos nos subtítulos; cartões de responsabilidades com fundo suave, cantos retos, borda superior dourada e rótulos bordô. Faixa superior em degradê vetorial dourado/marfim em todas as páginas, inclusive capa e continuações.
 
 Verificação local dos onze cenários de PDF mantida: modelo convencional em seis páginas, estresse em 29, marcadores finais de conteúdo presentes, sem colisão com o rodapé e faixa verificada em todas as folhas. A alteração é no gerador canônico, utilizado tanto pela prévia do portal quanto pelo download e pelo anexo de e-mail; não altera valores nem dados dos clientes.
+
+## Composição aprovada em 20/11/2026
+
+A instrução mais recente delimita especificamente a página 3 do CALI Partner. Escopo, cadência, ciclos e responsabilidades agora dividem essa página. O editor mostra contagem de caracteres e itens e recusa salvar quando o limite for excedido, sem cortar textos. Limites atuais por bloco: escopo 800 caracteres/8 itens; cadência 320/4; ciclos 420/6; responsabilidades da CALI e do cliente 220/3 cada. O gerador também confere a paginação real e retorna orientação para encurtar o conteúdo caso uma composição excepcional ultrapasse a página. Essa exceção do Partner substitui a liberdade de paginação anterior apenas para esse conjunto; os outros modelos e seções continuam com páginas adicionais conforme necessário.
+
+Limites/exclusões migraram para “Limites e observações da contratação” na seção comercial. A abrangência não cria uma página própria: a apresentação padrão inclui apenas observações importantes (exclusões e expansão); o editor permite habilitar o resumo compacto de unidades/público junto das observações. Dados estruturados são preservados.
+
+Cada módulo complementar passou a ser apresentado como produto, com moldura, nome, descrição, condição de cobrança e agrupamentos de capacidade, entregas, responsabilidades e garantias. Campos vazios não criam cartões vazios; valores zero aparecem como inclusão na contratação, sem repetir linhas financeiras de R$ 0.
+
+A página comercial segue a última referência: cabeçalho em moldura; quadro bordô com referência, percentual e valor do desconto, mensalidade e ativação; cartões de capacidade, prazo, atuação e recrutamento quando contratado; condições, limites e bônus. A descrição da condição comercial é exibida em destaque, preservando sua data real. Cláusulas relacionadas são agrupadas mantendo o texto salvo. A indicação genérica de pagamento é omitida quando apenas repete o cronograma já descrito. Valores e regras de cálculo não foram alterados.
+
+### Verificação desta composição
+
+- Quatro testes unitários passaram, incluindo equivalência da contagem dos ciclos, excesso de itens/caracteres e preservação do texto recusado.
+- Editor local: aviso de excesso, bloqueio de salvamento, correção para estado válido, escolha de apresentação da abrangência, salvamento e prévia de seis páginas.
+- Leitura somente da proposta real da Academia do Rock pelo painel autenticado; nenhuma alteração em seu registro. Renderização com esses dados: seis páginas; responsabilidades na 3, R&S na 4 e condições/limites/bônus na 5; valores e data da condição comercial conferidos.
+- Limites máximos usuais do Partner renderizados em uma página; conteúdo muito acima recusado pelo gerador, sem truncamento.
+- Onze cenários de geração foram repetidos; estresse no CALI Full resultou em 28 páginas, com os nove marcadores finais presentes e sem colisão do texto com a área do rodapé. O teste extenso usa Full porque o Partner agora possui a restrição expressa acima.

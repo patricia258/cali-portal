@@ -67,7 +67,7 @@ async function limaPath() {
 
 const s = StyleSheet.create({
   pagina: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 88, paddingBottom: 64 },
-  paginaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 24, paddingBottom: 64, paddingHorizontal: 24 },
+  paginaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 24, paddingBottom: 70, paddingHorizontal: 24 },
   capaInner: { fontFamily: "CaliSans", fontSize: 9.5, lineHeight: 1.55, color: GRAFITE, paddingTop: 18, paddingHorizontal: 24 },
   marca: { position: "absolute", right: 0, bottom: 0, width: 220, height: 220 },
   rodapeLinha: { position: "absolute", top: 782, left: 24, right: 24, height: 30, flexDirection: "row", justifyContent: "space-between", paddingTop: 10, borderTopWidth: 0.5, borderTopColor: LINHA },
@@ -87,6 +87,22 @@ const s = StyleSheet.create({
   capaPacoteKicker: { fontSize: 7.4, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
   capaPacoteLabel: { fontFamily: "CaliSerif", fontSize: 17.5, fontWeight: 700, color: "#FFFFFF", marginTop: 2 },
 
+  compactRow:{fontSize:8.2,lineHeight:1.35,flexDirection:'row',gap:7,paddingVertical:5,paddingHorizontal:7,marginBottom:3,backgroundColor:MARFIM,borderRadius:3},
+  compactText:{fontSize:8.2,lineHeight:1.35,flex:1,color:GRAFITE},
+  compactTitle:{fontSize:8,fontWeight:700,color:BORDO,marginBottom:4},
+  compactPanel:{flex:1,fontSize:8.2,lineHeight:1.35,padding:8,backgroundColor:'#FAF7F3',borderWidth:.5,borderColor:LINHA,borderTopWidth:1,borderTopColor:DOURADO},
+  moduleGrid:{flexDirection:'row',gap:10,marginBottom:8},
+  moduleCard:{backgroundColor:'#FAF7F3',borderWidth:.6,borderColor:LINHA,borderTopWidth:1.2,borderTopColor:DOURADO,padding:10},
+  moduleLabel:{fontSize:6.6,fontWeight:700,letterSpacing:.45,color:DOURADO,marginBottom:4,textTransform:'uppercase'},
+  moduleValue:{fontSize:8.2,lineHeight:1.4,color:GRAFITE},
+  commercialRef:{fontSize:10,fontWeight:700,color:'#E9D7CE'},
+  discountBadge:{borderWidth:.6,borderColor:'#DCC08E',borderRadius:8,paddingHorizontal:7,paddingVertical:2,fontSize:6.8,color:'#DCC08E',marginLeft:8},
+  commercialRule:{borderTopWidth:.5,borderTopColor:'#7A3F4F',marginVertical:7},
+  commercialActivation:{fontSize:14,fontWeight:700,color:'#FFFFFF',marginTop:3,textAlign:'right'},
+  commercialActivationLabel:{fontSize:6.2,letterSpacing:.6,color:'#DCC08E',textAlign:'right'},
+  commercialNote:{fontSize:7.2,lineHeight:1.4,color:'#EAD9D1'},
+  commercialBullet:{flexDirection:'row',gap:6,marginBottom:2,fontSize:8.2,lineHeight:1.3},
+  commercialBulletText:{fontSize:8.2,lineHeight:1.3,color:GRAFITE,flex:1},
   solutionFrame: { backgroundColor:'#FAF7F3',borderWidth:.6,borderColor:'#D8C4A8',borderLeftWidth:2,borderLeftColor:DOURADO,padding:17,marginBottom:12,overflow:'hidden' },
   solutionExplanation: { backgroundColor:'#F6F1EB',borderLeftWidth:1.3,borderLeftColor:DOURADO,padding:12,marginBottom:12 },
   blockHead: { borderLeftWidth:1.3,borderLeftColor:DOURADO,paddingLeft:8,marginTop:14,marginBottom:10 },
@@ -145,7 +161,7 @@ const s = StyleSheet.create({
   bulletDotBordo: { fontSize: 9, color: BORDO, width: 10 },
   bulletTexto: { fontSize: 8.4, lineHeight: 1.55, color: GRAFITE, flex: 1 },
 
-  investBox: { backgroundColor: BORDO, borderRadius: 6, overflow: "hidden", marginTop: 6 },
+  investBox: { backgroundColor: BORDO, borderRadius: 6, overflow: "hidden", marginTop: 4 },
   investTopo: { height: 6, backgroundColor: DOURADO },
   investConteudo: { padding: 16 },
   investRotulo: { fontSize: 7.6, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
@@ -217,13 +233,13 @@ function TopoInner({ protocolo, emitidoEm, validade }: { protocolo: string; emit
   );
 }
 
-function BlockHead({eyebrow,title}:{eyebrow:string;title:string}){
-  return h(View,{style:s.blockHead,wrap:false,minPresenceAhead:30},h(Text,{style:[s.blocoRotulo,{marginTop:0,marginBottom:4}]},eyebrow),h(Text,{style:[s.blocoTitulo,{marginBottom:0}]},title));
+function BlockHead({eyebrow,title,compact=false}:{eyebrow:string;title:string;compact?:boolean}){
+  return h(View,{style:[s.blockHead,...(compact?[{marginTop:9,marginBottom:7}]:[])],wrap:false,minPresenceAhead:50},h(Text,{style:[s.blocoRotulo,{marginTop:0,marginBottom:4},...(compact?[{fontSize:7,lineHeight:1.2}]:[])]},eyebrow),h(Text,{style:[s.blocoTitulo,{marginBottom:0},...(compact?[{lineHeight:1.2}]:[])]},title));
 }
-function SecHead({ num, eyebrow, titulo, intro, markPath }: { num: string; eyebrow: string; titulo: string; intro?: string; markPath?:string }) {
-  if(num==='02') return h(View,{style:s.solutionFrame,wrap:false,minPresenceAhead:35},
+function SecHead({ num, eyebrow, titulo, intro, markPath, framed=false }: { num: string; eyebrow: string; titulo: string; intro?: string; markPath?:string; framed?:boolean }) {
+  if(num==='02' || framed) return h(View,{style:[s.solutionFrame,...(num==='05'?[{padding:10,marginBottom:8}]:[])],wrap:false,minPresenceAhead:35},
     markPath?h(Svg,{viewBox:'0 0 256 256',style:{position:'absolute',right:-5,top:-10,width:125,height:130}},h(Path,{d:markPath,fill:BORDO,fillOpacity:.045})):null,
-    h(View,{style:[s.secHead,{marginBottom:0,alignItems:'center'}]},h(Text,{style:s.secNum},num),h(View,{style:{flex:1}},h(Text,{style:s.secEyebrow},eyebrow),h(Text,{style:[s.secTitulo,{fontSize:28.5,lineHeight:1.2}]},titulo),intro?h(Text,{style:s.secIntro},intro):null)));
+    h(View,{style:[s.secHead,{marginBottom:0,alignItems:'center'}]},h(Text,{style:s.secNum},num),h(View,{style:{flex:1}},h(Text,{style:s.secEyebrow},eyebrow),h(Text,{style:[s.secTitulo,{fontSize:num==='02'?28.5:22,lineHeight:1.2}]},titulo),intro?h(Text,{style:s.secIntro},intro):null)));
 
   return h(View, {wrap:false, minPresenceAhead:36},
     h(View, { style: s.secHead },
@@ -275,6 +291,29 @@ function bullets(items: string[]) {
 function detailBlock(label:string,value:unknown){
   if(value===null||value===undefined||String(value).trim()==='')return null;
   return h(View,{style:{marginBottom:10}},h(Text,{style:s.blocoRotulo,minPresenceAhead:28},label),...textParts(String(value),1200).map((part,i)=>h(Text,{key:i,style:s.p,orphans:2,widows:2},part)));
+}
+
+function compactNumbered(items:string[],columns=false){
+  const row=(item:string,i:number)=>h(View,{key:i,style:s.compactRow,wrap:false},h(Text,{style:{fontSize:8,fontWeight:700,color:DOURADO,width:14}},String(i+1).padStart(2,'0')),h(Text,{style:s.compactText},item));
+  if(!columns)return items.map(row);
+  return Array.from({length:Math.ceil(items.length/2)},(_,i)=>h(View,{key:i,style:{flexDirection:'row',gap:10},wrap:false},h(View,{style:{flex:1}},row(items[i*2],i*2)),h(View,{style:{flex:1}},items[i*2+1]?row(items[i*2+1],i*2+1):null)));
+}
+function compactBullets(items:string[]){
+  return items.map((item,i)=>h(View,{key:i,style:{flexDirection:'row',gap:5,marginBottom:4},wrap:false},h(Text,{style:{fontSize:8,color:DOURADO,width:7}},'•'),h(Text,{style:s.compactText},item)));
+}
+function commercialBullets(items:string[],bold=false){
+  return items.flatMap((item,i)=>textParts(item,1500).map((part,j)=>h(View,{key:`${i}-${j}`,style:s.commercialBullet,wrap:false},h(Text,{style:{fontSize:8,color:DOURADO,width:6}},j?'':'•'),h(Text,{style:[s.commercialBulletText,...(bold?[{fontWeight:700}]:[])]},part))));
+}
+function moduleGroup(label:string,entries:[string,unknown][]){
+  const rows=entries.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='');
+  if(!rows.length)return null;
+  return h(View,{style:{marginBottom:8}},h(BlockHead,{eyebrow:'MÓDULO COMPLEMENTAR',title:label}),...rows.flatMap(([name,value],i)=>textParts(String(value),1000).map((part,j)=>h(View,{key:`${i}-${j}`,style:s.moduleCard,wrap:false},j?null:h(Text,{style:s.moduleLabel},name),h(Text,{style:s.moduleValue},part)))));
+}
+function moduleFacts(entries:[string,unknown][]){
+  const filled=entries.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='');
+  const rows=filled.filter(([,value])=>String(value).length<=250);
+  const longRows=filled.filter(([,value])=>String(value).length>250);
+  return h(View,null,...Array.from({length:Math.ceil(rows.length/2)},(_,i)=>h(View,{key:i,style:s.moduleGrid,wrap:false},...[rows[i*2],rows[i*2+1]].filter(Boolean).map((entry,k)=>h(View,{key:k,style:[s.moduleCard,{flex:1}]},entry?h(Text,{style:s.moduleLabel},entry[0]):null,entry?h(Text,{style:s.moduleValue},String(entry[1])):null)))),...longRows.flatMap(([label,value],i)=>textParts(String(value),900).map((part,j)=>h(View,{key:`long-${i}-${j}`,style:s.moduleCard,wrap:false},j?null:h(Text,{style:s.moduleLabel},label),h(Text,{style:s.moduleValue},part)))));
 }
 
 function condicoesImportantes(months: number, hours: number, payment: any, hasScope: boolean) {
@@ -349,6 +388,9 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   const modules = calc.modulesEnabled && Array.isArray(calc.modules) ? calc.modules : [];
   const moduleSum=(type: string)=>modules.filter((m:any)=>m.type===type).reduce((sum:number,m:any)=>sum+Math.max(0,Number(m.amount)||0),0);
   const monthlyTotal=finalUnit+moduleSum('recurring');
+  const isPartner=proposal.service_slug==='assessoria-estrategica'&&proposal.package_code==='PARTNER';
+  let partnerScopePageCount=1;
+  const cycleLines=cycles.map((c,i)=>[(/^ciclo\b/i.test(c.title)?c.title:`Ciclo ${i+1} · ${c.title}`),c.focus,c.objective,c.duration].filter(Boolean).join(' · '));
 
 
   const protocoloHeader = h(View, { style: s.capaTopo },
@@ -412,91 +454,109 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(GoldTop), h(Footer, { protocolo }),
   ));
 
-  // PÁGINA 3 — ESCOPO
-  paginas.push(h(Page, { key: "p3", size: "A4", style: s.paginaInner },
-    h(Watermark, { d }),
-    h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
-    h(SecHead, { num: "03", eyebrow: "ESCOPO CONTRATADO", titulo: "O que entra neste trabalho", intro: "O escopo abaixo traduz a prioridade desta versão em entregas claras, sem misturar o que pertence a etapas futuras." }),
-    scope.length ? h(View, null, numberedWide(scope)) : null,
-    cadence.length ? h(BlockHead,{eyebrow:"RITMO E FORMATO",title:"Como a operação acontece"}) : null,
-    cadence.length ? twoColNumbered(cadence) : null,
-    cycles.length ? h(BlockHead,{eyebrow:"SEQUÊNCIA PREVISTA",title:"Ciclos e fases"}) : null,
-    cycles.length ? twoColNumbered(cycles.map((c, i) => [(/^ciclo\b/i.test(c.title) ? c.title : `Ciclo ${i + 1} · ${c.title}`),c.focus,c.objective,c.duration].filter(Boolean).join(" · "))) : null,
-    h(GoldTop), h(Footer, { protocolo }),
-  ));
+  // Partner reúne escopo e responsabilidades na página 3. Outros modelos mantêm fluxo livre.
+  paginas.push(h(Page,{key:'p3',size:'A4',style:s.paginaInner},
+    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+    isPartner?h(View,{fixed:true,style:{position:'absolute'},render:({subPageNumber}:any)=>{partnerScopePageCount=Math.max(partnerScopePageCount,subPageNumber||1);return null;}}):null,
+    h(SecHead,{num:'03',eyebrow:'ESCOPO E FORMA DE ATUAÇÃO',titulo:'O que entra neste trabalho'}),
+    scope.length?h(View,null,...(isPartner?compactNumbered(scope):numberedWide(scope))):null,
+    cadence.length?h(BlockHead,{eyebrow:'RITMO E FORMATO',title:'Como a operação acontece',compact:isPartner}):null,
+    cadence.length?(isPartner?h(View,null,...compactNumbered(cadence,true)):twoColNumbered(cadence)):null,
+    cycles.length?h(BlockHead,{eyebrow:'SEQUÊNCIA PREVISTA',title:'Ciclos e fases',compact:isPartner}):null,
+    cycles.length?(isPartner?h(View,null,...compactNumbered(cycleLines,true)):twoColNumbered(cycleLines)):null,
+    isPartner&&(caliResponsibilities.length||clientResponsibilities.length)?h(View,null,
+      h(BlockHead,{eyebrow:'RESPONSABILIDADES',title:'Quem faz o quê',compact:true}),
+      h(View,{style:{flexDirection:'row',gap:10},wrap:false},
+        h(View,{style:s.compactPanel},h(Text,{style:s.compactTitle},'A CALI conduz'),...compactBullets(caliResponsibilities)),
+        h(View,{style:s.compactPanel},h(Text,{style:s.compactTitle},'A empresa viabiliza'),...compactBullets(clientResponsibilities))),
+    ):null,
+    h(GoldTop),h(Footer,{protocolo})));
 
-  // PÁGINA 4 — GOVERNANÇA
-  paginas.push(h(Page, { key: "p4", size: "A4", style: s.paginaInner },
-    h(Watermark, { d }),
-    h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
-    h(SecHead, { num: "04", eyebrow: "GOVERNANÇA DO TRABALHO", titulo: "Responsabilidades, continuidade e limites", intro: "Uma boa proposta também deixa claro quem conduz cada parte, o que depende da empresa e o que não está incluído nesta contratação." }),
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(BlockHead,{eyebrow:"RESPONSABILIDADES",title:"Quem faz o quê"}) : null,
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(View, { style: [s.pairRow,...((caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800?[{flexDirection:"column" as const}]:[])], wrap: (caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800 },
-      h(View, { style: [s.pairBox,s.responsibilityBox] }, h(Text, { style: [s.pairRotulo,s.responsibilityLabel], minPresenceAhead:28 }, "A CALI conduz"), ...bullets(caliResponsibilities)),
-      h(View, { style: [s.pairBox,s.responsibilityBox] }, h(Text, { style: [s.pairRotulo,s.responsibilityLabel], minPresenceAhead:28 }, "A empresa viabiliza"), ...bullets(clientResponsibilities)),
-    ) : null,
-    roadmapItems.length ? h(BlockHead,{eyebrow:"CONTINUIDADE",title:"O que fica organizado para depois"}) : null,
-    roadmapItems.length ? h(View, null, numberedNarrow(roadmapItems)) : null,
-    outOfScope.length ? h(BlockHead,{eyebrow:"LIMITES DESTA PROPOSTA",title:"O que não está incluído"}) : null,
-    outOfScope.length ? twoColBullets(outOfScope, true) : null,
-    h(GoldTop), h(Footer, { protocolo }),
-  ));
-
+  if(!isPartner) paginas.push(h(Page,{key:'p4',size:'A4',style:s.paginaInner},
+    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+    h(SecHead,{num:'04',eyebrow:'GOVERNANÇA DO TRABALHO',titulo:'Responsabilidades e continuidade'}),
+    h(BlockHead,{eyebrow:'RESPONSABILIDADES',title:'Quem faz o quê'}),
+    h(View,{style:[s.pairRow,...((caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800?[{flexDirection:'column' as const}]:[])],wrap:(caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800},
+      h(View,{style:[s.pairBox,s.responsibilityBox]},h(Text,{style:[s.pairRotulo,s.responsibilityLabel]},'A CALI conduz'),...bullets(caliResponsibilities)),
+      h(View,{style:[s.pairBox,s.responsibilityBox]},h(Text,{style:[s.pairRotulo,s.responsibilityLabel]},'A empresa viabiliza'),...bullets(clientResponsibilities))),
+    roadmapItems.length?h(BlockHead,{eyebrow:'CONTINUIDADE',title:'O que fica organizado para depois'}):null,
+    roadmapItems.length?h(View,null,...numberedNarrow(roadmapItems)):null,
+    h(GoldTop),h(Footer,{protocolo})));
 
   const coverage=calc.coverage;
-  if(coverage?.enabled) paginas.push(h(Page,{key:'coverage',size:'A4',style:s.paginaInner},
-    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
-    h(SecHead,{num:'+',eyebrow:'ABRANGÊNCIA CONTRATUAL',titulo:'Onde e com quem vamos atuar'}),
-    ...COVERAGE_FIELDS.map(([key,label])=>detailBlock(label,coverage[key])),h(GoldTop), h(Footer,{protocolo})));
-  if(modules.length) paginas.push(h(Page,{key:'modules',size:'A4',style:s.paginaInner},
-    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
-    h(SecHead,{num:'+',eyebrow:'ENTREGAS COMPLEMENTARES',titulo:'Módulos complementares contratados',intro:'Capacidade operacional específica, separada das horas executivas do pacote principal.'}),
-    ...modules.flatMap((m:any,i:number)=>[
-      h(Text,{key:`module-${i}`,style:s.blocoTitulo,minPresenceAhead:70},`${i+1}. ${m.name}`),
-      detailBlock('Cobrança',`${currency(Number(m.amount)||0)} · ${{recurring:'Recorrente',one_time:'Pontual',custom:'Personalizada'}[m.type]||m.type}${m.billingLabel?' · '+m.billingLabel:''}`),
-      ...MODULE_FIELDS.filter(([key])=>!['name','amount','billingLabel'].includes(key)).map(([key,label])=>detailBlock(label,m[key])),
-      ...(m.kind==='recruiting'?RECRUITING_FIELDS.map(([key,label])=>detailBlock(label,m.recruiting?.[key])):[]),
-    ]),h(GoldTop), h(Footer,{protocolo})));
+  // O módulo é apresentado como produto, com agrupamentos de escopo e condições.
+  for(const [i,m] of modules.entries()){
+    const rs=m.kind==='recruiting'?m.recruiting||{}:{};
+    const billing=Number(m.amount||0)===0?'Incluído na contratação':`${currency(Number(m.amount)||0)}${m.type==='recurring'?' / mês':m.type==='one_time'?' · pontual':''}`;
+    paginas.push(h(Page,{key:`module-${i}`,size:'A4',style:s.paginaInner},
+      h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+      h(SecHead,{num:'+',eyebrow:'MÓDULO COMPLEMENTAR CONTRATADO',titulo:m.name,intro:billing,markPath:d,framed:true}),
+      m.description?h(View,{style:s.solutionExplanation,wrap:String(m.description).length>1600},h(Text,{style:[s.p,{marginBottom:0}]},m.description)):null,
+      moduleFacts([
+        ['Processos / período',rs.processes!=null&&rs.processes!==''?`${rs.processes} · ${rs.period||m.periodicity||'Conforme contrato'}`:''],
+        ['Simultaneidade',rs.simultaneous!=null&&rs.simultaneous!==''?`Até ${rs.simultaneous} processos`:''],
+        ['Capacidade contratada',m.capacity],['Periodicidade',m.periodicity],['Periodicidade de R&S',rs.processes==null||rs.processes===''?rs.period:''],['Vigência',m.term],['Cargos e níveis',rs.eligibleRoles],
+      ]),
+      moduleGroup('Entregas e abrangência',[
+        ['Entregas contratadas',m.deliverables],['Abrangência',m.coverage],['Unidades atendidas',rs.units],['Etapas do processo',rs.stages],
+      ]),
+      moduleGroup('Avaliação e decisão',[
+        ['Avaliação técnica',rs.technicalAssessment],['Entrevista e avaliação comportamental não clínica',rs.behavioralAssessment],['Apresentação de candidatos',rs.candidateCriteria],['Entrevista e decisão final',rs.finalDecision],
+      ]),
+      moduleGroup('Responsabilidades e condições do módulo',[
+        ['A CALI conduz',m.caliResponsibilities],['O cliente viabiliza',m.clientResponsibilities],['Condições específicas',m.conditions],['Limites e exclusões',m.exclusions],['Condição de cobrança',m.billingLabel],['Custos adicionais',rs.extraCosts],['Garantias',m.guarantee],['Garantia de reposição',rs.replacementGuarantee],['Máximo de reposições',rs.maxReplacements],['Prazo de reposição',rs.replacementDeadline],['Condições que invalidam a garantia',rs.invalidGuarantee],['Alteração de perfil',rs.profileChanges],['Processos não concluídos',rs.unfinishedProcesses],['Vagas não utilizadas',rs.unusedVacancies],
+      ]),h(GoldTop),h(Footer,{protocolo})));
+  }
 
-  // PÁGINA 5 — INVESTIMENTO
-  const cards = [
-    hours ? { rotulo: "Capacidade", valor: `Até ${hours}h/mês` } : null,
-    months ? { rotulo: "Prazo mínimo", valor: `${months} ${months === 1 ? "mês" : "meses"}` } : null,
-    { rotulo: "Natureza", valor: natureza },
-  ].filter(Boolean) as { rotulo: string; valor: string }[];
-  paginas.push(h(Page, { key: "p5", size: "A4", style: s.paginaInner },
-    h(Watermark, { d }),
-    h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
-    h(SecHead, { num: "05", eyebrow: "CONDIÇÕES COMERCIAIS", titulo: "Investimento e condições", intro: "O desenho comercial abaixo corresponde ao escopo, à capacidade reservada e ao prazo desta versão." }),
-    h(View, { style: s.investBox },
-      h(View, { style: s.investTopo }),
-      h(View, { style: s.investConteudo },
-        h(Text, { style: s.investRotulo }, isRecorrente ? "MENSALIDADE" : "INVESTIMENTO"),
-        h(View, { style: s.investValorLinha }, h(Text, { style: s.investValor }, currency(isRecorrente?monthlyTotal:finalUnit)), h(Text, { style: s.investPorMes }, isRecorrente ? "por mês" : "pelo projeto")),
-        discountValue > 0 ? h(View, { style: s.investDivider }) : null,
-        discountValue > 0 ? h(View, { style: s.investRefRow },
-          h(View, { style: s.investRefCol }, h(Text, { style: s.investRefRotulo }, "REFERÊNCIA"), h(Text, { style: s.investRefValor }, currency(subtotal))),
-          h(View, { style: s.investRefCol }, h(Text, { style: s.investRefRotulo }, "CONDIÇÃO COMERCIAL"), h(Text, { style: s.investRefValor }, `− ${currency(discountValue)}`)),
-        ) : null,
-      ),
-    ),
-    isRecorrente ? h(View, { style: [s.ativacaoBox,...(String(calc.activation?.description||"").length>1200?[{flexDirection:"column" as const,alignItems:"stretch" as const}]:[])], wrap: String(calc.activation?.description||"").length>1200 },
-      h(View, { style: s.ativacaoLeft }, h(Text, { style: s.ativacaoRotulo }, `Ativação · ${ativacaoPercent.toLocaleString("pt-BR")}%`), h(Text, { style: s.ativacaoValor }, currency(ativacaoValor))),
-      h(Text, { style: s.ativacaoTexto }, calc.activation?.description ?? "Inclui a preparação para o início da operação: organização de insumos e acessos, configuração da dinâmica de trabalho, planejamento do primeiro ciclo e preparação do kickoff. É uma cobrança única na assinatura, separada das mensalidades, não abatida e não reembolsável."),
-    ) : null,
-    modules.length ? h(View,{style:{marginTop:12}},
-      detailBlock('Pacote principal',currency(finalUnit)),
-      detailBlock('Módulos recorrentes / mês',currency(moduleSum('recurring'))),
-      detailBlock('Módulos pontuais',currency(moduleSum('one_time'))),
-      ...modules.filter((m:any)=>m.type==='custom').map((m:any)=>detailBlock(m.name,`${currency(m.amount)} · ${m.billingLabel||'Conforme condição do módulo'}`)),
-      h(Text,{style:s.p},'A ativação incide sobre o valor final do pacote principal. Os módulos não alteram automaticamente sua base de cálculo.'),
-    ) : null,
-    cards.length ? h(View, { style: s.cardsLinha }, ...cards.map((c, i) => h(View, { key: i, style: s.card }, h(Text, { style: s.cardRotulo }, c.rotulo), h(Text, { style: s.cardValor }, c.valor)))) : null,
-    h(BlockHead,{eyebrow:"CONDIÇÕES IMPORTANTES",title:"Para esta contratação"}),
-    twoColBullets(Array.isArray(calc.commercialConditions)?clean(calc.commercialConditions):condicoesImportantes(months, hours, payment, scope.length > 0)),
-    proposal.payment_terms ? detailBlock("Condições de pagamento",proposal.payment_terms) : null,
-    h(GoldTop), h(Footer, { protocolo }),
-  ));
+  // Condições comerciais: composição aprovada, com valores derivados dos dados salvos.
+  const recruitingIncluded=modules.some((m:any)=>m.kind==='recruiting');
+  const deliveryMode=calc.presentation?.deliveryMode||(isPartner?'100% online':natureza);
+  const cards=[hours?{rotulo:'Capacidade',valor:`Até ${hours}h/mês`}:null,months?{rotulo:'Prazo mínimo',valor:`${months} ${months===1?'mês':'meses'}`}:null,{rotulo:'Atuação',valor:deliveryMode},recruitingIncluded?{rotulo:'Recrutamento',valor:'Incluído'}:null].filter(Boolean) as {rotulo:string;valor:string}[];
+  const activationDescription=calc.activation?.description ?? 'Inclui a preparação para o início da operação: organização de insumos e acessos, configuração da dinâmica de trabalho, planejamento do primeiro ciclo e preparação do kickoff. É uma cobrança única na assinatura, separada das mensalidades, não abatida e não reembolsável.';
+  const commercialConditions=Array.isArray(calc.commercialConditions)?clean(calc.commercialConditions):condicoesImportantes(months,hours,payment,scope.length>0);
+  // Agrupa cláusulas relacionadas sem mudar uma palavra das condições salvas.
+  const groupConditions=(items:string[])=>{
+    const result=[...items];
+    const merge=(first:RegExp,second:RegExp)=>{const a=result.findIndex(v=>first.test(v)),b=result.findIndex(v=>second.test(v));if(a>=0&&b>=0&&a!==b){result[a]=`${result[a]} ${result[b]}`;result.splice(b,1);}};
+    merge(/^Contrato mínimo/i,/^Cancelamento após/i);
+    merge(/^Mensalidades pagas/i,/^Reajuste a cada/i);
+    return result;
+  };
+  const unique=(items:string[])=>items.filter((item,i,all)=>all.findIndex(v=>v.trim()===item.trim())===i);
+  const coverageNotes=coverage?.enabled?[
+    coverage.displayMode==='summary'&&(coverage.units||coverage.audience||coverage.unitCount)?`Abrangência${coverage.unitCount?` (${coverage.unitCount} unidades)`:''}: ${[coverage.units,coverage.audience].filter(Boolean).join(' ')}`:'',
+    coverage.excluded?`Fora da abrangência: ${coverage.excluded}`:'',
+    coverage.expansion?`Expansão futura: ${coverage.expansion}`:'',
+    // A contratante só precisa reaparecer quando difere da empresa da proposta.
+    coverage.displayMode==='summary'&&coverage.company&&coverage.company!==empresa?`Empresa contratante: ${coverage.company}`:'',
+  ].filter(Boolean):[];
+  const observations=unique([...outOfScope,...coverageNotes,...(isPartner?roadmapItems.map(item=>`Ciclo posterior: ${item}`):[])]);
+  paginas.push(h(Page,{key:'p5',size:'A4',style:s.paginaInner},
+    h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
+    h(SecHead,{num:'05',eyebrow:'CONDIÇÕES COMERCIAIS',titulo:'Investimento e condições',markPath:d,framed:true}),
+    h(View,{style:s.investBox},h(View,{style:s.investTopo}),h(View,{style:[s.investConteudo,{padding:12,fontSize:8,lineHeight:1.3}]},
+      h(View,{style:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start'}},
+        h(View,null,h(Text,{style:s.investRefRotulo},moduleSum('recurring')>0?'REFERÊNCIA DO PACOTE':'REFERÊNCIA'),h(View,{style:{flexDirection:'row',alignItems:'center'}},h(Text,{style:[s.commercialRef,...(discountValue>0?[{textDecoration:'line-through' as const}]:[])]},currency(subtotal)),discountValue>0?h(Text,{style:s.discountBadge},`${Number((discountValue/Math.max(1,subtotal)*100).toFixed(2)).toLocaleString('pt-BR')}% de desconto`):null)),
+        discountValue>0?h(View,{style:{alignItems:'flex-end'}},h(Text,{style:s.investRefRotulo},'CONDIÇÃO COMERCIAL'),h(Text,{style:s.investRefValor},`− ${currency(discountValue)}`)):null),
+      h(View,{style:s.commercialRule}),
+      h(View,{style:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}},
+        h(View,{style:{flex:1}},h(Text,{style:s.investRotulo},isRecorrente?(moduleSum('recurring')>0?'MENSALIDADE TOTAL':'MENSALIDADE'):'INVESTIMENTO'),h(View,{style:s.investValorLinha},h(Text,{style:s.investValor},currency(isRecorrente?monthlyTotal:finalUnit)),h(Text,{style:s.investPorMes},isRecorrente?'por mês':'pelo projeto'))),
+        isRecorrente?h(View,{style:{maxWidth:175}},h(Text,{style:s.commercialActivationLabel},`ATIVAÇÃO ÚNICA · ${ativacaoPercent.toLocaleString('pt-BR')}%`),h(Text,{style:s.commercialActivation},currency(ativacaoValor))):null),
+      isRecorrente&&activationDescription?h(View,null,h(View,{style:s.commercialRule}),h(Text,{style:s.commercialNote},activationDescription)):null,
+    )),
+    cards.length?h(View,{style:[s.cardsLinha,{marginTop:8,marginBottom:2}]},...cards.map((card,i)=>h(View,{key:i,style:[s.card,{padding:8,fontSize:8,lineHeight:1.25}]},h(Text,{style:[s.cardRotulo,{lineHeight:1.2}]},card.rotulo),h(Text,{style:[s.cardValor,{lineHeight:1.25}]},card.valor)))):null,
+    // Só discrimina cobranças extras efetivas; zeros não criam blocos repetidos.
+    moduleSum('recurring')>0||moduleSum('one_time')>0||modules.some((m:any)=>m.type==='custom')?h(View,{style:{marginTop:10}},
+      moduleSum('recurring')>0?h(Text,{style:s.p},`Pacote: ${currency(finalUnit)} / mês · Módulos recorrentes: ${currency(moduleSum('recurring'))} / mês.`):null,
+      moduleSum('one_time')>0?h(Text,{style:s.p},`Módulos pontuais: ${currency(moduleSum('one_time'))}.`):null,
+      ...modules.filter((m:any)=>m.type==='custom').map((m:any,i:number)=>h(Text,{key:i,style:s.p},`${m.name}: ${currency(Number(m.amount)||0)} · ${m.billingLabel||'Conforme condição contratada'}`)),
+    ):null,
+    h(BlockHead,{eyebrow:'CONDIÇÕES IMPORTANTES',title:'Para esta contratação',compact:true}),
+    ...commercialBullets(groupConditions(unique([...commercialConditions,...(proposal.payment_terms&&proposal.payment_terms.trim()!=='Pagamento conforme cronograma definido na proposta.'?[proposal.payment_terms]:[]),...(modules.length?['A ativação incide sobre o valor final do pacote principal. Os módulos não alteram automaticamente sua base de cálculo.']:[])]))),
+    discountValue>0&&calc.discountDescription?h(View,null,...commercialBullets([calc.discountDescription],true)):null,
+    observations.length?h(View,null,h(BlockHead,{eyebrow:'LIMITES E OBSERVAÇÕES DA CONTRATAÇÃO',title:'Abrangência e limites acordados',compact:true}),...commercialBullets(observations)):null,
+    bonus?.title?h(View,{style:[s.bonusBox,{padding:8,marginTop:6,fontSize:8,lineHeight:1.3}],wrap:String(bonus?.description||'').length>2000},h(Text,{style:s.bonusRotulo},'Bônus selecionado'),h(Text,{style:[s.bonusTitulo,{lineHeight:1.2}]},bonus.title),bonus.description?h(Text,{style:[s.bonusDescricao,{fontSize:7.8,lineHeight:1.35}]},bonus.description):null):null,
+    h(GoldTop),h(Footer,{protocolo})));
 
   // PÁGINA 6 — PRÓXIMOS PASSOS + ASSINATURA
   const passos: [string, string][] = Array.isArray(calc.nextSteps) ? calc.nextSteps : isRecorrente ? [
@@ -520,11 +580,6 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     ),
     h(View, { style: s.secDivider }),
     h(View, null, ...passos.flatMap(([titulo,texto],i)=>textParts(texto||'',900).length ? textParts(texto||'',900).map((part,j)=>h(View,{key:`step-${i}-${j}`,style:i===0&&j===0?s.passoRowFirst:s.passoRow,wrap:false},h(Text,{style:s.passoNum},j?'':String(i+1).padStart(2,'0')),h(View,{style:{flex:1}},j?null:h(Text,{style:s.passoTitulo},titulo),h(Text,{style:s.passoTexto},part)))) : [h(View,{key:i,style:s.passoRow,wrap:false},h(Text,{style:s.passoNum},String(i+1).padStart(2,'0')),h(Text,{style:s.passoTitulo},titulo))])),
-    bonus?.title ? h(View, { style: s.bonusBox, wrap: String(bonus?.description||"").length>2000 },
-      h(Text, { style: s.bonusRotulo }, "Bônus selecionado"),
-      h(Text, { style: s.bonusTitulo }, bonus.title),
-      bonus.description ? h(Text, { style: s.bonusDescricao }, bonus.description) : null,
-    ) : null,
     h(View, { style: s.assinaturaRow, wrap: false },
       h(Text, { style: s.assinaturaNome }, carimbo.signatario_nome),
       h(Text, { style: s.assinaturaCargo }, carimbo.signatario_cargo),
@@ -547,6 +602,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   // A numeração é aplicada após a paginação real, inclusive quando o conteúdo cresce.
   // O render callback de Text não é confiável nesta versão do renderer no Edge.
   const rendered = await pdf(el as never).toBlob();
+  if(isPartner && partnerScopePageCount>1) throw new Error("PARTNER_PAGE3_OVERFLOW: O conteúdo da página 3 do CALI Partner excedeu o espaço disponível. Encurte escopo, cadência, ciclos ou responsabilidades no editor. Nenhum texto foi cortado.");
   const numbered = await PDFDocument.load(await rendered.arrayBuffer());
   const footerFont = await numbered.embedFont(StandardFonts.Helvetica);
   const sheets = numbered.getPages();
@@ -590,6 +646,6 @@ Deno.serve(async (req) => {
     return new Response(bytes, { headers: { ...cors(req), "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="teste-${proposal.submission.protocol}.pdf"` } });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: String((error as Error)?.stack || error) }), { status: 500, headers: { ...cors(req), "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: String((error as Error)?.message || error).replace(/^PARTNER_PAGE3_OVERFLOW:\s*/, "") }), { status: String((error as Error)?.message||error).includes("PARTNER_PAGE3_OVERFLOW")?400:500, headers: { ...cors(req), "Content-Type": "application/json" } });
   }
 });
