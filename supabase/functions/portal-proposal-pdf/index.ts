@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
-import { Document, Font, Image, Page, Path, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
+import { Document, Defs, Font, Image, LinearGradient, Page, Path, Rect, Stop, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
 import { createElement as h } from "npm:react@18.3.1";
 import QRCode from "npm:qrcode@1.5.4";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
@@ -86,6 +86,12 @@ const s = StyleSheet.create({
   capaPacoteWrap: { marginTop: 22, paddingLeft: 12, borderLeftWidth: 2, borderLeftColor: DOURADO },
   capaPacoteKicker: { fontSize: 7.4, fontWeight: 700, letterSpacing: 1, color: "#DCC08E" },
   capaPacoteLabel: { fontFamily: "CaliSerif", fontSize: 17.5, fontWeight: 700, color: "#FFFFFF", marginTop: 2 },
+
+  solutionFrame: { backgroundColor:'#FAF7F3',borderWidth:.6,borderColor:'#D8C4A8',borderLeftWidth:2,borderLeftColor:DOURADO,padding:17,marginBottom:12,overflow:'hidden' },
+  solutionExplanation: { backgroundColor:'#F6F1EB',borderLeftWidth:1.3,borderLeftColor:DOURADO,padding:12,marginBottom:12 },
+  blockHead: { borderLeftWidth:1.3,borderLeftColor:DOURADO,paddingLeft:8,marginTop:14,marginBottom:10 },
+  responsibilityBox: { borderRadius:0,backgroundColor:'#FAF7F3',borderTopWidth:1.25,borderTopColor:'#CBB18A' },
+  responsibilityLabel: { color:BORDO,fontSize:7.4 },
 
   // Section headers (inner pages)
   secHead: { flexDirection: "row", alignItems: "flex-start", gap: 14, marginBottom: 14 },
@@ -184,6 +190,12 @@ const s = StyleSheet.create({
   qr: { width: 56, height: 56 },
 });
 
+function GoldTop(){
+  return h(Svg,{fixed:true,viewBox:'0 0 595.28 5',style:{position:'absolute',top:0,left:0,width:595.28,height:5}},
+    h(Defs,null,h(LinearGradient,{id:'goldTop',x1:'0%',y1:'0%',x2:'100%',y2:'0%'},h(Stop,{offset:'0%',stopColor:DOURADO}),h(Stop,{offset:'100%',stopColor:'#EAE0D1'}))),
+    h(Rect,{x:0,y:0,width:595.28,height:5,fill:'url(#goldTop)'}));
+}
+
 function Watermark({ d }: { d: string }) {
   if (!d) return null;
   return h(View, { fixed: true, style: s.marca }, h(Svg, { viewBox: "0 0 256 256", style: { width: 220, height: 220 } }, h(Path, { d, fill: BORDO, fillOpacity: 0.045 })));
@@ -205,7 +217,14 @@ function TopoInner({ protocolo, emitidoEm, validade }: { protocolo: string; emit
   );
 }
 
-function SecHead({ num, eyebrow, titulo, intro }: { num: string; eyebrow: string; titulo: string; intro?: string }) {
+function BlockHead({eyebrow,title}:{eyebrow:string;title:string}){
+  return h(View,{style:s.blockHead,wrap:false,minPresenceAhead:30},h(Text,{style:[s.blocoRotulo,{marginTop:0,marginBottom:4}]},eyebrow),h(Text,{style:[s.blocoTitulo,{marginBottom:0}]},title));
+}
+function SecHead({ num, eyebrow, titulo, intro, markPath }: { num: string; eyebrow: string; titulo: string; intro?: string; markPath?:string }) {
+  if(num==='02') return h(View,{style:s.solutionFrame,wrap:false,minPresenceAhead:35},
+    markPath?h(Svg,{viewBox:'0 0 256 256',style:{position:'absolute',right:-5,top:-10,width:125,height:130}},h(Path,{d:markPath,fill:BORDO,fillOpacity:.045})):null,
+    h(View,{style:[s.secHead,{marginBottom:0,alignItems:'center'}]},h(Text,{style:s.secNum},num),h(View,{style:{flex:1}},h(Text,{style:s.secEyebrow},eyebrow),h(Text,{style:[s.secTitulo,{fontSize:28.5,lineHeight:1.2}]},titulo),intro?h(Text,{style:s.secIntro},intro):null)));
+
   return h(View, {wrap:false, minPresenceAhead:36},
     h(View, { style: s.secHead },
       h(Text, { style: s.secNum }, num),
@@ -373,26 +392,24 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
         ),
       ),
     ),
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
   // PÁGINA 2 — SOLUÇÃO RECOMENDADA
   paginas.push(h(Page, { key: "p2", size: "A4", style: s.paginaInner },
     h(Watermark, { d }),
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
-    h(SecHead, { num: "02", eyebrow: "SOLUÇÃO RECOMENDADA", titulo: pkg.label, intro: pkg.tagline || undefined }),
-    h(Text, { style: s.p }, proposal.public_notes || calc.cycleObjective || "Solução desenhada a partir do contexto apresentado."),
+    h(SecHead, { num: "02", eyebrow: "SOLUÇÃO RECOMENDADA", titulo: pkg.label, intro: pkg.tagline || undefined, markPath:d }),
+    h(View,{style:s.solutionExplanation,wrap:String(proposal.public_notes||calc.cycleObjective||"").length>2000},h(Text,{style:[s.p,{marginBottom:0,color:CINZA,lineHeight:1.55}]},proposal.public_notes || calc.cycleObjective || "Solução desenhada a partir do contexto apresentado.")),
     h(View, { style: [s.pairRow, ...((String(calc.whyNow||"").length+String(calc.cycleObjective||"").length)>2000?[{flexDirection:"column" as const}]:[])], wrap: (String(calc.whyNow||"").length+String(calc.cycleObjective||"").length)>2000 },
       calc.whyNow ? h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "Por que agora"), h(Text, { style: s.pairTexto }, calc.whyNow)) : null,
       calc.cycleObjective ? h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo }, "Objetivo deste ciclo"), h(Text, { style: s.pairTexto }, calc.cycleObjective)) : null,
     ),
-    expectedResults.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RESULTADO ESPERADO") : null,
-    expectedResults.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que deve estar diferente ao final") : null,
+    expectedResults.length ? h(BlockHead,{eyebrow:"RESULTADO ESPERADO",title:"O que deve estar diferente ao final"}) : null,
     expectedResults.length ? h(View, null, numberedNarrow(expectedResults)) : null,
-    advantages.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "VALOR AGREGADO") : null,
-    advantages.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Por que a CALI neste contexto") : null,
+    advantages.length ? h(BlockHead,{eyebrow:"VALOR AGREGADO",title:"Por que a CALI neste contexto"}) : null,
     advantages.length ? twoColNumbered(advantages) : null,
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
   // PÁGINA 3 — ESCOPO
@@ -401,13 +418,11 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
     h(SecHead, { num: "03", eyebrow: "ESCOPO CONTRATADO", titulo: "O que entra neste trabalho", intro: "O escopo abaixo traduz a prioridade desta versão em entregas claras, sem misturar o que pertence a etapas futuras." }),
     scope.length ? h(View, null, numberedWide(scope)) : null,
-    cadence.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RITMO E FORMATO") : null,
-    cadence.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Como a operação acontece") : null,
+    cadence.length ? h(BlockHead,{eyebrow:"RITMO E FORMATO",title:"Como a operação acontece"}) : null,
     cadence.length ? twoColNumbered(cadence) : null,
-    cycles.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "SEQUÊNCIA PREVISTA") : null,
-    cycles.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Ciclos e fases") : null,
+    cycles.length ? h(BlockHead,{eyebrow:"SEQUÊNCIA PREVISTA",title:"Ciclos e fases"}) : null,
     cycles.length ? twoColNumbered(cycles.map((c, i) => [(/^ciclo\b/i.test(c.title) ? c.title : `Ciclo ${i + 1} · ${c.title}`),c.focus,c.objective,c.duration].filter(Boolean).join(" · "))) : null,
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
   // PÁGINA 4 — GOVERNANÇA
@@ -415,19 +430,16 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(Watermark, { d }),
     h(TopoInner, { protocolo, emitidoEm: criadaEm, validade }),
     h(SecHead, { num: "04", eyebrow: "GOVERNANÇA DO TRABALHO", titulo: "Responsabilidades, continuidade e limites", intro: "Uma boa proposta também deixa claro quem conduz cada parte, o que depende da empresa e o que não está incluído nesta contratação." }),
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "RESPONSABILIDADES") : null,
-    (caliResponsibilities.length || clientResponsibilities.length) ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Quem faz o quê") : null,
+    (caliResponsibilities.length || clientResponsibilities.length) ? h(BlockHead,{eyebrow:"RESPONSABILIDADES",title:"Quem faz o quê"}) : null,
     (caliResponsibilities.length || clientResponsibilities.length) ? h(View, { style: [s.pairRow,...((caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800?[{flexDirection:"column" as const}]:[])], wrap: (caliResponsibilities.join('').length+clientResponsibilities.join('').length)>1800 },
-      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo, minPresenceAhead:28 }, "A CALI conduz"), ...bullets(caliResponsibilities)),
-      h(View, { style: s.pairBox }, h(Text, { style: s.pairRotulo, minPresenceAhead:28 }, "A empresa viabiliza"), ...bullets(clientResponsibilities)),
+      h(View, { style: [s.pairBox,s.responsibilityBox] }, h(Text, { style: [s.pairRotulo,s.responsibilityLabel], minPresenceAhead:28 }, "A CALI conduz"), ...bullets(caliResponsibilities)),
+      h(View, { style: [s.pairBox,s.responsibilityBox] }, h(Text, { style: [s.pairRotulo,s.responsibilityLabel], minPresenceAhead:28 }, "A empresa viabiliza"), ...bullets(clientResponsibilities)),
     ) : null,
-    roadmapItems.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "CONTINUIDADE") : null,
-    roadmapItems.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que fica organizado para depois") : null,
+    roadmapItems.length ? h(BlockHead,{eyebrow:"CONTINUIDADE",title:"O que fica organizado para depois"}) : null,
     roadmapItems.length ? h(View, null, numberedNarrow(roadmapItems)) : null,
-    outOfScope.length ? h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "LIMITES DESTA PROPOSTA") : null,
-    outOfScope.length ? h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "O que não está incluído") : null,
+    outOfScope.length ? h(BlockHead,{eyebrow:"LIMITES DESTA PROPOSTA",title:"O que não está incluído"}) : null,
     outOfScope.length ? twoColBullets(outOfScope, true) : null,
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
 
@@ -435,7 +447,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
   if(coverage?.enabled) paginas.push(h(Page,{key:'coverage',size:'A4',style:s.paginaInner},
     h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
     h(SecHead,{num:'+',eyebrow:'ABRANGÊNCIA CONTRATUAL',titulo:'Onde e com quem vamos atuar'}),
-    ...COVERAGE_FIELDS.map(([key,label])=>detailBlock(label,coverage[key])),h(Footer,{protocolo})));
+    ...COVERAGE_FIELDS.map(([key,label])=>detailBlock(label,coverage[key])),h(GoldTop), h(Footer,{protocolo})));
   if(modules.length) paginas.push(h(Page,{key:'modules',size:'A4',style:s.paginaInner},
     h(Watermark,{d}),h(TopoInner,{protocolo,emitidoEm:criadaEm,validade}),
     h(SecHead,{num:'+',eyebrow:'ENTREGAS COMPLEMENTARES',titulo:'Módulos complementares contratados',intro:'Capacidade operacional específica, separada das horas executivas do pacote principal.'}),
@@ -444,7 +456,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       detailBlock('Cobrança',`${currency(Number(m.amount)||0)} · ${{recurring:'Recorrente',one_time:'Pontual',custom:'Personalizada'}[m.type]||m.type}${m.billingLabel?' · '+m.billingLabel:''}`),
       ...MODULE_FIELDS.filter(([key])=>!['name','amount','billingLabel'].includes(key)).map(([key,label])=>detailBlock(label,m[key])),
       ...(m.kind==='recruiting'?RECRUITING_FIELDS.map(([key,label])=>detailBlock(label,m.recruiting?.[key])):[]),
-    ]),h(Footer,{protocolo})));
+    ]),h(GoldTop), h(Footer,{protocolo})));
 
   // PÁGINA 5 — INVESTIMENTO
   const cards = [
@@ -480,11 +492,10 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       h(Text,{style:s.p},'A ativação incide sobre o valor final do pacote principal. Os módulos não alteram automaticamente sua base de cálculo.'),
     ) : null,
     cards.length ? h(View, { style: s.cardsLinha }, ...cards.map((c, i) => h(View, { key: i, style: s.card }, h(Text, { style: s.cardRotulo }, c.rotulo), h(Text, { style: s.cardValor }, c.valor)))) : null,
-    h(Text, { style: s.blocoRotulo, minPresenceAhead:48 }, "CONDIÇÕES IMPORTANTES"),
-    h(Text, { style: s.blocoTitulo, minPresenceAhead:30 }, "Para esta contratação"),
+    h(BlockHead,{eyebrow:"CONDIÇÕES IMPORTANTES",title:"Para esta contratação"}),
     twoColBullets(Array.isArray(calc.commercialConditions)?clean(calc.commercialConditions):condicoesImportantes(months, hours, payment, scope.length > 0)),
     proposal.payment_terms ? detailBlock("Condições de pagamento",proposal.payment_terms) : null,
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
   // PÁGINA 6 — PRÓXIMOS PASSOS + ASSINATURA
@@ -529,7 +540,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       ),
       h(Image, { src: qr, style: s.qr }),
     ),
-    h(Footer, { protocolo }),
+    h(GoldTop), h(Footer, { protocolo }),
   ));
 
   const el = h(Document, { title: `Proposta CALI — ${service_title}`, author: "CALI RH", creator: "Portal CALI", producer: "Portal CALI", language: "pt-BR", subject: protocolo }, ...paginas);
@@ -552,6 +563,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     }
   }
   sheets.forEach((sheet, index) => {
+
     const label = index === sheets.length - 1 ? protocolo : `${String(index + 1).padStart(2, "0")} / ${String(sheets.length).padStart(2, "0")}`;
     sheet.drawText(label, { x: sheet.getWidth() - 24 - footerFont.widthOfTextAtSize(label, 7.4), y: 42, size: 7.4, font: footerFont, color: rgb(107 / 255, 93 / 255, 99 / 255) });
   });

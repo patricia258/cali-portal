@@ -38,3 +38,9 @@ Módulos e abrangência aparecem em seções próprias somente quando ativados. 
 Commit funcional 709556e no domínio oficial. Frontend retornou HTTP 200 com o editor, módulo de campos e leitura de snapshots publicados. Funções de PDF e envio publicadas pelo painel autenticado do Supabase; teste autenticado de geração da proposta Academia do Rock retornou HTTP 200 e corpo %PDF-1.7. Não houve disparo de e-mail.
 
 Teste adicional local de proposta marcada como enviada: salvar criou ID novo, versão 2 e protocolo V2; 12 entregas e 9 ciclos foram preservados. Conferência visual do editor e dos campos de ativação registrada em captura local. A sessão real da usuária não foi usada para inserir condições de teste.
+
+## Fidelidade visual à referência — 20/11/2026
+
+Restaurados: moldura marfim do produto selecionado com borda dourada, nome, subtítulo e lima discreta; painel de explicação com fundo marfim e filete dourado; filetes contínuos nos subtítulos; cartões de responsabilidades com fundo suave, cantos retos, borda superior dourada e rótulos bordô. Faixa superior em degradê vetorial dourado/marfim em todas as páginas, inclusive capa e continuações.
+
+Verificação local dos onze cenários de PDF mantida: modelo convencional em seis páginas, estresse em 29, marcadores finais de conteúdo presentes, sem colisão com o rodapé e faixa verificada em todas as folhas. A alteração é no gerador canônico, utilizado tanto pela prévia do portal quanto pelo download e pelo anexo de e-mail; não altera valores nem dados dos clientes.
