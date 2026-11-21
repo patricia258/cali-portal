@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { Document, Defs, Font, Image, LinearGradient, Page, Path, Rect, Stop, StyleSheet, Svg, Text, View, pdf } from "npm:@react-pdf/renderer@4.3.0";
-import { createElement as h } from "npm:react@18.3.1";
+import { createElement as h, cloneElement } from "npm:react@18.3.1";
 import QRCode from "npm:qrcode@1.5.4";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
@@ -343,13 +343,13 @@ async function obterCarimbo(admin: ReturnType<typeof createClient>, proposal: an
   throw error;
 }
 
-async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, submission: any, service_title: string) {
+async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, submission: any, service_title: string, preview = false) {
   const calc = proposal.calculator_data || {};
   submission = {...submission,...calc.contactSnapshot,protocol:calc.documentProtocol||submission.protocol};
   const protocolo = submission.protocol as string;
   const urlVerificar = `${PORTAL_URL}/v/${protocolo}`;
   const qr = await QRCode.toDataURL(urlVerificar, { margin: 0, width: 240, color: { dark: "#5A1E2D", light: "#FFFFFF" } });
-  const carimbo = await obterCarimbo(admin, proposal, submission, `Proposta CALI — ${service_title}`);
+  const carimbo = preview ? {emitido_em:new Date().toISOString(),hash:"",signatario_nome:"Patrícia Lima",signatario_cargo:"People Advisory Executive · CALI RH"} : await obterCarimbo(admin, proposal, submission, `Proposta CALI — ${service_title}`);
   const emitidoEm = carimbo.emitido_em as string;
   const hash = carimbo.hash as string;
   const d = await limaPath();
@@ -584,7 +584,7 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
       h(Text, { style: s.assinaturaNome }, carimbo.signatario_nome),
       h(Text, { style: s.assinaturaCargo }, carimbo.signatario_cargo),
     ),
-    h(View, { style: s.registro, wrap: false },
+    preview ? h(View,{style:s.registro,wrap:false},h(View,{style:{flex:1}},h(Text,{style:s.regRotulo},"PRÉVIA DE EDIÇÃO · NÃO EMITIDA"),h(View,{style:{marginTop:5}},h(Text,{style:s.regLinha},"Conteúdo em edição, sem registro eletrônico de emissão."),h(Text,{style:s.regLinha},"Salve a proposta para gerar o documento definitivo."),h(Text,{style:s.regLinha},"O quadro de autenticidade ocupará este espaço."))),h(View,{style:s.qr})) : h(View, { style: s.registro, wrap: false },
       h(View, { style: { flex: 1 } },
         h(Text, { style: s.regRotulo }, "Registro eletrônico de emissão"),
         h(View, { style: { marginTop: 5 } },
@@ -598,7 +598,16 @@ async function buildPdf(admin: ReturnType<typeof createClient>, proposal: any, s
     h(GoldTop), h(Footer, { protocolo }),
   ));
 
-  const el = h(Document, { title: `Proposta CALI — ${service_title}`, author: "CALI RH", creator: "Portal CALI", producer: "Portal CALI", language: "pt-BR", subject: protocolo }, ...paginas);
+  // Observações inseridas no editor entram no mesmo fluxo de paginação da exportação.
+  const extras = Array.isArray(calc.visualEditorExtras) ? calc.visualEditorExtras : [];
+  const renderedPages = paginas.map((page:any)=>{
+    const additions=extras.filter((b:any)=>b.section===page.key && String(b.text||'').trim());
+    if(!additions.length)return page;
+    const children=[...page.props.children];
+    children.splice(children.length-2,0,...additions.map((b:any,i:number)=>h(View,{key:`extra-${i}`,style:{marginTop:12,marginBottom:10,padding:12,borderLeftWidth:2,borderLeftColor:DOURADO,backgroundColor:MARFIM},wrap:true},b.title?h(Text,{style:s.blocoRotulo,minPresenceAhead:30},String(b.title)):null,...textParts(String(b.text),1000).map((part,j)=>h(Text,{key:j,style:s.p,orphans:2,widows:2},part)))));
+    return cloneElement(page,{},...children);
+  });
+  const el = h(Document, { title: `Proposta CALI — ${service_title}`, author: "CALI RH", creator: "Portal CALI", producer: "Portal CALI", language: "pt-BR", subject: protocolo }, ...renderedPages);
   // A numeração é aplicada após a paginação real, inclusive quando o conteúdo cresce.
   // O render callback de Text não é confiável nesta versão do renderer no Edge.
   const rendered = await pdf(el as never).toBlob();
@@ -630,6 +639,22 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   try {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    if(req.method === "POST") {
+      // Apenas a administradora pode compilar dados ainda não salvos. Sem emissão ou persistência.
+      const token=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
+      const {data:{user},error:authError}=await admin.auth.getUser(token);
+      if(authError || String(user?.email||"").toLowerCase()!=="patricia@calirh.com") return new Response(JSON.stringify({error:"Acesso administrativo necessário."}),{status:403,headers:{...cors(req),"Content-Type":"application/json"}});
+      const raw=await req.text();
+      if(new TextEncoder().encode(raw).length>300000) return new Response(JSON.stringify({error:"O conteúdo excede o limite da prévia."}),{status:413,headers:{...cors(req),"Content-Type":"application/json"}});
+      const body=JSON.parse(raw), draft=body.proposal;
+      if(!draft || !/^[0-9a-f-]{36}$/i.test(String(draft.submission_id||"")) || !SERVICE_LABELS[draft.service_slug] || !Number.isFinite(draft.final_unit) || draft.final_unit<0) return new Response(JSON.stringify({error:"Dados da proposta inválidos."}),{status:400,headers:{...cors(req),"Content-Type":"application/json"}});
+      const {data:submission,error}=await admin.from("cali_submissions").select("*").eq("id",draft.submission_id).single();
+      if(error || !submission || submission.service_slug!==draft.service_slug) return new Response(JSON.stringify({error:"Briefing não encontrado."}),{status:404,headers:{...cors(req),"Content-Type":"application/json"}});
+      const blob=await buildPdf(admin,draft,submission,SERVICE_LABELS[draft.service_slug],true);
+      return new Response(await blob.arrayBuffer(),{headers:{...cors(req),"Content-Type":"application/pdf","Cache-Control":"no-store","X-Proposal-Preview":"draft"}});
+    }
+    if(req.method!=="GET") return new Response("Método não permitido",{status:405,headers:cors(req)});
+
     const url = new URL(req.url);
     const protocolParam = url.searchParams.get("protocolo");
     const proposalParam = url.searchParams.get("proposal_id");

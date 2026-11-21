@@ -14,6 +14,7 @@ if (!id) { drawerBody.innerHTML = "<p>Registro não encontrado.</p>"; throw new 
 document.getElementById("view-link").href = `/admin/ver.html?id=${id}`;
 
 let pricingRules = [], proposals = [], mapaResponses = [], selected = null;
+const draftCreatedAt = new Date().toISOString();
 
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
 const currency = (value) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -464,7 +465,7 @@ function renderEditor() {
     const discountName = document.getElementById("discount-type").value || "Desconto";
     const hours = Number(document.getElementById("monthly-hours")?.value || 0);
     document.getElementById("calc-result").innerHTML = `<div class="calc-line"><span>Valor de referência</span><strong>${currency(result.subtotal)}</strong></div>${result.discountValue ? `<div class="calc-line"><span>${escapeHtml(discountName)} (${result.discountPct.toLocaleString("pt-BR") }%)</span><strong>− ${currency(result.discountValue)}</strong></div>` : ""}<div class="calc-total"><span>${result.monthly ? "Mensalidade final" : "Investimento final"}</span><strong>${currency(result.finalUnit)}</strong></div>${result.monthly ? `<div class="calc-line" id="activation-result"><span>Ativação única · ${extension.activation.percent.toLocaleString("pt-BR")}%</span><strong>${currency(totals.activation)}</strong></div><div class="calc-condition">Calculada automaticamente sobre a mensalidade final, após os descontos. Cobrança única separada, sem multiplicação pelo prazo e sem inclusão na mensalidade.</div>` : ""}${result.ceilingApplied ? `<div class="calc-condition">O teto comercial de ${currency(result.priceBand.max)} foi aplicado. Se o escopo integral exigir mais capacidade, divida em fases ou selecione outro modelo.</div>` : ""}${result.monthly ? `<div class="calc-condition">${hours ? `${hours} horas mensais. ` : ""}Contrato mínimo de ${result.months} meses, renovação automática e aviso prévio de 30 dias. A recorrência não é somada como valor total.</div>` : ""}`;
-    if(extension.modulesEnabled) document.getElementById('calc-result').insertAdjacentHTML('beforeend',`<div class="calc-line"><span>Módulos recorrentes</span><strong>${currency(totals.recurring)}</strong></div><div class="calc-total"><span>Mensalidade com módulos</span><strong>${currency(totals.monthly)}</strong></div><div class="calc-line"><span>Módulos pontuais</span><strong>${currency(totals.oneTime)}</strong></div>${extension.modules.filter(m=>m.type==='custom').map(m=>`<div class="calc-line"><span>${escapeHtml(m.name)} · ${escapeHtml(m.billingLabel||'Defina a cobrança')}</span><strong>${currency(m.amount)}</strong></div>`).join('')}<p class="field-help">Valores dos módulos separados do pacote, sem aplicar o desconto ou teto do pacote. A vigência não é multiplicada como cobrança imediata.</p>`);
+    if(extension.modulesEnabled && (totals.recurring>0 || totals.oneTime>0 || extension.modules.some(m=>m.type==='custom'))) document.getElementById('calc-result').insertAdjacentHTML('beforeend',`<div class="calc-line"><span>Módulos recorrentes</span><strong>${currency(totals.recurring)}</strong></div><div class="calc-total"><span>Mensalidade com módulos</span><strong>${currency(totals.monthly)}</strong></div><div class="calc-line"><span>Módulos pontuais</span><strong>${currency(totals.oneTime)}</strong></div>${extension.modules.filter(m=>m.type==='custom').map(m=>`<div class="calc-line"><span>${escapeHtml(m.name)} · ${escapeHtml(m.billingLabel||'Defina a cobrança')}</span><strong>${currency(m.amount)}</strong></div>`).join('')}<p class="field-help">Valores dos módulos separados do pacote, sem aplicar o desconto ou teto do pacote. A vigência não é multiplicada como cobrança imediata.</p>`);
     const technicalRule = pricingRules.find((item) => item.service_slug === service.slug && item.package_code === technicalPackage);
     const technicalResult = technicalRule ? calculateProposal({ service, answers, packageCode:technicalPackage, basePrice:technicalRule.base_price, months:document.getElementById("months").value }) : null;
     const budgetLive = document.getElementById("budget-live");
@@ -522,10 +523,11 @@ function editableSubmissionPayload() {
 
 async function saveReview() {
   await rest(`cali_submissions?id=eq.${selected.id}`, { method:"PATCH", headers:{Prefer:"return=representation"}, body:JSON.stringify({status:document.getElementById("review-status").value,internal_notes:document.getElementById("internal-notes").value,updated_at:new Date().toISOString()}) });
+  window.__visualEditorSaved?.();
   location.href = "/admin";
 }
 
-async function saveProposal() {
+function proposalPayload() {
   const contactSnapshot=editableSubmissionPayload();
   delete contactSnapshot.status;delete contactSnapshot.internal_notes;delete contactSnapshot.updated_at;
   const extensions=window.__proposalExtensions();
@@ -575,15 +577,20 @@ async function saveProposal() {
   if (includeMap && (!mapaPeople.score || mapaPeople.score > 10)) throw new Error("Informe uma nota válida do Mapa de People entre 0,1 e 10.");
   const nextVersion=existing && existing.status!=="rascunho" ? Number(existing.version||1)+1 : existing?.version||1;
   const documentProtocol=nextVersion>1 ? `${selected.protocol}-V${nextVersion}` : selected.protocol;
-  const calculatorData = { ...existing?.calculator_data, ...calculation, ...extensions, contactSnapshot, documentProtocol, editorialVersion:2, monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim(), budgetStrategy:document.getElementById("budget-strategy")?.value || "manter", investmentAnswer:investmentContextFor(service, selected.answers || {}), contextSummary:document.getElementById("proposal-context").value.trim(), painPoints:lines("proposal-pains"), executiveReading:document.getElementById("proposal-reading").value.trim(), mapaPeople, whyNow:document.getElementById("proposal-why-now").value.trim(), cycleObjective:document.getElementById("proposal-cycle-objective").value.trim(), expectedResults:lines("proposal-results"), advantages, cycles, cadence, caliResponsibilities, clientResponsibilities, roadmapItems, outOfScope, bonus, payment };
-  const payload = { submission_id:selected.id, service_slug:selected.service_slug, version:nextVersion, package_code:document.getElementById("package-code").value, base_price:Number(document.getElementById("base-price").value)||0, extras:Number(document.getElementById("extras").value)||0, discount_pct:Math.min(50, calculation.discountPct), contract_months:Number(document.getElementById("months").value)||1, validity_days:Number(document.getElementById("validity").value)||15, subtotal:calculation.subtotal, final_unit:calculation.finalUnit, total_value:calculation.finalUnit, calculator_data:calculatorData, scope_items:scopeItems, payment_terms:document.getElementById("payment-terms").value, public_notes:document.getElementById("public-notes").value, status:"rascunho", updated_at:new Date().toISOString() };
+  const calculatorData = { ...existing?.calculator_data, ...calculation, ...extensions, contactSnapshot, documentProtocol, editorialVersion:2, visualEditorExtras:window.__visualEditorExtras?.() || existing?.calculator_data?.visualEditorExtras || [], monthlyHours:Number(document.getElementById("monthly-hours")?.value || 0), discountType:document.getElementById("discount-type").value, discountDescription:document.getElementById("discount-description").value.trim(), budgetStrategy:document.getElementById("budget-strategy")?.value || "manter", investmentAnswer:investmentContextFor(service, selected.answers || {}), contextSummary:document.getElementById("proposal-context").value.trim(), painPoints:lines("proposal-pains"), executiveReading:document.getElementById("proposal-reading").value.trim(), mapaPeople, whyNow:document.getElementById("proposal-why-now").value.trim(), cycleObjective:document.getElementById("proposal-cycle-objective").value.trim(), expectedResults:lines("proposal-results"), advantages, cycles, cadence, caliResponsibilities, clientResponsibilities, roadmapItems, outOfScope, bonus, payment };
+  const payload = { created_at:existing?.status==="rascunho" ? existing.created_at : draftCreatedAt, submission_id:selected.id, service_slug:selected.service_slug, version:nextVersion, package_code:document.getElementById("package-code").value, base_price:Number(document.getElementById("base-price").value)||0, extras:Number(document.getElementById("extras").value)||0, discount_pct:Math.min(50, calculation.discountPct), contract_months:Number(document.getElementById("months").value)||1, validity_days:Number(document.getElementById("validity").value)||15, subtotal:calculation.subtotal, final_unit:calculation.finalUnit, total_value:calculation.finalUnit, calculator_data:calculatorData, scope_items:scopeItems, payment_terms:document.getElementById("payment-terms").value, public_notes:document.getElementById("public-notes").value, status:"rascunho", updated_at:new Date().toISOString() };
+  return {payload,existing};
+}
+
+async function saveProposal() {
+  const {payload,existing}=proposalPayload();
   let saved;
   if (existing?.status === "rascunho") saved = await rest(`cali_proposals?id=eq.${existing.id}&updated_at=eq.${encodeURIComponent(existing.updated_at)}`, {method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});
   else saved = await rest("cali_proposals", {method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});
   if(!saved?.[0]?.id) throw new Error("A proposta mudou em outra aba. Atualize a página antes de salvar novamente.");
   await rest(`cali_submissions?id=eq.${selected.id}`, {method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"edicao",internal_notes:document.getElementById("internal-notes").value,updated_at:new Date().toISOString()})});
   const savedId = saved?.[0]?.id || existing?.id;
-  if (savedId) location.href = `/proposta/${savedId}`;
+  if (savedId) { window.__visualEditorSaved?.(); location.href = `/proposta/${savedId}`; }
 }
 
 let saving=false;
@@ -606,3 +613,5 @@ selected = submissionData?.[0];
 if (!selected) { drawerBody.innerHTML = "<p>Registro não encontrado.</p>"; throw new Error("registro não encontrado"); }
 pricingRules = ruleData || []; proposals = proposalData || []; mapaResponses = mapaData || [];
 renderEditor();
+const { mountVisualEditor } = await import("/js/proposal-visual-editor.js?v=20261120-visual");
+mountVisualEditor({session,submission:selected,existing:latestProposal(selected.id),getPayload:()=>proposalPayload().payload});
