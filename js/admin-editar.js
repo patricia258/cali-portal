@@ -613,5 +613,5 @@ selected = submissionData?.[0];
 if (!selected) { drawerBody.innerHTML = "<p>Registro não encontrado.</p>"; throw new Error("registro não encontrado"); }
 pricingRules = ruleData || []; proposals = proposalData || []; mapaResponses = mapaData || [];
 renderEditor();
-const { mountVisualEditor } = await import("/js/proposal-visual-editor.js?v=20261120-visual");
+const { mountVisualEditor } = await import("/js/proposal-visual-editor.js?v=20261120-visual2");
 mountVisualEditor({session,submission:selected,existing:latestProposal(selected.id),getPayload:()=>proposalPayload().payload});

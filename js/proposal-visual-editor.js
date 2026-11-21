@@ -30,6 +30,16 @@ export function mountVisualEditor({session,submission,existing,getPayload}) {
   let texts=[],pageNodes=[],lastRendered=-1;
   const sourceSections=[...source.querySelectorAll('.drawer-section')];
   const inputs=[...source.querySelectorAll('input,textarea,select')];
+  const flat=document.createElement('div');flat.id='ve-fields-flat';source.append(flat);
+  // Só os campos gerais saem das grades antigas. Módulos e abrangência preservam
+  // seus contêineres, usados pela coleta estruturada já existente.
+  for(const input of inputs){
+    if(input.closest('[data-module],#coverage-fields') || input.id==='coverage-enabled' || input.id==='modules-enabled')continue;
+    let fieldNode=input.closest('.field');
+    if(!fieldNode && input.id==='mapa-include'){fieldNode=document.createElement('div');fieldNode.className='field';input.closest('label').before(fieldNode);fieldNode.append(input.closest('label'));}
+    if(fieldNode && !flat.contains(fieldNode))flat.append(fieldNode);
+  }
+
   inputs.forEach(input=>{const l=input.closest('.field')?.querySelector('label');if(l&&input.id)l.htmlFor=input.id;});
   // Todas as propriedades continuam acessíveis, inclusive novos campos de módulos.
   function showFields(groupKey,fieldId){
@@ -39,7 +49,7 @@ export function mountVisualEditor({session,submission,existing,getPayload}) {
     $('ve-field-heading').textContent=current.name;
     $('ve-field-select').innerHTML=current.fields.filter(id=>$(id)).map(id=>`<option value="${id}" ${id===field?'selected':''}>${esc(label(id))}</option>`).join('');
     $('ve-field-select').hidden=!!current.whole;
-    let wholeSection=current.whole?$(current.whole)?.closest('.drawer-section'):null;
+    let wholeSection=current.whole?$(current.whole)?.closest('.drawer-section'):null;flat.hidden=!!wholeSection;
     source.querySelectorAll('.ve-whole').forEach(n=>n.classList.remove('ve-whole'));
     source.querySelectorAll('.field').forEach(n=>n.classList.add('ve-field-hidden'));
     source.querySelector('.proposal-editor-intro')?.classList.add('ve-field-hidden');

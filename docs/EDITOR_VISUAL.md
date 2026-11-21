@@ -22,3 +22,5 @@ Direção aprovada: A, edição diretamente no documento. Os estudos A/B/C conti
 Harness local em `/tmp/cali-pdf-review`: fonte do renderer transformada somente para imports/fontes locais; admin simulado lança erro em qualquer acesso a emissão no modo preview. Exemplo Academia:6 páginas; observação com90 frases:8 páginas, todas90 ocorrências preservadas e marcador final presente. Ativação15% de4320 =648. Sem hash de integridade no modo de prévia.
 
 Teste de navegador com cópia local dos dados e persistência/envio bloqueados: seleção sobre o documento, edição inline, recompilação com texto editado e módulos acessíveis. Conferência de produção registrada na conversa após publicação; não salvar nem enviar a proposta real para testar.
+
+Conferência autenticada em produção: editor e prévia carregaram seis páginas com os dados atuais do portal; POST sem usuário administrativo retornou403. Teste local de troca de pacote para FULL atualizou base para7000 e preservou nome e escopo personalizados. Layout compacto conferido a390px, sem rolagem horizontal.
